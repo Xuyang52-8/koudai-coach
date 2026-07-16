@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 160" width="480" height="160" fill="none" stroke="#F4F4F2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <rect width="480" height="160" fill="#0A0A0B" stroke="none"/>
+  <!-- 分隔细竖线 -->
+  <line x1="160" y1="30" x2="160" y2="130" opacity="0.5"/>
+  <line x1="320" y1="30" x2="320" y2="130" opacity="0.5"/>
+
+  <!-- 泳镜 -->
+  <rect x="42" y="64" width="40" height="26" rx="12"/>
+  <rect x="86" y="64" width="40" height="26" rx="12"/>
+  <line x1="82" y1="76" x2="86" y2="76"/>
+  <line x1="42" y1="76" x2="22" y2="70"/>
+  <line x1="126" y1="76" x2="146" y2="70"/>
+  <!-- 泳镜薄荷绿细节：镜片反光点 -->
+  <circle cx="56" cy="73" r="2.5" stroke="#3FE1B1"/>
+
+  <!-- 散步运动鞋侧影 -->
+  <path d="M184 108 L184 84 C 198 79 210 72 222 64 C 236 70 244 82 256 88 L 296 96 C 301 98 301 108 295 108 Z"/>
+  <line x1="184" y1="108" x2="296" y2="108"/>
+  <line x1="214" y1="80" x2="226" y2="88"/>
+  <line x1="222" y1="74" x2="234" y2="82"/>
+  <line x1="230" y1="69" x2="242" y2="77"/>
+  <!-- 鞋薄荷绿细节：鞋带孔点 -->
+  <circle cx="246" cy="86" r="2.5" stroke="#3FE1B1"/>
+  <!-- 鞋底气垫线 -->
+  <line x1="192" y1="102" x2="288" y2="102" opacity="0.6"/>
+
+  <!-- 卷起的瑜伽垫 -->
+  <rect x="368" y="82" width="72" height="26" rx="10"/>
+  <ellipse cx="368" cy="95" rx="12" ry="13"/>
+  <path d="M368 84 C 361 88 361 102 368 106"/>
+  <!-- 瑜伽垫薄荷绿细节：卷心 -->
+  <circle cx="368" cy="95" r="2.5" stroke="#3FE1B1"/>
+</svg>

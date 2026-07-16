@@ -1,0 +1,231 @@
+/**
+ * 《口袋私教》数据类型契约
+ * 与 src/data/ 下 4 个 JSON 一一对应，页面代理请从这里 import type。
+ */
+
+/* ---------- exercises.json ---------- */
+
+export interface EquipmentInfo {
+  /** 器械名称，如 "跑步机" */
+  name: string;
+  /** 长什么样（口语描述，给不认识器械的新手） */
+  look: string;
+  /** 在健身房哪个区域找 */
+  where: string;
+}
+
+export type ExerciseCategory = 'cardio' | 'pull' | 'legs' | 'push' | 'fullbody' | 'core';
+
+export interface Exercise {
+  id: string;
+  name: string;
+  /** 目标肌肉，如 "背阔肌、大圆肌" */
+  muscle: string;
+  category: ExerciseCategory | string;
+  equipment: EquipmentInfo;
+  /** 口语步骤 */
+  steps: string[];
+  /** 邪修口诀（一句画面感提示） */
+  mantra: string;
+  sets: number;
+  /** 次数/时长描述，如 "12次" "5分钟" "力竭" */
+  reps: string;
+  suggestedWeight: string;
+  commonMistakes: string[];
+  /** 单侧动作：强制左侧先做 */
+  unilateral: boolean;
+  /** 组间休息秒数，0 = 不计时 */
+  restSeconds: number;
+  videoKeyword: string;
+  /** TTS 朗读脚本 */
+  voiceScript: string;
+  /** 每组估算消耗大卡 */
+  kcalPerSet: number;
+}
+
+/* ---------- program.json ---------- */
+
+export interface Workout {
+  id: string; // 'A' | 'B' | 'C' | 'D'
+  title: string;
+  subtitle: string;
+  focus: string;
+  warmupExerciseId: string;
+  exerciseIds: string[];
+  coachNote: string;
+}
+
+export interface RestOption {
+  icon: 'swim' | 'walk' | 'stretch' | string;
+  title: string;
+  detail: string;
+  durationMin: number;
+  kcal: number;
+}
+
+export interface RestDay {
+  title: string;
+  options: RestOption[];
+  coachNote: string;
+}
+
+export interface Program {
+  cycleType: string; // "one-on-one-off"
+  workouts: Workout[];
+  restDay: RestDay;
+  rules: string[];
+}
+
+/* ---------- nutrition.json ---------- */
+
+export interface NutritionProfile {
+  weightKg: number;
+  heightCm: number;
+  age: number;
+  bmr: number;
+  tdee: number;
+  targetKcal: number;
+  proteinG: number;
+  fatG: number;
+  carbsG: number;
+}
+
+export interface FoodItem {
+  name: string;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  unit: string;
+  aliases: string[];
+}
+
+export interface Supplement {
+  id: 'whey' | 'creatine' | string;
+  name: string;
+  dose: string;
+  timing: string;
+  kcal: number;
+  protein: number;
+  note: string;
+}
+
+export interface NutritionData {
+  profile: NutritionProfile;
+  foods: FoodItem[];
+  supplements: Supplement[];
+  tips: string[];
+}
+
+/* ---------- onboarding.json ---------- */
+
+export interface OnboardingData {
+  welcome: string;
+  disclaimer: string;
+  firstWeekTips: string[];
+}
+
+/* ---------- localStorage 持久化结构（键空间 koudai-coach:*） ---------- */
+
+/** koudai-coach:cycle */
+export interface HistoryEntry {
+  /** YYYY-MM-DD 本地日期 */
+  date: string;
+  /** 训练课 id（'A'..'D'），休息日打卡固定为 'REST' */
+  workoutId: string;
+  kcal: number;
+}
+
+export interface CycleState {
+  /** 下一节课在 program.workouts 里的下标 0-3 */
+  nextWorkoutIndex: number;
+  streak: number;
+  /** YYYY-MM-DD | null */
+  lastTrainingDate: string | null;
+  lastRestDate: string | null;
+  history: HistoryEntry[];
+}
+
+/** koudai-coach:diet:{YYYY-MM-DD} */
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+export interface DietEntry {
+  id: string;
+  label: string;
+  kcal: number;
+  protein: number;
+  meal: MealType;
+  source: 'ai' | 'local' | 'manual';
+}
+
+/** koudai-coach:supplements:{YYYY-MM-DD} */
+export interface SupplementState {
+  whey: boolean;
+  creatine: boolean;
+}
+
+/** koudai-coach:settings */
+export interface AppSettings {
+  deepseekKey: string;
+  visionEndpoint: string;
+  visionKey: string;
+  visionModel: string;
+  ttsOn: boolean;
+  /** 倒计时语音子开关 */
+  ttsCountdownOn: boolean;
+  weightKg: number;
+}
+
+/** koudai-coach:session —— 进行中的训练（锁屏恢复用） */
+export interface WorkoutSession {
+  workoutId: string;
+  exerciseIndex: number;
+  setIndex: number;
+  side: 'L' | 'R' | null;
+  startedAt: number;
+}
+
+/** koudai-coach:checklist:{YYYY-MM-DD} —— 首页出门前 checklist */
+export type ChecklistState = Record<string, boolean>;
+
+/* ---------- 今日状态（utils-workout.getTodayState 返回值） ---------- */
+
+export interface TodayWorkoutState {
+  type: 'workout';
+  workout: Workout;
+  /** 第几课（1-4） */
+  lessonNumber: number;
+  /** 热身动作（可能为 null，数据异常时兜底） */
+  warmup: Exercise | null;
+  exercises: Exercise[];
+  /** 全课估算消耗（kcalPerSet × sets 求和，含热身） */
+  estimatedKcal: number;
+  /** 估算分钟数（含 5 分钟热身） */
+  estimatedMinutes: number;
+  /** 这节课今天是否已经打过卡 */
+  doneToday: boolean;
+}
+
+export interface TodayRestState {
+  type: 'rest';
+  /** 下一节课信息，休息日卡/循环进度用 */
+  nextWorkout: Workout;
+  nextLessonNumber: number;
+  /** 今天是否已经打过卡（训练或恢复） */
+  doneToday: boolean;
+}
+
+export type TodayState = TodayWorkoutState | TodayRestState;
+
+/* ---------- AI 估算结果 ---------- */
+
+export interface FoodEstimateItem {
+  label: string;
+  kcal: number;
+  protein: number;
+  source: 'ai' | 'local';
+}
+
+export interface FoodEstimateResult {
+  items: FoodEstimateItem[];
+}

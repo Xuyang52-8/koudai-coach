@@ -1,0 +1,607 @@
+{
+  "profile": {
+    "weightKg": 81.5,
+    "heightCm": 181,
+    "age": 20,
+    "bmr": 1851,
+    "tdee": 2590,
+    "targetKcal": 2250,
+    "proteinG": 150,
+    "fatG": 65,
+    "carbsG": 240
+  },
+  "foods": [
+    {
+      "name": "老乡鸡葱油鸡（去皮）",
+      "kcal": 180,
+      "protein": 28,
+      "carbs": 0,
+      "fat": 7,
+      "unit": "1份",
+      "aliases": [
+        "葱油鸡"
+      ]
+    },
+    {
+      "name": "老乡鸡梅菜扣肉",
+      "kcal": 450,
+      "protein": 15,
+      "carbs": 8,
+      "fat": 38,
+      "unit": "1份",
+      "aliases": [
+        "梅菜扣肉",
+        "扣肉"
+      ]
+    },
+    {
+      "name": "老乡鸡米饭",
+      "kcal": 230,
+      "protein": 5,
+      "carbs": 50,
+      "fat": 0.5,
+      "unit": "1碗",
+      "aliases": [
+        "老乡鸡米饭",
+        "一碗米饭"
+      ]
+    },
+    {
+      "name": "老乡鸡农家蒸蛋",
+      "kcal": 90,
+      "protein": 7,
+      "carbs": 2,
+      "fat": 6,
+      "unit": "1份",
+      "aliases": [
+        "蒸蛋",
+        "鸡蛋羹"
+      ]
+    },
+    {
+      "name": "老乡鸡炒青菜",
+      "kcal": 60,
+      "protein": 2,
+      "carbs": 4,
+      "fat": 4,
+      "unit": "1份",
+      "aliases": [
+        "青菜",
+        "炒时蔬"
+      ]
+    },
+    {
+      "name": "老乡鸡老母鸡汤",
+      "kcal": 80,
+      "protein": 6,
+      "carbs": 2,
+      "fat": 5,
+      "unit": "1碗",
+      "aliases": [
+        "鸡汤",
+        "老母鸡汤"
+      ]
+    },
+    {
+      "name": "苏客卤鸡腿（去皮）",
+      "kcal": 160,
+      "protein": 26,
+      "carbs": 1,
+      "fat": 5,
+      "unit": "1只",
+      "aliases": [
+        "卤鸡腿",
+        "苏客鸡腿"
+      ]
+    },
+    {
+      "name": "苏客狮子头",
+      "kcal": 320,
+      "protein": 16,
+      "carbs": 6,
+      "fat": 26,
+      "unit": "1个",
+      "aliases": [
+        "狮子头",
+        "肉圆"
+      ]
+    },
+    {
+      "name": "番茄炒蛋",
+      "kcal": 180,
+      "protein": 9,
+      "carbs": 8,
+      "fat": 12,
+      "unit": "1份",
+      "aliases": [
+        "西红柿炒蛋"
+      ]
+    },
+    {
+      "name": "白切鸡（去皮）",
+      "kcal": 170,
+      "protein": 28,
+      "carbs": 0,
+      "fat": 6,
+      "unit": "1份",
+      "aliases": [
+        "白斩鸡"
+      ]
+    },
+    {
+      "name": "烤鸡腿（去皮）",
+      "kcal": 170,
+      "protein": 27,
+      "carbs": 0,
+      "fat": 6,
+      "unit": "1只",
+      "aliases": [
+        "烤鸡腿"
+      ]
+    },
+    {
+      "name": "炸鸡腿（带皮）",
+      "kcal": 290,
+      "protein": 20,
+      "carbs": 10,
+      "fat": 18,
+      "unit": "1只",
+      "aliases": [
+        "炸鸡腿",
+        "炸琵琶腿"
+      ]
+    },
+    {
+      "name": "鸡胸肉（熟）",
+      "kcal": 165,
+      "protein": 31,
+      "carbs": 0,
+      "fat": 3.6,
+      "unit": "100g",
+      "aliases": [
+        "鸡胸",
+        "水煮鸡胸"
+      ]
+    },
+    {
+      "name": "即食鸡胸肉",
+      "kcal": 120,
+      "protein": 22,
+      "carbs": 3,
+      "fat": 2,
+      "unit": "1包100g",
+      "aliases": [
+        "鸡胸肉丸",
+        "袋装鸡胸"
+      ]
+    },
+    {
+      "name": "水煮蛋",
+      "kcal": 70,
+      "protein": 6,
+      "carbs": 0.5,
+      "fat": 5,
+      "unit": "1个",
+      "aliases": [
+        "鸡蛋",
+        "白煮蛋"
+      ]
+    },
+    {
+      "name": "茶叶蛋",
+      "kcal": 75,
+      "protein": 7,
+      "carbs": 1,
+      "fat": 5,
+      "unit": "1个",
+      "aliases": []
+    },
+    {
+      "name": "煎蛋",
+      "kcal": 110,
+      "protein": 6,
+      "carbs": 0.5,
+      "fat": 9,
+      "unit": "1个",
+      "aliases": [
+        "荷包蛋"
+      ]
+    },
+    {
+      "name": "全脂牛奶",
+      "kcal": 150,
+      "protein": 8,
+      "carbs": 12,
+      "fat": 8,
+      "unit": "250ml一盒",
+      "aliases": [
+        "牛奶"
+      ]
+    },
+    {
+      "name": "低脂牛奶",
+      "kcal": 110,
+      "protein": 8,
+      "carbs": 12,
+      "fat": 3,
+      "unit": "250ml一盒",
+      "aliases": [
+        "脱脂奶",
+        "低脂奶"
+      ]
+    },
+    {
+      "name": "无糖豆浆",
+      "kcal": 60,
+      "protein": 6,
+      "carbs": 4,
+      "fat": 2.5,
+      "unit": "1杯300ml",
+      "aliases": [
+        "豆浆"
+      ]
+    },
+    {
+      "name": "甜豆浆",
+      "kcal": 110,
+      "protein": 5,
+      "carbs": 18,
+      "fat": 2,
+      "unit": "1杯300ml",
+      "aliases": [
+        "加糖豆浆"
+      ]
+    },
+    {
+      "name": "无糖酸奶",
+      "kcal": 90,
+      "protein": 5,
+      "carbs": 7,
+      "fat": 4,
+      "unit": "1杯150g",
+      "aliases": [
+        "酸奶"
+      ]
+    },
+    {
+      "name": "油条",
+      "kcal": 270,
+      "protein": 6,
+      "carbs": 35,
+      "fat": 12,
+      "unit": "1根",
+      "aliases": []
+    },
+    {
+      "name": "肉包",
+      "kcal": 220,
+      "protein": 8,
+      "carbs": 30,
+      "fat": 8,
+      "unit": "1个",
+      "aliases": [
+        "鲜肉包",
+        "包子"
+      ]
+    },
+    {
+      "name": "菜包",
+      "kcal": 170,
+      "protein": 5,
+      "carbs": 30,
+      "fat": 4,
+      "unit": "1个",
+      "aliases": [
+        "青菜包"
+      ]
+    },
+    {
+      "name": "全麦面包",
+      "kcal": 80,
+      "protein": 4,
+      "carbs": 14,
+      "fat": 1,
+      "unit": "1片",
+      "aliases": [
+        "全麦吐司"
+      ]
+    },
+    {
+      "name": "燕麦片（干）",
+      "kcal": 190,
+      "protein": 7,
+      "carbs": 32,
+      "fat": 4,
+      "unit": "50g",
+      "aliases": [
+        "燕麦",
+        "麦片"
+      ]
+    },
+    {
+      "name": "米饭",
+      "kcal": 230,
+      "protein": 5,
+      "carbs": 50,
+      "fat": 0.5,
+      "unit": "1碗200g",
+      "aliases": [
+        "白米饭",
+        "一碗饭"
+      ]
+    },
+    {
+      "name": "牛肉面",
+      "kcal": 450,
+      "protein": 20,
+      "carbs": 60,
+      "fat": 14,
+      "unit": "1碗",
+      "aliases": [
+        "红烧牛肉面"
+      ]
+    },
+    {
+      "name": "炸酱面",
+      "kcal": 500,
+      "protein": 16,
+      "carbs": 65,
+      "fat": 20,
+      "unit": "1碗",
+      "aliases": []
+    },
+    {
+      "name": "清汤面/素面",
+      "kcal": 330,
+      "protein": 11,
+      "carbs": 65,
+      "fat": 2,
+      "unit": "1碗",
+      "aliases": [
+        "面条",
+        "汤面"
+      ]
+    },
+    {
+      "name": "红薯",
+      "kcal": 170,
+      "protein": 2,
+      "carbs": 40,
+      "fat": 0,
+      "unit": "1个中等200g",
+      "aliases": [
+        "地瓜",
+        "番薯"
+      ]
+    },
+    {
+      "name": "玉米",
+      "kcal": 110,
+      "protein": 4,
+      "carbs": 22,
+      "fat": 1.5,
+      "unit": "1根",
+      "aliases": [
+        "甜玉米"
+      ]
+    },
+    {
+      "name": "酱牛肉",
+      "kcal": 170,
+      "protein": 28,
+      "carbs": 2,
+      "fat": 5,
+      "unit": "100g",
+      "aliases": [
+        "卤牛肉",
+        "牛肉"
+      ]
+    },
+    {
+      "name": "肥牛卷",
+      "kcal": 250,
+      "protein": 18,
+      "carbs": 0,
+      "fat": 20,
+      "unit": "100g",
+      "aliases": [
+        "肥牛"
+      ]
+    },
+    {
+      "name": "瘦猪肉（炒）",
+      "kcal": 200,
+      "protein": 22,
+      "carbs": 0,
+      "fat": 12,
+      "unit": "100g",
+      "aliases": [
+        "瘦肉",
+        "猪里脊"
+      ]
+    },
+    {
+      "name": "三文鱼",
+      "kcal": 180,
+      "protein": 20,
+      "carbs": 0,
+      "fat": 10,
+      "unit": "100g",
+      "aliases": []
+    },
+    {
+      "name": "白灼虾",
+      "kcal": 90,
+      "protein": 20,
+      "carbs": 0,
+      "fat": 1,
+      "unit": "100g约8只",
+      "aliases": [
+        "虾",
+        "基围虾"
+      ]
+    },
+    {
+      "name": "西兰花",
+      "kcal": 50,
+      "protein": 4,
+      "carbs": 8,
+      "fat": 0.5,
+      "unit": "1份150g",
+      "aliases": [
+        "绿菜花"
+      ]
+    },
+    {
+      "name": "香蕉",
+      "kcal": 105,
+      "protein": 1.3,
+      "carbs": 27,
+      "fat": 0.3,
+      "unit": "1根",
+      "aliases": []
+    },
+    {
+      "name": "苹果",
+      "kcal": 95,
+      "protein": 0.5,
+      "carbs": 25,
+      "fat": 0.3,
+      "unit": "1个中等",
+      "aliases": []
+    },
+    {
+      "name": "橙子",
+      "kcal": 60,
+      "protein": 1,
+      "carbs": 14,
+      "fat": 0,
+      "unit": "1个",
+      "aliases": [
+        "橙子",
+        "橘子"
+      ]
+    },
+    {
+      "name": "混合坚果",
+      "kcal": 180,
+      "protein": 5,
+      "carbs": 6,
+      "fat": 16,
+      "unit": "1小把30g",
+      "aliases": [
+        "坚果"
+      ]
+    },
+    {
+      "name": "巨无霸汉堡",
+      "kcal": 550,
+      "protein": 25,
+      "carbs": 45,
+      "fat": 29,
+      "unit": "1个",
+      "aliases": [
+        "巨无霸",
+        "牛肉汉堡"
+      ]
+    },
+    {
+      "name": "鸡腿堡",
+      "kcal": 500,
+      "protein": 22,
+      "carbs": 48,
+      "fat": 24,
+      "unit": "1个",
+      "aliases": [
+        "麦辣鸡腿堡",
+        "鸡肉汉堡"
+      ]
+    },
+    {
+      "name": "中杯薯条",
+      "kcal": 340,
+      "protein": 4,
+      "carbs": 42,
+      "fat": 18,
+      "unit": "1份",
+      "aliases": [
+        "薯条"
+      ]
+    },
+    {
+      "name": "可乐（含糖）",
+      "kcal": 140,
+      "protein": 0,
+      "carbs": 35,
+      "fat": 0,
+      "unit": "330ml一罐",
+      "aliases": [
+        "可口可乐",
+        "汽水"
+      ]
+    },
+    {
+      "name": "无糖可乐",
+      "kcal": 0,
+      "protein": 0,
+      "carbs": 0,
+      "fat": 0,
+      "unit": "330ml一罐",
+      "aliases": [
+        "零度可乐",
+        "零卡可乐"
+      ]
+    },
+    {
+      "name": "珍珠奶茶",
+      "kcal": 400,
+      "protein": 2,
+      "carbs": 60,
+      "fat": 16,
+      "unit": "中杯500ml",
+      "aliases": [
+        "奶茶"
+      ]
+    },
+    {
+      "name": "赛霸酵母蛋白粉",
+      "kcal": 120,
+      "protein": 24,
+      "carbs": 2,
+      "fat": 1.5,
+      "unit": "1勺30g",
+      "aliases": [
+        "蛋白粉",
+        "酵母蛋白粉"
+      ]
+    }
+  ],
+  "supplements": [
+    {
+      "id": "whey",
+      "name": "赛霸酵母蛋白粉",
+      "dose": "1勺（约30g）",
+      "timing": "训练后30分钟内",
+      "kcal": 120,
+      "protein": 24,
+      "note": "用常温水或牛奶摇匀喝，别用开水，会结块"
+    },
+    {
+      "id": "creatine",
+      "name": "奥特兰德肌酸",
+      "dose": "3-5g",
+      "timing": "每天固定一个时间，练不练都要喝",
+      "kcal": 0,
+      "protein": 0,
+      "note": "配温水送服，不用搞冲击期，每天3-5g坚持一个月就饱和了；记得白天多喝水"
+    }
+  ],
+  "tips": [
+    "老乡鸡点单公式：葱油鸡去皮+一份炒青菜+米饭只吃一半，约450大卡、35g蛋白，完美符合减脂餐",
+    "梅菜扣肉一份450大卡38g脂肪，顶你一天一半的油——想吃留到周末放纵餐，平时换白切鸡或蒸蛋",
+    "早餐把油条（270大卡）换成茶叶蛋+无糖豆浆+菜包，省100大卡还多10g蛋白，上午还不容易饿",
+    "下午饿了别点奶茶：一杯珍珠奶茶=一碗半米饭。喝杯水，吃个香蕉或苹果，训练日直接冲半勺蛋白粉",
+    "晚餐自己买照着这个模板：便利店即食鸡胸肉+玉米+茶叶蛋，或麻辣烫多拿肉、菜、豆腐，少拿丸子、粉和油条",
+    "每天喝水2L以上，喝肌酸期间更要够——肌酸把水拉进肌肉，水喝不够等于白吃"
+  ]
+}

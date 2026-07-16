@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" fill="none" stroke="#F4F4F2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <rect width="320" height="200" fill="#0A0A0B" stroke="none"/>
+  <!-- 墙体 -->
+  <line x1="40" y1="20" x2="40" y2="180"/>
+  <line x1="40" y1="40" x2="28" y2="32"/>
+  <line x1="40" y1="70" x2="28" y2="62"/>
+  <line x1="40" y1="100" x2="28" y2="92"/>
+  <line x1="40" y1="130" x2="28" y2="122"/>
+  <!-- 墙上安装板 -->
+  <rect x="34" y="62" width="10" height="24" rx="2"/>
+  <rect x="34" y="116" width="10" height="24" rx="2"/>
+  <!-- 两端斜支架 -->
+  <line x1="44" y1="74" x2="122" y2="98"/>
+  <line x1="44" y1="128" x2="122" y2="106"/>
+  <!-- 水平粗杠 -->
+  <line x1="122" y1="102" x2="232" y2="102" stroke-width="5"/>
+  <!-- 杠两端下弯把 -->
+  <line x1="122" y1="102" x2="112" y2="112"/>
+  <line x1="232" y1="102" x2="242" y2="112"/>
+  <!-- 薄荷绿弹力带挂着（新手辅助） -->
+  <path d="M176 104 C 166 136 166 160 177 170 C 188 160 188 136 176 104 Z" stroke="#3FE1B1"/>
+  <!-- 地面 -->
+  <line x1="60" y1="180" x2="296" y2="180"/>
+</svg>

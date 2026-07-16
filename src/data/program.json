@@ -1,0 +1,104 @@
+{
+  "cycleType": "one-on-one-off",
+  "workouts": [
+    {
+      "id": "A",
+      "title": "上肢拉力日",
+      "subtitle": "背+二头+握力",
+      "focus": "背阔肌、肱二头肌、握力。你的引体只有2-3个，拉日是追上来的主战场",
+      "warmupExerciseId": "treadmill-incline-walk",
+      "exerciseIds": [
+        "lat-pulldown",
+        "seated-row",
+        "one-arm-db-row",
+        "db-curl",
+        "dead-hang",
+        "dead-bug"
+      ],
+      "coachNote": "今天全跟'拉'有关。每个动作先想后背再动手臂，单臂动作左手先做，做到力竭算数。"
+    },
+    {
+      "id": "B",
+      "title": "下肢+核心日",
+      "subtitle": "腿+臀+腹部",
+      "focus": "股四头肌、腘绳肌、臀、核心。你腿围基数大，目标是练出线条不是再增粗，重量保守、次数适中",
+      "warmupExerciseId": "treadmill-incline-walk",
+      "exerciseIds": [
+        "goblet-squat",
+        "leg-press",
+        "db-rdl",
+        "bulgarian-split-squat",
+        "leg-curl",
+        "plank",
+        "crunch"
+      ],
+      "coachNote": "腿日记住三条红线：膝盖对准脚尖不内扣、硬拉不弓腰、腿举不锁膝。保加利亚分腿蹲左腿先。"
+    },
+    {
+      "id": "C",
+      "title": "上肢推力日",
+      "subtitle": "胸+肩+三头",
+      "focus": "胸大肌、三角肌、肱三头肌。全部用哑铃和固定器械，左臂弱会在哑铃动作里暴露，正好补",
+      "warmupExerciseId": "treadmill-incline-walk",
+      "exerciseIds": [
+        "db-bench-press",
+        "incline-db-press",
+        "db-shoulder-press",
+        "pec-deck",
+        "rope-pushdown",
+        "db-lateral-raise"
+      ],
+      "coachNote": "推日用哑铃不用杠铃：左手推不动时能安全放下。侧平举2.5kg起步，左手先做，别贪重。"
+    },
+    {
+      "id": "D",
+      "title": "全身功能+燃脂日",
+      "subtitle": "引体进阶+握力+核心",
+      "focus": "全身协同+心肺。弹力带引体是引体进阶计划的核心，农夫行走继续给左手握力补课",
+      "warmupExerciseId": "elliptical",
+      "exerciseIds": [
+        "band-assisted-pullup",
+        "farmers-walk",
+        "walking-lunge",
+        "push-up",
+        "glute-bridge",
+        "mountain-climber"
+      ],
+      "coachNote": "今天是功能日，强度不低但冲击小。登山跑做慢速踏步版，保护小腿。引体每做一次都在靠近5个目标。"
+    }
+  ],
+  "restDay": {
+    "title": "休息日·主动恢复",
+    "options": [
+      {
+        "icon": "swim",
+        "title": "游泳/水中走路",
+        "detail": "你在学游泳正好练。不会游就在齐腰深的水里走20分钟，水的阻力帮肌肉恢复还不伤关节，顺便练水性",
+        "durationMin": 20,
+        "kcal": 120
+      },
+      {
+        "icon": "walk",
+        "title": "快走",
+        "detail": "去公园或河边快走30分钟，微微出汗、能正常说话的速度就行，别跑——小腿不需要额外冲击",
+        "durationMin": 30,
+        "kcal": 150
+      },
+      {
+        "icon": "stretch",
+        "title": "全身拉伸",
+        "detail": "每个部位30秒×2组：①站姿拉大腿前侧（扶墙勾脚）②门框边撑拉胸肌③坐姿体前屈拉大腿后侧④跪姿侧弯拉背阔肌⑤靠墙拉肩后束。拉到微酸就停，别弹震",
+        "durationMin": 15,
+        "kcal": 60
+      }
+    ],
+    "coachNote": "完全躺平恢复更慢。轻度活动让血液把养分带给肌肉，下次训练状态更好。"
+  },
+  "rules": [
+    "练一休一循环：A→休→B→休→C→休→D→休→A……不按星期，跟着循环走，哪天状态差就顺延一天，别连练两天",
+    "同一动作连续两次训练都能轻松完成目标次数，下次加最小重量（哑铃加2.5kg、插片加一片）",
+    "单侧动作永远左侧先做，每组次数以左侧力竭为准，右侧不许多做",
+    "每次训练含热身控制在50-60分钟，到点就收工，养成习惯比练爆重要",
+    "重量一律从建议最小值开始，第一个月目标是动作标准+不缺席，不是冲重量"
+  ]
+}

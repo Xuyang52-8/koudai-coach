@@ -4,72 +4,104 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.625rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* ===== 《口袋私教》设计 token（design.md §2） ===== */
+    --bg: #0a0a0b;
+    --bg-raised: #131315;
+    --bg-inset: #060607;
+    --line: #232326;
+    --line-strong: #333338;
+    --text-1: #f4f4f2;
+    --text-2: #9c9ca3;
+    --text-3: #55555c;
+    --accent: #3fe1b1;
+    --accent-hi: #6ff5cb;
+    --accent-dim: rgba(63, 225, 177, 0.12);
+    --warn: #ffb224;
+    --warn-dim: rgba(255, 178, 36, 0.12);
+    --danger: #ff5c45;
+    --danger-dim: rgba(255, 92, 69, 0.12);
+
+    /* ===== 字体（design.md §3） ===== */
+    --font-display: 'Oswald', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+    --font-body: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+
+    /* 全局圆角：锋利终端感 4px */
+    --radius: 4px;
+
+    /* 视口高修正（main.tsx 里 resize 时写入 innerHeight * 0.01px） */
+    --vh: 1vh;
   }
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  html {
+    background: var(--bg);
+    color-scheme: dark;
   }
-}
 
-@layer base {
-  * {
-    @apply border-border;
-  }
   body {
-    @apply bg-background text-foreground;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-1);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* 本地数据不需要下拉刷新，禁用以避免误触 */
+    overscroll-behavior-y: none;
+  }
+
+  #root {
+    min-height: calc(var(--vh) * 100);
+  }
+
+  ::selection {
+    background: var(--accent-dim);
+    color: var(--accent-hi);
+  }
+
+  /* 降级：prefers-reduced-motion 时全部动画压到 100ms */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 100ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 100ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
+
+/* ===== 《口袋私教》全局工具类（design.md §2/§3/§5） ===== */
+
+@layer utilities {
+  /* 等宽数字：倒计时、组次、热量、体重，防跳动 */
+  .num {
+    font-family: var(--font-display);
+    font-feature-settings: 'tnum';
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* CRT 扫描线纹理：仅用于全屏计时器和首页训练卡头部 */
+  .crt {
+    background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.028) 0 1px, transparent 1px 3px);
+  }
+
+  /* 唯一允许的渐变：强调色径向微光（计时器数字背后 / 首页训练卡顶部氛围） */
+  .glow-accent {
+    background-image: radial-gradient(closest-side, rgba(63, 225, 177, 0.14), transparent);
+  }
+
+  /* 倒计时最后 10 秒闪烁 */
+  .flicker {
+    animation: flicker 150ms infinite;
+  }
+
+  /* 480px 居中容器（桌面预览两侧留黑） */
+  .app-container {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+}
+
+/* flicker keyframes 见 src/App.css（运行时全局生效） */
