@@ -21,6 +21,8 @@ import TTSToggle from '@/components/TTSToggle';
 import CustomExerciseForm from '@/components/library/CustomExerciseForm';
 import ExerciseDetailSheet from '@/components/library/ExerciseDetailSheet';
 import ExerciseRow from '@/components/library/ExerciseRow';
+import { VENUE_FILTERS, matchesVenueFilter } from '@/components/library/venues';
+import type { VenueFilter } from '@/components/library/venues';
 import { ZONES, zoneOfExercise } from '@/components/library/zones';
 import type { ZoneId } from '@/components/library/zones';
 import { removeCustomExercise, useCustomExercises } from '@/lib/store';
@@ -104,6 +106,7 @@ export default function Library(): JSX.Element {
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [venueFilter, setVenueFilter] = useState<VenueFilter>('all');
   const [activeZone, setActiveZone] = useState<ZoneId | null>(null);
   const [detail, setDetail] = useState<Exercise | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -129,13 +132,16 @@ export default function Library(): JSX.Element {
   const searchResults = searching
     ? allExercises.filter(
         (ex) =>
-          ex.name.toLowerCase().includes(q) ||
-          ex.muscle.toLowerCase().includes(q) ||
-          ex.equipment.name.toLowerCase().includes(q),
+          (ex.name.toLowerCase().includes(q) ||
+            ex.muscle.toLowerCase().includes(q) ||
+            ex.equipment.name.toLowerCase().includes(q)) &&
+          matchesVenueFilter(ex, venueFilter),
       )
     : [];
 
-  const zoneExercises = activeZone ? allExercises.filter((ex) => zoneOfExercise(ex) === activeZone) : [];
+  const zoneExercises = activeZone
+    ? allExercises.filter((ex) => zoneOfExercise(ex) === activeZone && matchesVenueFilter(ex, venueFilter))
+    : [];
   const activeZoneDef = activeZone ? ZONES.find((z) => z.id === activeZone) : null;
 
   const openCreate = (prefill?: string) => {
@@ -209,6 +215,41 @@ export default function Library(): JSX.Element {
         />
       </div>
 
+      {/* §1.5 场地筛选 chips：单选 pill，按 ex.venues 包含关系过滤（老数据全部场地可见） */}
+      <div
+        role="group"
+        aria-label="按场地筛选"
+        style={{ display: 'flex', gap: 8, marginTop: 12, overflowX: 'auto', paddingBottom: 2 }}
+      >
+        {VENUE_FILTERS.map((f) => {
+          const active = venueFilter === f.id;
+          return (
+            <button
+              key={f.id}
+              type="button"
+              aria-pressed={active}
+              onClick={() => setVenueFilter(f.id)}
+              style={{
+                flexShrink: 0,
+                minHeight: 44,
+                padding: '0 18px',
+                borderRadius: 999,
+                border: `1px solid ${active ? 'var(--accent)' : 'var(--line-strong)'}`,
+                background: active ? 'var(--accent-dim)' : 'transparent',
+                color: active ? 'var(--accent)' : 'var(--text-2)',
+                fontSize: 14,
+                fontWeight: active ? 600 : 500,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-body)',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              {f.label}
+            </button>
+          );
+        })}
+      </div>
+
       <AnimatePresence mode="wait" initial={false}>
         {searching ? (
           /* ===== 搜索态：直接出结果 ===== */
@@ -237,7 +278,7 @@ export default function Library(): JSX.Element {
               </div>
             ) : (
               <EmptyState
-                text={`库里没有「${debouncedQuery}」。要不自己建一个？`}
+                text={`库里没有「${debouncedQuery}」${venueFilter === 'all' ? '' : '（已按场地筛选）'}。要不自己建一个？`}
                 actionLabel="+ 自建"
                 onAction={() => openCreate(debouncedQuery)}
               />
@@ -309,7 +350,11 @@ export default function Library(): JSX.Element {
               </div>
             ) : (
               <EmptyState
-                text="这个区还没录动作。你健身房有这玩意？录一个。"
+                text={
+                  venueFilter === 'all'
+                    ? '这个区还没录动作。你健身房有这玩意？录一个。'
+                    : '这个场地下，这个区没有能做的动作。换个场地或换个区看看。'
+                }
                 actionLabel="+ 自建"
                 onAction={() => openCreate()}
               />

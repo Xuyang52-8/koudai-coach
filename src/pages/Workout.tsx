@@ -20,6 +20,7 @@ import SectionLabel from '../components/SectionLabel';
 import SetDot from '../components/SetDot';
 import { DangerTag, Tag, WarnTag } from '../components/Tag';
 import TTSToggle from '../components/TTSToggle';
+import SubstituteSheet, { SwapIcon } from '../components/library/SubstituteSheet';
 import { useSkips, useWorkoutExtra } from '../components/workout/extra';
 import type { SkipEntry } from '../components/workout/extra';
 import { ExternalIcon, MinusIcon, StopIcon } from '../components/workout/icons';
@@ -39,7 +40,7 @@ import {
 } from '../lib/store';
 import { cancel, speak } from '../lib/tts';
 import type { Exercise } from '../lib/types';
-import { estimateWorkoutKcal, getTodayState, program, resolveWorkout } from '../lib/utils-workout';
+import { estimateWorkoutKcal, getExerciseById, getTodayState, program, resolveWorkout } from '../lib/utils-workout';
 
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -290,7 +291,7 @@ export default function Workout(): JSX.Element {
     return null;
   }, [session, today]);
 
-  const exercises = useMemo(() => (meta ? resolveWorkout(meta.workout).exercises : []), [meta]);
+  const baseExercises = useMemo(() => (meta ? resolveWorkout(meta.workout).exercises : []), [meta]);
   const warmup = useMemo(() => (meta ? resolveWorkout(meta.workout).warmup : null), [meta]);
 
   /* ---------- 确保 session 存在且是今天的（跨天作废） ---------- */
@@ -311,6 +312,7 @@ export default function Workout(): JSX.Element {
   const [transitionNext, setTransitionNext] = useState<string | null>(null);
   const [exitOpen, setExitOpen] = useState(false);
   const [skipOpen, setSkipOpen] = useState(false);
+  const [swapOpen, setSwapOpen] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [weightBump, setWeightBump] = useState(0); // 重量数字滚动方向 +1/-1
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -319,6 +321,20 @@ export default function Workout(): JSX.Element {
   const [weights, setWeights] = useStoreKey<Record<string, number>>('weights', {});
   const [skips, setSkips] = useSkips(todayStr());
   const [, setExtra] = useWorkoutExtra();
+
+  /* 替代动作映射：按 session 日期持久化（刷新/锁屏恢复不丢），位置下标 → 新动作 id */
+  const sessionDate = session ? todayStr(new Date(session.startedAt)) : todayStr();
+  const [swaps, setSwaps] = useStoreKey<Record<number, string>>(`swaps:${sessionDate}`, {});
+
+  /* 渲染用动作列表：应用替代映射（进度与组次按新动作 sets 重新计） */
+  const exercises = useMemo(
+    () =>
+      baseExercises.map((e, i) => {
+        const sid = swaps[i];
+        return sid ? (getExerciseById(sid) ?? e) : e;
+      }),
+    [baseExercises, swaps],
+  );
 
   /* 恢复提示（仅首次进入时计算一次）：接着上次继续 */
   const [resumeHint] = useState(() => {
@@ -487,6 +503,46 @@ export default function Workout(): JSX.Element {
     vibrate(30);
     feedback.toast('撤回一组，这组重来');
   }, [ex, session, restPlan, setIndex, feedback]);
+
+  /* ---------- 换替代动作：映射写入 swaps:{date}，组次进度尽量保留，TTS 自动读新动作 ---------- */
+  const handleSwap = useCallback(
+    (newEx: Exercise) => {
+      if (!session) return;
+      const newSets = Math.max(1, newEx.sets);
+      setSwaps((prev) => ({ ...prev, [exerciseIndex]: newEx.id }));
+      updateSession({
+        // 已完成组数尽量保留：只有超过新动作组数时才截到最后一组
+        setIndex: setIndex >= newSets ? newSets - 1 : setIndex,
+        side: newEx.unilateral ? 'L' : null,
+      });
+      setSwapOpen(false);
+      vibrate(30);
+      feedback.toast(`换成${newEx.name}了`);
+      speak(newEx.voiceScript);
+    },
+    [session, setSwaps, exerciseIndex, setIndex, feedback],
+  );
+
+  /* ---------- 一键换回原动作 ---------- */
+  const handleRevertSwap = useCallback(() => {
+    if (!session) return;
+    const orig = baseExercises[exerciseIndex];
+    setSwaps((prev) => {
+      const next = { ...prev };
+      delete next[exerciseIndex];
+      return next;
+    });
+    if (orig) {
+      const origSets = Math.max(1, orig.sets);
+      updateSession({
+        setIndex: setIndex >= origSets ? origSets - 1 : setIndex,
+        side: orig.unilateral ? 'L' : null,
+      });
+      speak(orig.voiceScript);
+    }
+    setSwapOpen(false);
+    feedback.toast('换回原动作');
+  }, [session, setSwaps, baseExercises, exerciseIndex, setIndex, feedback]);
 
   /* ---------- 热身结束 → 动作一 ---------- */
   const finishWarmup = useCallback(() => {
@@ -666,6 +722,11 @@ export default function Workout(): JSX.Element {
             onUndoSet={undoSet}
             onSkipExercise={() => setSkipOpen(true)}
             onLeftFirstHint={() => feedback.toast('先练弱的左边，私教说的。')}
+            canSwap={Boolean(baseExercises[exerciseIndex]?.substitutes?.length)}
+            swappedFrom={
+              baseExercises[exerciseIndex] && baseExercises[exerciseIndex].id !== ex.id ? baseExercises[exerciseIndex].name : null
+            }
+            onOpenSwap={() => setSwapOpen(true)}
             reduce={reduce ?? false}
           />
         ) : null}
@@ -720,6 +781,16 @@ export default function Workout(): JSX.Element {
           <GhostButton onClick={confirmSkip}>跳过这个</GhostButton>
         </div>
       </BottomSheet>
+
+      {/* ===== 换替代动作（swaps:{date} 持久化，组次进度尽量保留） ===== */}
+      <SubstituteSheet
+        open={swapOpen}
+        onClose={() => setSwapOpen(false)}
+        original={baseExercises[exerciseIndex] ?? null}
+        current={ex}
+        onSwap={handleSwap}
+        onRevert={handleRevertSwap}
+      />
     </div>
   );
 }
@@ -744,6 +815,11 @@ interface ExerciseStageProps {
   onUndoSet: () => void;
   onSkipExercise: () => void;
   onLeftFirstHint: () => void;
+  /** 该位置原动作有替代链：显示「换替代动作」按钮 */
+  canSwap: boolean;
+  /** 当前动作是替换来的：原动作名（未替换为 null） */
+  swappedFrom: string | null;
+  onOpenSwap: () => void;
   reduce: boolean;
 }
 
@@ -762,6 +838,9 @@ function ExerciseStage({
   onUndoSet,
   onSkipExercise,
   onLeftFirstHint,
+  canSwap,
+  swappedFrom,
+  onOpenSwap,
   reduce,
 }: ExerciseStageProps): JSX.Element {
   const sets = Math.max(1, ex.sets);
@@ -792,6 +871,11 @@ function ExerciseStage({
           <h2 className="font-display text-1" style={{ margin: '6px 0 0', fontSize: 28, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.2 }}>
             {ex.name}
           </h2>
+          {swappedFrom ? (
+            <p className="text-2" style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 1.5 }}>
+              已替换：{swappedFrom} → {ex.name}
+            </p>
+          ) : null}
         </div>
         <div style={{ flexShrink: 0, textAlign: 'right', paddingBottom: 4 }}>
           <div className="text-2" style={{ fontSize: 13 }}>
@@ -1025,8 +1109,8 @@ function ExerciseStage({
         )}
       </motion.div>
 
-      {/* 10. 辅助行 */}
-      <motion.div variants={item} style={{ marginTop: 12, display: 'flex', gap: 10 }}>
+      {/* 10. 辅助行（听要领 / 视频 / 换替代动作） */}
+      <motion.div variants={item} style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <GhostButton
           size="sm"
           icon={speaking ? <StopIcon size={16} /> : <Icon name="play" size={16} />}
@@ -1038,6 +1122,11 @@ function ExerciseStage({
         <GhostButton size="sm" icon={<ExternalIcon size={16} />} onClick={() => window.open(videoUrl, '_blank', 'noopener,noreferrer')}>
           视频
         </GhostButton>
+        {canSwap ? (
+          <GhostButton size="sm" icon={<SwapIcon size={16} />} onClick={onOpenSwap}>
+            换替代动作
+          </GhostButton>
+        ) : null}
       </motion.div>
     </motion.div>
   );

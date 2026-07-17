@@ -2,14 +2,19 @@
  * 动作详情 BottomSheet：完整六要素（产品红线：没有空壳动作）
  * ① 器械长什么样 ② 在哪找（含区域线稿图）③ 口语步骤 ④ 邪修口诀 ⑤ 组次+建议重量 ⑥ 常见错误
  * 附：听要领（TTS voiceScript）/ 找视频（B站搜索外链）；单侧动作 WarnTag「先做左侧」。
+ * 六要素之后是「没有器械？换这些」替代动作区：sheet 内跳转到替代动作详情，可逐级返回。
  */
+import { useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import BottomSheet from '@/components/BottomSheet';
 import { DangerButton, GhostButton, PrimaryButton } from '@/components/Buttons';
 import Icon from '@/components/Icon';
 import Tag, { DangerTag, WarnTag } from '@/components/Tag';
+import { getCustomExercises } from '@/lib/store';
 import { speak } from '@/lib/tts';
 import type { Exercise } from '@/lib/types';
+import { getExerciseById } from '@/lib/utils-workout';
+import { VENUE_LABELS, primaryVenue } from './venues';
 import { ZONE_MAP, zoneOfExercise } from './zones';
 
 function Block({ label, children }: { label: string; children: ReactNode }): JSX.Element {
@@ -36,12 +41,61 @@ export interface ExerciseDetailSheetProps {
 }
 
 export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdit, onDelete }: ExerciseDetailSheetProps): JSX.Element {
-  const ex = exercise;
+  /* sheet 内跳转栈：点替代动作压栈，「返回」出栈；换动作/关闭时清空（A→B→A 正常来回，不死循环） */
+  const [stack, setStack] = useState<Exercise[]>([]);
+  const rootId = exercise?.id ?? null;
+  /* render 期间调整 state（React 官方模式）：根动作变化时清空跳转栈，不走 effect */
+  const [prevRootId, setPrevRootId] = useState(rootId);
+  if (prevRootId !== rootId) {
+    setPrevRootId(rootId);
+    setStack([]);
+  }
+
+  const ex = stack.length > 0 ? stack[stack.length - 1] : exercise;
   const zone = ex ? ZONE_MAP[zoneOfExercise(ex)] : null;
+  /* 跳转到的替代动作可能是自建的，自建标记按当前展示的动作重新判定 */
+  const exIsCustom = stack.length > 0 ? (ex ? getCustomExercises().some((c) => c.id === ex.id) : false) : isCustom;
+
+  /* 替代链（有序，第一个最优）；解析不到的动作静默跳过 */
+  const subs: Exercise[] = [];
+  if (ex?.substitutes) {
+    for (const id of ex.substitutes) {
+      const hit = getExerciseById(id);
+      if (hit && hit.id !== ex.id) subs.push(hit);
+    }
+  }
+  const backTo = stack.length > 1 ? stack[stack.length - 2] : exercise;
+
   return (
-    <BottomSheet open={ex !== null} onClose={onClose} title={ex ? `${zone?.name ?? ''} · 动作详情` : undefined}>
+    <BottomSheet open={exercise !== null} onClose={onClose} title={ex ? `${zone?.name ?? ''} · 动作详情` : undefined}>
       {ex ? (
         <div style={{ paddingBottom: 8 }}>
+          {/* sheet 内跳转返回条 */}
+          {stack.length > 0 && backTo ? (
+            <button
+              type="button"
+              onClick={() => setStack((s) => s.slice(0, -1))}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                minHeight: 44,
+                margin: '0 0 8px',
+                padding: '4px 0',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--text-2)',
+                fontSize: 13,
+                fontWeight: 500,
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              <Icon name="arrow-left" size={16} />
+              返回「{backTo.name}」
+            </button>
+          ) : null}
+
           {/* 头部：动作名 + 肌肉 + Tags */}
           <h2 className="font-display text-1" style={{ margin: 0, fontSize: 24, fontWeight: 600, lineHeight: 1.25 }}>
             {ex.name}
@@ -53,7 +107,7 @@ export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdi
             </Tag>
             <Tag>器械：{ex.equipment.name}</Tag>
             {ex.unilateral ? <WarnTag>先做左侧</WarnTag> : null}
-            {isCustom ? <WarnTag>自建</WarnTag> : null}
+            {exIsCustom ? <WarnTag>自建</WarnTag> : null}
           </div>
 
           {/* ① 长什么样 */}
@@ -132,6 +186,52 @@ export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdi
             </div>
           </Block>
 
+          {/* ⑦ 没有器械？换这些（有序替代链，sheet 内跳转） */}
+          {subs.length > 0 ? (
+            <Block label="没有器械？换这些">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {subs.map((s) => {
+                  const venue = primaryVenue(s);
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setStack((st) => [...st, s])}
+                      aria-label={`查看替代动作${s.name}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        width: '100%',
+                        minHeight: 56,
+                        padding: '10px 14px',
+                        background: 'var(--bg-inset)',
+                        border: '1px solid var(--line)',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        WebkitTapHighlightColor: 'transparent',
+                      }}
+                    >
+                      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <span className="text-1" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3 }}>
+                          {s.name}
+                        </span>
+                        <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          <Tag>{s.muscle}</Tag>
+                          {venue ? <Tag>{VENUE_LABELS[venue]}</Tag> : null}
+                        </span>
+                      </span>
+                      <span style={{ color: 'var(--text-3)', display: 'inline-flex', flexShrink: 0 }}>
+                        <Icon name="arrow-right" size={18} />
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </Block>
+          ) : null}
+
           {/* 操作：听要领 / 找视频 */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
             <PrimaryButton icon={<Icon name="tts-on" size={20} />} onClick={() => speak(ex.voiceScript)}>
@@ -149,7 +249,7 @@ export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdi
           </div>
 
           {/* 自建动作：编辑 / 删除 */}
-          {isCustom ? (
+          {exIsCustom ? (
             <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
               {onEdit ? (
                 <GhostButton

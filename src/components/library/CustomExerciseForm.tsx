@@ -9,10 +9,13 @@ import { useMemo, useState } from 'react';
 import type { JSX } from 'react';
 import BottomSheet from '@/components/BottomSheet';
 import { GhostButton, PrimaryButton } from '@/components/Buttons';
+import { useFeedback } from '@/components/feedback';
 import Icon from '@/components/Icon';
-import { addCustomExercise, removeCustomExercise } from '@/lib/store';
-import type { Exercise } from '@/lib/types';
+import { generateExerciseDraft } from '@/lib/ai-exercise';
+import { addCustomExercise, removeCustomExercise, useSettings } from '@/lib/store';
+import type { Exercise, Venue } from '@/lib/types';
 import { Field, FieldArea, RowToggle, Stepper } from './inputs';
+import { VENUE_OPTIONS } from './venues';
 import { ZONES, encodeCustomCategory, zoneOfExercise } from './zones';
 import type { ZoneId } from './zones';
 
@@ -22,6 +25,8 @@ interface FormState {
   name: string;
   muscle: string;
   zone: ZoneId | null;
+  /** 能做的场地（多选，至少一个） */
+  venues: Venue[];
   equipName: string;
   equipLook: string;
   equipWhere: string;
@@ -39,6 +44,7 @@ const EMPTY_FORM: FormState = {
   name: '',
   muscle: '',
   zone: null,
+  venues: [],
   equipName: '',
   equipLook: '',
   equipWhere: '',
@@ -58,6 +64,7 @@ function initFrom(editing: Exercise | null | undefined, prefillName: string | un
       name: editing.name,
       muscle: editing.muscle,
       zone: zoneOfExercise(editing),
+      venues: editing.venues ? [...editing.venues] : [],
       equipName: editing.equipment.name,
       equipLook: editing.equipment.look,
       equipWhere: editing.equipment.where,
@@ -80,6 +87,7 @@ function missingFields(s: FormState): string[] {
   if (!s.name.trim()) missing.push('动作名称');
   if (!s.muscle.trim()) missing.push('目标肌肉');
   if (!s.zone) missing.push('区域分类');
+  if (s.venues.length === 0) missing.push('能做的场地');
   if (!s.equipName.trim()) missing.push('器械名称');
   if (!s.equipLook.trim()) missing.push('器械长什么样');
   if (!s.equipWhere.trim()) missing.push('在哪找');
@@ -115,12 +123,62 @@ export function CustomExerciseForm({ open, onClose, editing, prefillName, onSave
 }
 
 function FormSteps({ editing, prefillName, onSaved, onClose }: Omit<CustomExerciseFormProps, 'open'>): JSX.Element {
+  const [settings] = useSettings();
+  const { toast, host } = useFeedback();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(() => initFrom(editing, prefillName));
+  const [aiLoading, setAiLoading] = useState(false);
+  /** AI 给了就带上的隐藏字段（voiceScript / videoKeyword / kcalPerSet），用户看不到也不用改 */
+  const [aiExtra, setAiExtra] = useState<{ voiceScript?: string; videoKeyword?: string; kcalPerSet?: number }>({});
 
   const patch = (p: Partial<FormState>) => setForm((f) => ({ ...f, ...p }));
   const missing = useMemo(() => missingFields(form), [form]);
   const isEdit = Boolean(editing);
+  const hasKey = settings.deepseekKey.trim().length > 0;
+
+  const toggleVenue = (v: Venue) =>
+    setForm((f) => ({ ...f, venues: f.venues.includes(v) ? f.venues.filter((x) => x !== v) : [...f.venues, v] }));
+
+  /** AI 帮我填：按动作名生成草稿，预填进各步字段（用户可改），质量门不变 */
+  const handleAiFill = async () => {
+    const name = form.name.trim();
+    if (!name) {
+      toast('先写个动作名，AI 才知道填啥');
+      return;
+    }
+    const key = settings.deepseekKey.trim();
+    if (!key || aiLoading) return;
+    setAiLoading(true);
+    try {
+      const draft = await generateExerciseDraft(name, key);
+      setForm((f) => ({
+        ...f,
+        muscle: draft.muscle ?? f.muscle,
+        equipName: draft.equipment?.name || f.equipName,
+        equipLook: draft.equipment?.look || f.equipLook,
+        equipWhere: draft.equipment?.where || f.equipWhere,
+        steps: draft.steps && draft.steps.length > 0 ? [...draft.steps] : f.steps,
+        mantra: draft.mantra ?? f.mantra,
+        sets: draft.sets ?? f.sets,
+        reps: draft.reps ?? f.reps,
+        suggestedWeight: draft.suggestedWeight ?? f.suggestedWeight,
+        restSeconds: draft.restSeconds ?? f.restSeconds,
+        unilateral: draft.unilateral ?? f.unilateral,
+        mistakes: draft.commonMistakes && draft.commonMistakes.length > 0 ? [...draft.commonMistakes] : f.mistakes,
+        venues: draft.venues && draft.venues.length > 0 ? [...draft.venues] : f.venues,
+      }));
+      setAiExtra({
+        voiceScript: draft.voiceScript?.trim() || undefined,
+        videoKeyword: draft.videoKeyword?.trim() || undefined,
+        kcalPerSet: draft.kcalPerSet,
+      });
+      toast('填好了，往后翻着检查一遍，不对就改');
+    } catch {
+      toast('AI 没听懂，手动填吧');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const setListItem = (key: 'steps' | 'mistakes', i: number, v: string) =>
     setForm((f) => {
@@ -137,7 +195,8 @@ function FormSteps({ editing, prefillName, onSaved, onClose }: Omit<CustomExerci
     if (missing.length > 0 || !form.zone) return;
     const steps = form.steps.map((t) => t.trim()).filter(Boolean);
     const mistakes = form.mistakes.map((t) => t.trim()).filter(Boolean);
-    const voiceScript = [
+    /** voiceScript / videoKeyword：AI 给了就用，没给按现有自动合成逻辑 */
+    const autoVoiceScript = [
       `${form.name.trim()}。`,
       `器械是${form.equipName.trim()}，${form.equipLook.trim()}。`,
       `在哪找：${form.equipWhere.trim()}。`,
@@ -150,6 +209,7 @@ function FormSteps({ editing, prefillName, onSaved, onClose }: Omit<CustomExerci
       name: form.name.trim(),
       muscle: form.muscle.trim(),
       category: encodeCustomCategory(form.zone),
+      venues: [...form.venues],
       equipment: {
         name: form.equipName.trim(),
         look: form.equipLook.trim(),
@@ -163,9 +223,9 @@ function FormSteps({ editing, prefillName, onSaved, onClose }: Omit<CustomExerci
       commonMistakes: mistakes,
       unilateral: form.unilateral,
       restSeconds: form.restSeconds,
-      videoKeyword: `${form.name.trim()} 动作 教学`,
-      voiceScript,
-      kcalPerSet: 30, // 自建动作按中等强度粗估每组约 30 大卡
+      videoKeyword: aiExtra.videoKeyword ?? `${form.name.trim()} 动作 教学`,
+      voiceScript: aiExtra.voiceScript ?? autoVoiceScript,
+      kcalPerSet: aiExtra.kcalPerSet ?? 30, // 自建动作按中等强度粗估每组约 30 大卡
     };
     if (editing?.id) removeCustomExercise(editing.id); // 原地更新：先删后按原 id 加回
     const saved = addCustomExercise(payload);
@@ -217,6 +277,7 @@ function FormSteps({ editing, prefillName, onSaved, onClose }: Omit<CustomExerci
 
   return (
     <div>
+      {host}
       {/* 3px 步骤进度条 */}
       <div style={{ height: 3, background: 'var(--bg-inset)', borderRadius: 999, overflow: 'hidden', margin: '2px 0 16px' }}>
         <motion.div
@@ -251,6 +312,15 @@ function FormSteps({ editing, prefillName, onSaved, onClose }: Omit<CustomExerci
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <Field label="动作名称" value={form.name} onChange={(v) => patch({ name: v })} placeholder="如：坐姿器械推胸" />
               <Field label="目标肌肉" value={form.muscle} onChange={(v) => patch({ muscle: v })} placeholder="如：胸大肌、三角肌前束" />
+              {/* AI 帮我填：按动作名生成草稿预填各步，质量门不变（六要素缺一仍禁止保存） */}
+              <div>
+                <PrimaryButton disabled={!hasKey || aiLoading} onClick={handleAiFill}>
+                  {aiLoading ? 'AI 填写中…' : 'AI 帮我填'}
+                </PrimaryButton>
+                <p className="text-2" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>
+                  {hasKey ? '按动作名把后面几步都填好，填完随便改。' : '先到「我的」页填 DeepSeek Key，才能用 AI 帮你填。'}
+                </p>
+              </div>
               <div>
                 <div
                   className="font-display font-semibold uppercase text-3"
@@ -286,6 +356,42 @@ function FormSteps({ editing, prefillName, onSaved, onClose }: Omit<CustomExerci
                       >
                         <img src={z.svg} alt="" style={{ width: 48, aspectRatio: '8 / 5', display: 'block', borderRadius: 2 }} />
                         {z.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* 场地多选（至少一个）：这个动作在哪些场地能做 */}
+              <div>
+                <div
+                  className="font-display font-semibold uppercase text-3"
+                  style={{ fontSize: 13, letterSpacing: '0.14em', marginBottom: 8 }}
+                >
+                  哪些场地能做（至少选一个）
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {VENUE_OPTIONS.map((v) => {
+                    const active = form.venues.includes(v.id);
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => toggleVenue(v.id)}
+                        style={{
+                          minHeight: 56,
+                          background: active ? 'var(--accent-dim)' : 'var(--bg-inset)',
+                          border: `1px solid ${active ? 'var(--accent)' : 'var(--line-strong)'}`,
+                          borderRadius: 4,
+                          cursor: 'pointer',
+                          color: active ? 'var(--accent)' : 'var(--text-1)',
+                          fontSize: 16,
+                          fontWeight: 600,
+                          fontFamily: 'var(--font-body)',
+                          WebkitTapHighlightColor: 'transparent',
+                        }}
+                      >
+                        {v.label}
                       </button>
                     );
                   })}

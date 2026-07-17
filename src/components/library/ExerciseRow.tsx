@@ -7,6 +7,7 @@ import type { JSX } from 'react';
 import Icon from '@/components/Icon';
 import Tag, { WarnTag } from '@/components/Tag';
 import type { Exercise } from '@/lib/types';
+import { VENUE_LABELS, primaryVenue } from './venues';
 
 export interface ExerciseRowProps {
   exercise: Exercise;
@@ -17,6 +18,7 @@ export interface ExerciseRowProps {
 }
 
 export function ExerciseRow({ exercise: ex, isCustom = false, onClick, delay = 0 }: ExerciseRowProps): JSX.Element {
+  const venue = primaryVenue(ex);
   return (
     <motion.button
       type="button"
@@ -54,6 +56,7 @@ export function ExerciseRow({ exercise: ex, isCustom = false, onClick, delay = 0
           <Tag>
             {ex.sets}组 × {ex.reps}
           </Tag>
+          {venue ? <Tag>{VENUE_LABELS[venue]}</Tag> : null}
         </span>
       </span>
       <span style={{ flexShrink: 0, color: 'var(--text-3)', display: 'inline-flex', transform: 'rotate(0deg)' }}>
