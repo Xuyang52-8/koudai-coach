@@ -24,6 +24,8 @@ import type {
 import programJson from '../data/program.json';
 import nutritionJson from '../data/nutrition.json';
 import { computeTargets } from './profile';
+import { applyRpe } from './adjust';
+import type { ExerciseOverride, RpeChoice } from './adjust';
 
 /* ================= 底层 KV 引擎 ================= */
 
@@ -141,6 +143,7 @@ export const KEYS = {
   dietKey: (date: string) => `diet:${date}`,
   supplementsKey: (date: string) => `supplements:${date}`,
   checklistKey: (date: string) => `checklist:${date}`,
+  exerciseOverrideKey: (exerciseId: string) => `exoverride:${exerciseId}`,
 } as const;
 
 /* ================= cycle：练一休一循环 ================= */
@@ -411,6 +414,56 @@ export function useSchedule(): [
   (next: ScheduleConfig | ((p: ScheduleConfig) => ScheduleConfig)) => void,
 ] {
   return useStoreKey(KEYS.schedule, DEFAULT_SCHEDULE);
+}
+
+/* ================= exoverride：RPE 自适应强度覆盖（按动作存储） ================= */
+
+/** 读取某动作的覆盖记录（无 = null）。规则计算见 lib/adjust.ts */
+export function getExerciseOverride(exerciseId: string): ExerciseOverride | null {
+  return readKey<ExerciseOverride | null>(KEYS.exerciseOverrideKey(exerciseId), null);
+}
+
+export function useExerciseOverride(
+  exerciseId: string | null | undefined,
+): [ExerciseOverride | null, (next: ExerciseOverride | null | ((p: ExerciseOverride | null) => ExerciseOverride | null)) => void] {
+  return useStoreKey<ExerciseOverride | null>(KEYS.exerciseOverrideKey(exerciseId ?? '__none__'), null);
+}
+
+/** 写入一次 RPE 评价，返回新的覆盖记录（规则：lib/adjust.ts applyRpe） */
+export function applyRpeOverride(ex: Exercise, rpe: RpeChoice): ExerciseOverride {
+  const next = applyRpe(getExerciseOverride(ex.id), ex, rpe);
+  writeKey(KEYS.exerciseOverrideKey(ex.id), next);
+  return next;
+}
+
+/** 重置某动作的覆盖记录（设置页「重置」按钮）：清键 + 通知订阅者 */
+export function resetExerciseOverride(exerciseId: string): void {
+  writeKey<ExerciseOverride | null>(KEYS.exerciseOverrideKey(exerciseId), null);
+  try {
+    localStorage.removeItem(fullKey(KEYS.exerciseOverrideKey(exerciseId)));
+  } catch {
+    // 隐私模式等：内存态已清，忽略
+  }
+}
+
+/** 全部覆盖记录（设置页列表用），按最近更新排序 */
+export function getAllExerciseOverrides(): { exerciseId: string; override: ExerciseOverride }[] {
+  const prefix = fullKey('exoverride:');
+  const out: { exerciseId: string; override: ExerciseOverride }[] = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(prefix)) continue;
+      const exerciseId = k.slice(prefix.length);
+      if (!exerciseId) continue;
+      const override = getExerciseOverride(exerciseId);
+      if (override) out.push({ exerciseId, override });
+    }
+  } catch {
+    // localStorage 不可用：返回已收集部分
+  }
+  out.sort((a, b) => b.override.updatedAt - a.override.updatedAt);
+  return out;
 }
 
 /* ================= targets：动态营养目标 ================= */

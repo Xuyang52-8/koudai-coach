@@ -22,9 +22,9 @@ import { TAB_BAR_HEIGHT } from '../components/AppShell';
 import SubstituteSheet, { SwapIcon } from '../components/library/SubstituteSheet';
 import { ChevronDownIcon, ExternalIcon, StopIcon } from '../components/workout/icons';
 import { warmupSpec } from '../components/workout/warmup';
-import { weightSpec } from '../components/workout/weight';
 import { zoneForExercise } from '../components/workout/zoneImage';
-import { startSession, updateSession, useCycle, useProfile, useSettings } from '../lib/store';
+import { adjustedReps, adjustedWeightSpec, hasAdjustment } from '../lib/adjust';
+import { getExerciseOverride, startSession, updateSession, useCycle, useExerciseOverride, useProfile, useSettings } from '../lib/store';
 import { cancel, speak } from '../lib/tts';
 import type { Exercise, Workout } from '../lib/types';
 import { estimateWorkoutMinutes, getExerciseById, getTodayState, resolveExercisesForProfile } from '../lib/utils-workout';
@@ -90,6 +90,8 @@ function ExerciseDetail({
   /** 有替代链时提供：打开「换替代动作」弹层 */
   onSwap?: () => void;
 }): JSX.Element {
+  /* RPE 覆盖：有记录时详情显示调整后重量/次数（hook 须在早退之前） */
+  const [override] = useExerciseOverride(ex.id);
   const miss = missingFields(ex);
   if (miss.length > 0) {
     return (
@@ -107,7 +109,9 @@ function ExerciseDetail({
   }
 
   const zone = zoneForExercise(ex);
-  const w = weightSpec(ex);
+  const w = adjustedWeightSpec(ex, override);
+  const reps = adjustedReps(ex, override);
+  const adjusted = hasAdjustment(override);
   const videoUrl = `https://search.bilibili.com/all?keyword=${encodeURIComponent(ex.videoKeyword)}`;
   const sections: JSX.Element[] = [];
 
@@ -165,20 +169,25 @@ function ExerciseDetail({
     </div>,
   );
 
-  /* 4. 组数 × 次数 / 重量 */
+  /* 4. 组数 × 次数 / 重量（有 RPE 覆盖时显示调整后读数 + 「已为你调整」Tag） */
   sections.push(
     <div key="dose">
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 24, flexWrap: 'wrap' }}>
         <span className="num" style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: 'var(--text-1)' }}>
-          {repsMain(ex.reps) !== null ? `${ex.sets}×${repsMain(ex.reps)}` : `${ex.sets}组`}
+          {repsMain(reps) !== null ? `${ex.sets}×${repsMain(reps)}` : `${ex.sets}组`}
           {ex.unilateral ? <span style={{ fontSize: 16, color: 'var(--text-2)', marginLeft: 4 }}>每侧</span> : null}
         </span>
         <span className="num" style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: 'var(--accent)' }}>
           {w.kg !== null ? `${w.display}起` : '自重'}
         </span>
       </div>
+      {adjusted ? (
+        <div style={{ marginTop: 10 }}>
+          <Tag>已为你调整</Tag>
+        </div>
+      ) : null}
       <p className="text-2" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>
-        目标：{ex.reps}
+        目标：{reps}
       </p>
       <p className="text-2" style={{ margin: '4px 0 0', fontSize: 13, lineHeight: 1.5 }}>
         {ex.restSeconds > 0 ? `组间休息 ${ex.restSeconds} 秒 · ` : ''}
@@ -505,7 +514,9 @@ export default function Preview(): JSX.Element {
 
             {/* (02..) 动作（可能被替代映射换掉） */}
             {displayExercises.map((ex, i) => {
-              const w = weightSpec(ex);
+              /* RPE 覆盖：收起态读数同步为调整后（页面每次进入重新读取，无需订阅） */
+              const ov = getExerciseOverride(ex.id);
+              const w = adjustedWeightSpec(ex, ov);
               const orig = exercises[i] ?? ex;
               const swapped = orig.id !== ex.id;
               return (
@@ -521,9 +532,10 @@ export default function Preview(): JSX.Element {
                         <span className="text-1" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.3 }}>{ex.name}</span>
                         {ex.unilateral ? <WarnTag>先左后右</WarnTag> : null}
                         {swapped ? <Tag>已替换</Tag> : null}
+                        {hasAdjustment(ov) ? <Tag>已为你调整</Tag> : null}
                       </span>
                       <span style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                        <Tag>{setsRepsTag(ex)}</Tag>
+                        <Tag>{setsRepsTag({ ...ex, reps: adjustedReps(ex, ov) })}</Tag>
                         {w.tagText ? <Tag>{w.tagText}</Tag> : <Tag>自重</Tag>}
                       </span>
                     </span>

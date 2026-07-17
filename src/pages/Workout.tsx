@@ -21,19 +21,24 @@ import SetDot from '../components/SetDot';
 import { DangerTag, Tag, WarnTag } from '../components/Tag';
 import TTSToggle from '../components/TTSToggle';
 import SubstituteSheet, { SwapIcon } from '../components/library/SubstituteSheet';
+import RpeSheet from '../components/rpe/RpeSheet';
 import { useSkips, useWorkoutExtra } from '../components/workout/extra';
 import type { SkipEntry } from '../components/workout/extra';
 import { ExternalIcon, MinusIcon, StopIcon } from '../components/workout/icons';
 import { warmupSpec } from '../components/workout/warmup';
 import { clampWeight, formatKg, weightSpec } from '../components/workout/weight';
 import { zoneForExercise } from '../components/workout/zoneImage';
+import { adjustedReps, adjustedWeightKg, hasAdjustment, rpeToast } from '../lib/adjust';
+import type { RpeChoice } from '../lib/adjust';
 import {
+  applyRpeOverride,
   clearSession,
   getSession,
   startSession,
   todayStr,
   updateSession,
   useCycle,
+  useExerciseOverride,
   useProfile,
   useSession,
   useSettings,
@@ -317,6 +322,7 @@ export default function Workout(): JSX.Element {
   const [swapOpen, setSwapOpen] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [weightBump, setWeightBump] = useState(0); // 重量数字滚动方向 +1/-1
+  const [rpeTarget, setRpeTarget] = useState<Exercise | null>(null); // 刚完成、待评价的动作
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipAutoSpeakRef = useRef(false);
 
@@ -363,6 +369,10 @@ export default function Workout(): JSX.Element {
   const ex: Exercise | null = phase === 'exercise' ? (exercises[exerciseIndex] ?? null) : null;
   const setIndex = session?.setIndex ?? 0;
   const isLastExercise = exerciseIndex === exercises.length - 1;
+
+  /* ---------- RPE 覆盖：当前动作的调整量（步进器初值 / 次数文案 / 「已为你调整」Tag） ---------- */
+  const [exOverride] = useExerciseOverride(ex?.id ?? null);
+  const adjustedBaseKg = useMemo(() => (ex ? adjustedWeightKg(ex, exOverride) : null), [ex, exOverride]);
 
   /* ---------- 进入新动作自动读要领；热身进场读热身脚本 ---------- */
   useEffect(() => {
@@ -429,7 +439,7 @@ export default function Workout(): JSX.Element {
 
   /* ---------- 完成一组 / 完成一侧 ---------- */
   const completeSet = useCallback(() => {
-    if (!ex || !session || restPlan || transitionNext) return;
+    if (!ex || !session || restPlan || transitionNext || rpeTarget) return;
     const sets = Math.max(1, ex.sets);
     const side = ex.unilateral ? (session.side ?? 'L') : null;
     const lastSet = setIndex >= sets - 1;
@@ -449,18 +459,8 @@ export default function Workout(): JSX.Element {
     }
 
     if (lastSet) {
-      if (isLastExercise) {
-        feedback.celebrate('最后一个动作，拿下');
-        finishWorkout(skips);
-        return;
-      }
-      const next = exercises[exerciseIndex + 1];
-      feedback.celebrate('这个动作拿下');
-      setTransitionNext(next.name);
-      transitionTimerRef.current = setTimeout(() => {
-        updateSession({ exerciseIndex: exerciseIndex + 1, setIndex: 0, side: next.unilateral ? 'L' : null });
-        setTransitionNext(null);
-      }, 700);
+      // 全部组数完成（单侧动作此时右侧也做完了）：先弹 RPE 评价，选完/跳过再推进
+      setRpeTarget(ex);
       return;
     }
 
@@ -474,7 +474,47 @@ export default function Workout(): JSX.Element {
       },
       () => updateSession({ setIndex: setIndex + 1, side: ex.unilateral ? 'L' : null }),
     );
-  }, [ex, session, restPlan, transitionNext, setIndex, isLastExercise, exerciseIndex, exercises, skips, feedback, openRest, finishWorkout]);
+  }, [ex, session, restPlan, transitionNext, rpeTarget, setIndex, feedback, openRest]);
+
+  /* ---------- 完成一个动作的收尾（RPE 评价后调用）：庆祝 + 过场 + 推进/结课 ---------- */
+  const advanceAfterExercise = useCallback(
+    (withCelebration: boolean) => {
+      if (isLastExercise) {
+        if (withCelebration) feedback.celebrate('最后一个动作，拿下');
+        finishWorkout(skips);
+        return;
+      }
+      const next = exercises[exerciseIndex + 1];
+      if (withCelebration) feedback.celebrate('这个动作拿下');
+      setTransitionNext(next.name);
+      transitionTimerRef.current = setTimeout(() => {
+        updateSession({ exerciseIndex: exerciseIndex + 1, setIndex: 0, side: next.unilateral ? 'L' : null });
+        setTransitionNext(null);
+      }, 700);
+    },
+    [isLastExercise, feedback, finishWorkout, skips, exercises, exerciseIndex],
+  );
+
+  /* 选完即存 + toast 反馈 + 自动收起。toast 位只有一个，评价反馈优先于「这个动作拿下」 */
+  const handleRpeSelect = useCallback(
+    (rpe: RpeChoice) => {
+      const target = rpeTarget;
+      setRpeTarget(null);
+      if (target) {
+        const next = applyRpeOverride(target, rpe);
+        vibrate(30);
+        feedback.toast(rpeToast(target, next, rpe));
+      }
+      advanceAfterExercise(false);
+    },
+    [rpeTarget, feedback, advanceAfterExercise],
+  );
+
+  /* 跳过评价：不存记录，照常推进 */
+  const handleRpeSkip = useCallback(() => {
+    setRpeTarget(null);
+    advanceAfterExercise(true);
+  }, [advanceAfterExercise]);
 
   /* ---------- 跳过这个动作 ---------- */
   const confirmSkip = useCallback(() => {
@@ -708,12 +748,14 @@ export default function Workout(): JSX.Element {
             exerciseCount={exercises.length}
             setIndex={setIndex}
             side={ex.unilateral ? ((session?.side ?? 'L') as 'L' | 'R') : null}
-            weight={weights[ex.id] ?? null}
+            weight={weights[ex.id] ?? adjustedBaseKg}
+            repsText={adjustedReps(ex, exOverride)}
+            adjusted={hasAdjustment(exOverride)}
             weightBump={weightBump}
             onAdjustWeight={(dir) => {
               const spec = weightSpec(ex);
               if (spec.kg === null) return;
-              const cur = weights[ex.id] ?? spec.kg;
+              const cur = weights[ex.id] ?? adjustedBaseKg ?? spec.kg;
               setWeights({ ...weights, [ex.id]: clampWeight(cur + dir * spec.step) });
               setWeightBump(dir);
               vibrate(10);
@@ -793,6 +835,9 @@ export default function Workout(): JSX.Element {
         onSwap={handleSwap}
         onRevert={handleRevertSwap}
       />
+
+      {/* ===== RPE 评价（完成一个动作的全部组数后弹出，选完即存） ===== */}
+      <RpeSheet open={rpeTarget !== null} exerciseName={rpeTarget?.name ?? ''} onSelect={handleRpeSelect} onSkip={handleRpeSkip} />
     </div>
   );
 }
@@ -806,8 +851,12 @@ interface ExerciseStageProps {
   exerciseCount: number;
   setIndex: number;
   side: 'L' | 'R' | null;
-  /** 用户调过的重量（null = 用建议值） */
+  /** 用户调过的重量 / RPE 调整后重量（null = 用建议值） */
   weight: number | null;
+  /** RPE 调整后的次数文案 */
+  repsText: string;
+  /** 有 RPE 调整量：动作名旁亮「已为你调整」Tag */
+  adjusted: boolean;
   /** 重量滚动方向提示 +1/-1 */
   weightBump: number;
   onAdjustWeight: (dir: 1 | -1) => void;
@@ -832,6 +881,8 @@ function ExerciseStage({
   setIndex,
   side,
   weight,
+  repsText,
+  adjusted,
   weightBump,
   onAdjustWeight,
   speaking,
@@ -873,6 +924,11 @@ function ExerciseStage({
           <h2 className="font-display text-1" style={{ margin: '6px 0 0', fontSize: 28, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.2 }}>
             {ex.name}
           </h2>
+          {adjusted ? (
+            <div style={{ marginTop: 8 }}>
+              <Tag>已为你调整</Tag>
+            </div>
+          ) : null}
           {swappedFrom ? (
             <p className="text-2" style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 1.5 }}>
               已替换：{swappedFrom} → {ex.name}
@@ -1069,7 +1125,7 @@ function ExerciseStage({
           {ex.unilateral ? ` · ${side === 'R' ? '现在做右侧' : '先做左侧'}` : ''}
         </p>
         <p className="text-3" style={{ margin: '4px 0 0', fontSize: 13 }}>
-          目标 {ex.reps}
+          目标 {repsText}
         </p>
       </motion.div>
 

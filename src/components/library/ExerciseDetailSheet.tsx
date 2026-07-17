@@ -10,7 +10,9 @@ import BottomSheet from '@/components/BottomSheet';
 import { DangerButton, GhostButton, PrimaryButton } from '@/components/Buttons';
 import Icon from '@/components/Icon';
 import Tag, { DangerTag, WarnTag } from '@/components/Tag';
-import { getCustomExercises } from '@/lib/store';
+import { formatKg } from '@/components/workout/weight';
+import { adjustedReps, adjustedWeightKg, repsTarget } from '@/lib/adjust';
+import { getCustomExercises, useExerciseOverride } from '@/lib/store';
 import { speak } from '@/lib/tts';
 import type { Exercise } from '@/lib/types';
 import { getExerciseById } from '@/lib/utils-workout';
@@ -52,6 +54,8 @@ export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdi
   }
 
   const ex = stack.length > 0 ? stack[stack.length - 1] : exercise;
+  /* RPE 覆盖：有记录时在「练多少」显示「你当前的强度」一行 */
+  const [rpeOverride] = useExerciseOverride(ex?.id ?? null);
   const zone = ex ? ZONE_MAP[zoneOfExercise(ex)] : null;
   /* 跳转到的替代动作可能是自建的，自建标记按当前展示的动作重新判定 */
   const exIsCustom = stack.length > 0 ? (ex ? getCustomExercises().some((c) => c.id === ex.id) : false) : isCustom;
@@ -65,6 +69,11 @@ export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdi
     }
   }
   const backTo = stack.length > 1 ? stack[stack.length - 2] : exercise;
+
+  /* 你当前的强度：调整后重量 / 次数目标段（"每侧12-14" → "每侧12-14 次"） */
+  const strengthKg = ex && rpeOverride ? adjustedWeightKg(ex, rpeOverride) : null;
+  const strengthRepsHead = ex && rpeOverride ? repsTarget(adjustedReps(ex, rpeOverride)) : '';
+  const strengthReps = /\d$/.test(strengthRepsHead) ? `${strengthRepsHead} 次` : strengthRepsHead;
 
   return (
     <BottomSheet open={exercise !== null} onClose={onClose} title={ex ? `${zone?.name ?? ''} · 动作详情` : undefined}>
@@ -167,6 +176,11 @@ export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdi
               {ex.restSeconds > 0 ? <span style={{ fontSize: 13, color: 'var(--text-2)' }}>组间休 {ex.restSeconds} 秒</span> : null}
             </div>
             <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.6, color: 'var(--text-2)' }}>建议重量：{ex.suggestedWeight}</p>
+            {rpeOverride ? (
+              <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.6, color: 'var(--accent)' }}>
+                你当前的强度：{strengthKg !== null ? formatKg(strengthKg) : '自重'} / {strengthReps}
+              </p>
+            ) : null}
             {ex.unilateral ? (
               <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.6, color: 'var(--warn)' }}>
                 你右臂比左臂壮，单侧动作一律左侧先做，左边做到力竭右边跟着做同样次数。

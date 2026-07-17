@@ -34,9 +34,11 @@ import {
   WeekdayChips,
 } from '@/components/onboarding/selectors';
 import { testDeepSeekKey } from '@/lib/ai';
-import { updateSettings, useProfile, useSchedule, useSettings, useTargets } from '@/lib/store';
+import { RPE_LABELS, overrideDeltaText } from '@/lib/adjust';
+import { getAllExerciseOverrides, resetExerciseOverride, updateSettings, useProfile, useSchedule, useSettings, useTargets } from '@/lib/store';
 import { speak } from '@/lib/tts';
 import type { UserProfile } from '@/lib/types';
+import { getExerciseById } from '@/lib/utils-workout';
 
 /** localStorage 键空间前缀（与 src/lib/store.ts 一致） */
 const LS_PREFIX = 'koudai-coach:';
@@ -162,6 +164,16 @@ export default function Settings(): JSX.Element {
   const [exported, setExported] = useState(false);
   const [clearSheetOpen, setClearSheetOpen] = useState(false);
   const [clearText, setClearText] = useState('');
+
+  /* ---- 自适应训练（RPE 覆盖记录，重置后本地刷新） ---- */
+  const [overrides, setOverrides] = useState(() => getAllExerciseOverrides());
+
+  const resetOverride = (exerciseId: string, name: string) => {
+    resetExerciseOverride(exerciseId);
+    setOverrides(getAllExerciseOverrides());
+    vibrate(15);
+    toast(`已重置，${name}回到基准量`);
+  };
 
   const flashInput = (set: (v: boolean) => void) => {
     set(true);
@@ -618,6 +630,57 @@ export default function Settings(): JSX.Element {
               >
                 {auditioning ? '正在试听…' : '试听一句'}
               </GhostButton>
+            </PanelRow>
+          </Panel>
+        </div>
+      </motion.section>
+
+      {/* ============ §3.5 自适应训练卡 ============ */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.15, ease: 'easeOut' }}
+        style={{ marginTop: 28 }}
+      >
+        <SectionLabel index="自适应">自适应训练</SectionLabel>
+        <div style={{ marginTop: 14 }}>
+          <Panel>
+            {overrides.length === 0 ? (
+              <PanelRow>
+                <p className="text-2" style={{ margin: 0, fontSize: 13, lineHeight: 1.6 }}>
+                  还没有调整记录。去练一节课，每个动作做完告诉我感觉，这里就会长出来。
+                </p>
+              </PanelRow>
+            ) : (
+              overrides.map(({ exerciseId, override }) => {
+                const ex = getExerciseById(exerciseId);
+                const name = ex?.name ?? '已删除的动作';
+                return (
+                  <PanelRow key={exerciseId}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="text-1" style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.4 }}>
+                          {name}
+                        </div>
+                        <div className="text-2" style={{ marginTop: 4, fontSize: 13, lineHeight: 1.5 }}>
+                          {overrideDeltaText(ex, override)} · 上次觉得：{RPE_LABELS[override.lastRpe]}
+                        </div>
+                      </div>
+                      <GhostButton
+                        size="sm"
+                        fullWidth={false}
+                        style={{ minHeight: 44, padding: '0 14px', flexShrink: 0 }}
+                        onClick={() => resetOverride(exerciseId, name)}
+                      >
+                        重置
+                      </GhostButton>
+                    </div>
+                  </PanelRow>
+                );
+              })
+            )}
+            <PanelRow last>
+              <Caption>练完每个动作告诉我感觉，计划会自己长。</Caption>
             </PanelRow>
           </Panel>
         </div>
