@@ -8,17 +8,22 @@
  *   const [settings, setSettings] = useSettings();
  *   updateSettings({ ttsOn: false });
  */
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import type {
   AppSettings,
   ChecklistState,
+  ComputedTargets,
   CycleState,
   DietEntry,
   Exercise,
+  ScheduleConfig,
   SupplementState,
+  UserProfile,
   WorkoutSession,
 } from './types';
 import programJson from '../data/program.json';
+import nutritionJson from '../data/nutrition.json';
+import { computeTargets } from './profile';
 
 /* ================= 底层 KV 引擎 ================= */
 
@@ -131,6 +136,8 @@ export const KEYS = {
   settings: 'settings',
   customExercises: 'customExercises',
   session: 'session',
+  profile: 'profile',
+  schedule: 'schedule',
   dietKey: (date: string) => `diet:${date}`,
   supplementsKey: (date: string) => `supplements:${date}`,
   checklistKey: (date: string) => `checklist:${date}`,
@@ -376,4 +383,50 @@ export function toggleChecklistItem(key: string, date: string = todayStr()): boo
   const next = { ...cur, [key]: !cur[key] };
   writeKey(KEYS.checklistKey(date), next);
   return next[key];
+}
+
+/* ================= profile：用户身体档案（Onboarding 写入，null = 未填过问卷） ================= */
+
+export function getProfile(): UserProfile | null {
+  return readKey<UserProfile | null>(KEYS.profile, null);
+}
+
+export function useProfile(): [
+  UserProfile | null,
+  (next: UserProfile | null | ((p: UserProfile | null) => UserProfile | null)) => void,
+] {
+  return useStoreKey<UserProfile | null>(KEYS.profile, null);
+}
+
+/* ================= schedule：排期配置（默认练一休一） ================= */
+
+export const DEFAULT_SCHEDULE: ScheduleConfig = { mode: '1on1off', weekdays: [1, 3, 5] };
+
+export function getSchedule(): ScheduleConfig {
+  return readKey(KEYS.schedule, DEFAULT_SCHEDULE);
+}
+
+export function useSchedule(): [
+  ScheduleConfig,
+  (next: ScheduleConfig | ((p: ScheduleConfig) => ScheduleConfig)) => void,
+] {
+  return useStoreKey(KEYS.schedule, DEFAULT_SCHEDULE);
+}
+
+/* ================= targets：动态营养目标 ================= */
+
+/** 老用户兜底：nutrition.json 里的静态档案（与 ComputedTargets 同形） */
+const STATIC_TARGETS: ComputedTargets = {
+  bmr: nutritionJson.profile.bmr,
+  tdee: nutritionJson.profile.tdee,
+  targetKcal: nutritionJson.profile.targetKcal,
+  proteinG: nutritionJson.profile.proteinG,
+  fatG: nutritionJson.profile.fatG,
+  carbsG: nutritionJson.profile.carbsG,
+};
+
+/** 今日营养目标：有 profile 按 Mifflin 动态算，没有回落 nutrition.json 静态值（兼容老用户） */
+export function useTargets(): ComputedTargets {
+  const [profile] = useProfile();
+  return useMemo(() => (profile ? computeTargets(profile) : STATIC_TARGETS), [profile]);
 }

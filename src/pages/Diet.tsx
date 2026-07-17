@@ -35,10 +35,10 @@ import {
   useDietEntries,
   useSettings,
   useSupplements,
+  useTargets,
 } from '../lib/store';
-import type { DietEntry, FoodEstimateItem, MealType, NutritionProfile, Supplement } from '../lib/types';
+import type { DietEntry, FoodEstimateItem, MealType, Supplement } from '../lib/types';
 
-const profile = nutritionJson.profile as NutritionProfile;
 const supplements = nutritionJson.supplements as Supplement[];
 
 const MEAL_LABEL: Record<MealType, string> = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snack: '加餐' };
@@ -232,11 +232,13 @@ function MinusIcon({ size = 16 }: { size?: number }): JSX.Element {
 
 function ProgressSection({ entries }: { entries: DietEntry[] }): JSX.Element {
   const reduce = useReducedMotion();
+  // 动态营养目标：有档案按 Mifflin 算，无档案回落 nutrition.json 静态值
+  const targets = useTargets();
   const totalKcal = entries.reduce((s, e) => s + e.kcal, 0);
   const totalProtein = entries.reduce((s, e) => s + e.protein, 0);
-  const kcalOver = totalKcal > profile.targetKcal;
-  const kcalLine = useTypewriter(kcalComment(totalKcal, profile.targetKcal));
-  const proteinLine = useTypewriter(proteinComment(totalProtein, profile.proteinG));
+  const kcalOver = totalKcal > targets.targetKcal;
+  const kcalLine = useTypewriter(kcalComment(totalKcal, targets.targetKcal));
+  const proteinLine = useTypewriter(proteinComment(totalProtein, targets.proteinG));
 
   return (
     <section
@@ -262,7 +264,7 @@ function ProgressSection({ entries }: { entries: DietEntry[] }): JSX.Element {
               color: kcalOver ? 'var(--warn)' : 'var(--text-1)',
             }}
           />
-          <span style={{ fontSize: 13, color: 'var(--text-2)' }}>/ 约 {profile.targetKcal} 大卡</span>
+          <span style={{ fontSize: 13, color: 'var(--text-2)' }}>/ 约 {targets.targetKcal} 大卡</span>
         </span>
       </div>
       <motion.div
@@ -271,7 +273,7 @@ function ProgressSection({ entries }: { entries: DietEntry[] }): JSX.Element {
         transition={{ duration: reduce ? 0.1 : 0.3 }}
         style={{ marginTop: 10 }}
       >
-        <ProgressBar value={totalKcal} max={profile.targetKcal} hideNumbers />
+        <ProgressBar value={totalKcal} max={targets.targetKcal} hideNumbers />
       </motion.div>
       <p style={{ margin: '10px 0 0', fontSize: 13, color: kcalOver ? 'var(--warn)' : 'var(--text-2)', lineHeight: 1.5, minHeight: 20 }}>
         {kcalLine}
@@ -298,10 +300,10 @@ function ProgressSection({ entries }: { entries: DietEntry[] }): JSX.Element {
               fontSize: 24,
               fontWeight: 600,
               lineHeight: 1,
-              color: totalProtein >= profile.proteinG ? 'var(--accent)' : 'var(--text-1)',
+              color: totalProtein >= targets.proteinG ? 'var(--accent)' : 'var(--text-1)',
             }}
           />
-          <span style={{ fontSize: 13, color: 'var(--text-2)' }}>g / {profile.proteinG}g</span>
+          <span style={{ fontSize: 13, color: 'var(--text-2)' }}>g / {targets.proteinG}g</span>
         </span>
       </div>
       <motion.div
@@ -310,7 +312,7 @@ function ProgressSection({ entries }: { entries: DietEntry[] }): JSX.Element {
         transition={reduce ? { duration: 0.1 } : { duration: 0.3, delay: 0.15 }}
         style={{ marginTop: 10 }}
       >
-        <ProgressBar value={totalProtein} max={profile.proteinG} hideNumbers />
+        <ProgressBar value={totalProtein} max={targets.proteinG} hideNumbers />
       </motion.div>
       <p style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5, minHeight: 20 }}>
         {proteinLine}

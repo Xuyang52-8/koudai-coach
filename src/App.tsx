@@ -1,4 +1,5 @@
-import { BrowserRouter, Route, Routes } from 'react-router'
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router'
+import type { JSX } from 'react'
 import './App.css'
 import AppShell from './components/AppShell'
 import Home from './pages/Home'
@@ -9,32 +10,48 @@ import Rest from './pages/Rest'
 import Diet from './pages/Diet'
 import Library from './pages/Library'
 import Settings from './pages/Settings'
+import Onboarding from './pages/Onboarding'
+import { useProfile } from './lib/store'
+
+/**
+ * 首启动闸门：无 profile 的用户（首次启动）一律先去 /onboarding 填问卷。
+ * 只包住非 onboarding 路由——/onboarding 自身不在闸门内，不会重定向死循环。
+ */
+function OnboardingGate(): JSX.Element {
+  const [profile] = useProfile()
+  if (!profile) return <Navigate to="/onboarding" replace />
+  return <Outlet />
+}
 
 /**
  * 路由表（嵌套 layout-route 模式：AppShell 渲染 <Outlet/>）
- *  /          今日（首页，已实现）
- *  /preview   课前预习（stub → 页面代理替换）
- *  /workout   训练进行（stub，AppShell 在此路径隐藏 TabBar）
- *  /summary   练后总结（stub）
- *  /rest      休息日（stub）
- *  /diet      饮食（stub）
- *  /library   动作库（stub）
- *  /settings  我的/设置（stub）
+ *  /           今日（首页）
+ *  /onboarding 首次引导问卷（无 profile 时强制）
+ *  /preview    课前预习
+ *  /workout    训练进行（AppShell 在此路径隐藏 TabBar）
+ *  /summary    练后总结
+ *  /rest       休息日
+ *  /diet       饮食
+ *  /library    动作库
+ *  /settings   我的/设置
  */
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<AppShell />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/preview" element={<Preview />} />
-          <Route path="/workout" element={<Workout />} />
-          <Route path="/summary" element={<Summary />} />
-          <Route path="/rest" element={<Rest />} />
-          <Route path="/diet" element={<Diet />} />
-          <Route path="/library" element={<Library />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<Home />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route element={<OnboardingGate />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/preview" element={<Preview />} />
+            <Route path="/workout" element={<Workout />} />
+            <Route path="/summary" element={<Summary />} />
+            <Route path="/rest" element={<Rest />} />
+            <Route path="/diet" element={<Diet />} />
+            <Route path="/library" element={<Library />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*" element={<Home />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

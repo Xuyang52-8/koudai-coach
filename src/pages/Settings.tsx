@@ -10,6 +10,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import type { JSX, ReactNode } from 'react';
+import { useNavigate } from 'react-router';
 import BottomSheet from '@/components/BottomSheet';
 import { DangerButton, GhostButton, PrimaryButton } from '@/components/Buttons';
 import { useFeedback, vibrate } from '@/components/feedback';
@@ -19,9 +20,23 @@ import SectionLabel from '@/components/SectionLabel';
 import Tag, { WarnTag } from '@/components/Tag';
 import TTSToggle from '@/components/TTSToggle';
 import { Field, RowToggle, Stepper } from '@/components/library/inputs';
+import {
+  DietHabitChips,
+  ExperienceCards,
+  FatAreaChips,
+  GenderCards,
+  GoalCards,
+  InjuryChips,
+  LeftRightCards,
+  PickerLabel,
+  ScheduleModeCards,
+  VenueCards,
+  WeekdayChips,
+} from '@/components/onboarding/selectors';
 import { testDeepSeekKey } from '@/lib/ai';
-import { updateSettings, useSettings } from '@/lib/store';
+import { updateSettings, useProfile, useSchedule, useSettings, useTargets } from '@/lib/store';
 import { speak } from '@/lib/tts';
+import type { UserProfile } from '@/lib/types';
 
 /** localStorage 键空间前缀（与 src/lib/store.ts 一致） */
 const LS_PREFIX = 'koudai-coach:';
@@ -107,14 +122,24 @@ function Spinner(): JSX.Element {
 type TestState = 'idle' | 'testing' | 'ok' | 'fail';
 
 export default function Settings(): JSX.Element {
+  const navigate = useNavigate();
   const [settings] = useSettings();
   const { toast, host } = useFeedback();
 
-  /* ---- §1 身体数据 ---- */
+  /* ---- §1 身体数据 / 完整档案 ---- */
+  const [profile, setProfile] = useProfile();
+  const [schedule, setSchedule] = useSchedule();
+  const targets = useTargets();
   const [weightSheetOpen, setWeightSheetOpen] = useState(false);
   const [weightDraft, setWeightDraft] = useState(settings.weightKg);
-  // 体重偏离 81.5kg 时目标热量 ±微调（约 25 大卡/kg，估算口径）
-  const targetKcal = Math.round((2250 + (settings.weightKg - 81.5) * 25) / 10) * 10;
+  // 无档案的老用户沿用旧口径：体重偏离 81.5kg 时目标热量 ±微调（约 25 大卡/kg，估算口径）
+  const legacyTargetKcal = Math.round((2250 + (settings.weightKg - 81.5) * 25) / 10) * 10;
+
+  /** 档案即改即存；体重同步进旧字段（summary 消耗估算仍读 settings.weightKg） */
+  const patchProfile = (p: Partial<UserProfile>) => {
+    setProfile((prev) => (prev ? { ...prev, ...p } : prev));
+    if (p.weightKg !== undefined) updateSettings({ weightKg: p.weightKg });
+  };
 
   /* ---- §2 DeepSeek ---- */
   const [dsDraft, setDsDraft] = useState(settings.deepseekKey);
@@ -237,59 +262,170 @@ export default function Settings(): JSX.Element {
       {host}
       <ScreenHeader label="我的 · SETTINGS" title="设置与数据" actions={<TTSToggle />} />
 
-      {/* ============ §1 身体数据卡 ============ */}
+      {/* ============ §1 身体数据卡 / 完整档案 ============ */}
       <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: 'easeOut' }}>
         <SectionLabel index="身体">我的数据</SectionLabel>
-        <div style={{ marginTop: 14 }}>
-          <Panel>
-            <PanelRow>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span className="text-2" style={{ fontSize: 13 }}>身高</span>
-                  <span className="num" style={{ fontSize: 24, fontWeight: 600 }}>181</span>
-                  <span className="text-3" style={{ fontSize: 12 }}>cm</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span className="text-2" style={{ fontSize: 13 }}>体重</span>
-                  <span className="num" style={{ fontSize: 24, fontWeight: 600 }}>{settings.weightKg.toFixed(1)}</span>
-                  <span className="text-3" style={{ fontSize: 12 }}>kg（{Math.round(settings.weightKg * 2)}斤）</span>
-                </div>
-                <GhostButton
-                  size="sm"
-                  fullWidth={false}
-                  style={{ minHeight: 48, padding: '0 16px' }}
-                  onClick={() => {
-                    setWeightDraft(settings.weightKg);
-                    setWeightSheetOpen(true);
+        {profile ? (
+          /* ---------- 完整档案（与首次问卷同组件，改完即存） ---------- */
+          <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <Panel>
+              <PanelRow>
+                <PickerLabel>性别</PickerLabel>
+                <GenderCards value={profile.gender} onChange={(gender) => patchProfile({ gender })} />
+              </PanelRow>
+              <PanelRow>
+                <Stepper label="年龄" value={profile.age} onChange={(age) => patchProfile({ age })} min={12} max={80} unit="岁" />
+              </PanelRow>
+              <PanelRow>
+                <Stepper label="身高" value={profile.heightCm} onChange={(heightCm) => patchProfile({ heightCm })} min={130} max={220} unit="cm" />
+              </PanelRow>
+              <PanelRow last>
+                <Stepper
+                  label="体重"
+                  value={profile.weightKg}
+                  onChange={(weightKg) => patchProfile({ weightKg })}
+                  min={35}
+                  max={200}
+                  step={0.5}
+                  decimals={1}
+                  unit="kg"
+                />
+                <Caption>约 {Math.round(profile.weightKg * 2)} 斤 · 一周称一次就够，早上空腹</Caption>
+              </PanelRow>
+            </Panel>
+
+            <Panel>
+              <PanelRow>
+                <PickerLabel>训练经验</PickerLabel>
+                <ExperienceCards value={profile.experience} onChange={(experience) => patchProfile({ experience })} />
+              </PanelRow>
+              <PanelRow>
+                <PickerLabel>旧伤（多选）</PickerLabel>
+                <InjuryChips value={profile.injuries} onChange={(injuries) => patchProfile({ injuries })} />
+              </PanelRow>
+              <PanelRow>
+                <PickerLabel>左右力量差</PickerLabel>
+                <LeftRightCards value={profile.leftRightDiff} onChange={(leftRightDiff) => patchProfile({ leftRightDiff })} />
+              </PanelRow>
+              <PanelRow>
+                <PickerLabel>脂肪主要堆在哪（多选）</PickerLabel>
+                <FatAreaChips value={profile.fatAreas} onChange={(fatAreas) => patchProfile({ fatAreas })} />
+              </PanelRow>
+              <PanelRow>
+                <PickerLabel>目标</PickerLabel>
+                <GoalCards value={profile.goal} onChange={(goal) => patchProfile({ goal })} />
+              </PanelRow>
+              <PanelRow>
+                <PickerLabel>饮食习惯（多选）</PickerLabel>
+                <DietHabitChips value={profile.dietHabits} onChange={(dietHabits) => patchProfile({ dietHabits })} />
+              </PanelRow>
+              <PanelRow last>
+                <PickerLabel>你能在哪练（至少一个）</PickerLabel>
+                <VenueCards
+                  value={profile.venues}
+                  onChange={(venues) => {
+                    if (venues.length > 0) patchProfile({ venues });
                   }}
+                />
+                <Caption>计划按你的场地自动换动作，器材多的场地优先排课。</Caption>
+              </PanelRow>
+            </Panel>
+
+            <Panel>
+              <PanelRow>
+                <PickerLabel>排期</PickerLabel>
+                <ScheduleModeCards value={schedule.mode} onChange={(mode) => setSchedule((s) => ({ ...s, mode }))} />
+              </PanelRow>
+              {schedule.mode === 'weekdays' ? (
+                <PanelRow>
+                  <PickerLabel>哪几天练</PickerLabel>
+                  <WeekdayChips
+                    value={schedule.weekdays}
+                    onChange={(weekdays) => {
+                      if (weekdays.length > 0) setSchedule((s) => ({ ...s, weekdays }));
+                    }}
+                  />
+                </PanelRow>
+              ) : null}
+              <PanelRow last>
+                <PickerLabel>你的营养目标（自动重算）</PickerLabel>
+                <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                  <span className="text-2" style={{ fontSize: 13 }}>
+                    热量 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 {targets.targetKcal}</span> 大卡/天
+                  </span>
+                  <span className="text-2" style={{ fontSize: 13 }}>
+                    蛋白 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 {targets.proteinG}</span> g/天
+                  </span>
+                  <span className="text-2" style={{ fontSize: 13 }}>
+                    脂肪 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 {targets.fatG}</span> g
+                  </span>
+                  <span className="text-2" style={{ fontSize: 13 }}>
+                    碳水 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 {targets.carbsG}</span> g
+                  </span>
+                </div>
+                <Caption>按 Mifflin 公式算（基础代谢约 {targets.bmr} · 日常消耗约 {targets.tdee}），改上面任意一项即时更新。</Caption>
+              </PanelRow>
+            </Panel>
+          </div>
+        ) : (
+          /* ---------- 无档案老用户：保持旧卡 + 引导补填问卷 ---------- */
+          <div style={{ marginTop: 14 }}>
+            <Panel>
+              <PanelRow>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span className="text-2" style={{ fontSize: 13 }}>身高</span>
+                    <span className="num" style={{ fontSize: 24, fontWeight: 600 }}>181</span>
+                    <span className="text-3" style={{ fontSize: 12 }}>cm</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span className="text-2" style={{ fontSize: 13 }}>体重</span>
+                    <span className="num" style={{ fontSize: 24, fontWeight: 600 }}>{settings.weightKg.toFixed(1)}</span>
+                    <span className="text-3" style={{ fontSize: 12 }}>kg（{Math.round(settings.weightKg * 2)}斤）</span>
+                  </div>
+                  <GhostButton
+                    size="sm"
+                    fullWidth={false}
+                    style={{ minHeight: 48, padding: '0 16px' }}
+                    onClick={() => {
+                      setWeightDraft(settings.weightKg);
+                      setWeightSheetOpen(true);
+                    }}
+                  >
+                    更新
+                  </GhostButton>
+                </div>
+              </PanelRow>
+              <PanelRow>
+                <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                  <span className="text-2" style={{ fontSize: 13 }}>
+                    目标 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 {legacyTargetKcal}</span> 大卡/天
+                  </span>
+                  <span className="text-2" style={{ fontSize: 13 }}>
+                    蛋白 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 150</span> g/天
+                  </span>
+                </div>
+              </PanelRow>
+              <PanelRow>
+                <p
+                  className="text-2"
+                  style={{ margin: 0, fontSize: 13, lineHeight: 1.6, borderLeft: '2px solid var(--warn)', paddingLeft: 10 }}
                 >
-                  更新
+                  左右差：右臂壮（右手吊杠 4-5 秒，左手吊不住）→ 所有单侧动作左侧先做
+                </p>
+              </PanelRow>
+              <PanelRow>
+                <Caption>目标：1 个月养成习惯 · 减脂 + 增肌 + 塑形</Caption>
+              </PanelRow>
+              <PanelRow last>
+                <GhostButton icon={<Icon name="arrow-right" size={18} />} onClick={() => navigate('/onboarding')}>
+                  做个 2 分钟问卷，计划更合身
                 </GhostButton>
-              </div>
-            </PanelRow>
-            <PanelRow>
-              <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                <span className="text-2" style={{ fontSize: 13 }}>
-                  目标 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 {targetKcal}</span> 大卡/天
-                </span>
-                <span className="text-2" style={{ fontSize: 13 }}>
-                  蛋白 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 150</span> g/天
-                </span>
-              </div>
-            </PanelRow>
-            <PanelRow>
-              <p
-                className="text-2"
-                style={{ margin: 0, fontSize: 13, lineHeight: 1.6, borderLeft: '2px solid var(--warn)', paddingLeft: 10 }}
-              >
-                左右差：右臂壮（右手吊杠 4-5 秒，左手吊不住）→ 所有单侧动作左侧先做
-              </p>
-            </PanelRow>
-            <PanelRow last>
-              <Caption>目标：1 个月养成习惯 · 减脂 + 增肌 + 塑形</Caption>
-            </PanelRow>
-          </Panel>
-        </div>
+                <Caption>填完按你的身体算热量和蛋白目标，课程也按你的场地自动换动作。</Caption>
+              </PanelRow>
+            </Panel>
+          </div>
+        )}
       </motion.section>
 
       {/* ============ §2 AI 配置卡 ============ */}

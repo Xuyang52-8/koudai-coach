@@ -26,10 +26,13 @@ import {
   toggleSupplement,
   useChecklist,
   useCycle,
+  useProfile,
+  useSchedule,
   useSupplements,
 } from '../lib/store';
+import { bestVenue } from '../lib/profile';
 import { speak } from '../lib/tts';
-import type { Supplement, TodayRestState, TodayWorkoutState } from '../lib/types';
+import type { ScheduleMode, Supplement, TodayRestState, TodayWorkoutState } from '../lib/types';
 import { getTimeHint, getTodayState, LESSON_SHORT_NAMES } from '../lib/utils-workout';
 
 const supplements = nutritionJson.supplements as Supplement[];
@@ -178,7 +181,24 @@ function CycleNode({ state, label, index, delay }: { state: NodeState; label: st
   );
 }
 
-function CycleProgress({ currentLesson, isRest }: { currentLesson: number; isRest: boolean }): JSX.Element {
+/** 排期模式对应的循环说明文案 */
+const MODE_CAPTION: Record<ScheduleMode, string> = {
+  '1on1off': '练一天休一天，跟着走就行，别管星期几。',
+  '2on1off': '练两天休一天，跟着走就行，别管星期几。',
+  weekdays: '按你定的星期练，其他日子好好休息。',
+};
+
+function CycleProgress({
+  currentLesson,
+  isRest,
+  mode,
+  venueTag,
+}: {
+  currentLesson: number;
+  isRest: boolean;
+  mode: ScheduleMode;
+  venueTag: string | null;
+}): JSX.Element {
   const reduce = useReducedMotion();
   // currentLesson：下一节课下标 0-3。训练日它是"当前课"；休息日"休"是当前。
   const nodes: { label: string; state: NodeState; num: number }[] = LESSON_SHORT_NAMES.map((label, i) => ({
@@ -209,8 +229,13 @@ function CycleProgress({ currentLesson, isRest }: { currentLesson: number; isRes
         ))}
       </div>
       <p style={{ margin: '14px 0 0', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
-        练一天休一天，跟着走就行，别管星期几。
+        {MODE_CAPTION[mode]}
       </p>
+      {venueTag ? (
+        <div style={{ marginTop: 10 }}>
+          <Tag>{venueTag}</Tag>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -535,7 +560,19 @@ function WorkoutCard({ state, firstLaunch }: { state: TodayWorkoutState; firstLa
 
 /* ================= §1 休息日卡 ================= */
 
-function RestCard({ state, onSwitchToWorkout }: { state: TodayRestState; onSwitchToWorkout: () => void }): JSX.Element {
+function RestCard({
+  state,
+  modeLabel,
+  scheduleNote,
+  onSwitchToWorkout,
+}: {
+  state: TodayRestState;
+  /** 排期模式短名，如 "练一休一" */
+  modeLabel: string;
+  /** 排期强制休息时的说明（如"按排期今天休息"）， null 则走默认文案 */
+  scheduleNote: string | null;
+  onSwitchToWorkout: () => void;
+}): JSX.Element {
   const navigate = useNavigate();
   return (
     <TodayCardShell tone="warn">
@@ -543,7 +580,7 @@ function RestCard({ state, onSwitchToWorkout }: { state: TodayRestState; onSwitc
         className="font-display font-semibold uppercase text-3"
         style={{ fontSize: 13, letterSpacing: '0.14em' }}
       >
-        休息日 / 练一休一
+        休息日 / {modeLabel}
       </div>
       <h2
         className="font-display text-1"
@@ -554,6 +591,11 @@ function RestCard({ state, onSwitchToWorkout }: { state: TodayRestState; onSwitc
       <p className="text-2" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>
         游泳 / 散步 / 拉伸，选一个就行
       </p>
+      {scheduleNote ? (
+        <p className="text-2" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>
+          {scheduleNote}
+        </p>
+      ) : null}
       {state.doneToday ? (
         <div style={{ marginTop: 14 }}>
           <Tag>今天已打卡，streak 续上了</Tag>
@@ -590,16 +632,47 @@ function RestCard({ state, onSwitchToWorkout }: { state: TodayRestState; onSwitc
 
 /* ================= 页面 ================= */
 
+const MODE_LABEL: Record<ScheduleMode, string> = {
+  '1on1off': '练一休一',
+  '2on1off': '练二休一',
+  weekdays: '固定星期',
+};
+
+/** 场地短标签（循环进度处展示，如"健身房版"） */
+const VENUE_SHORT: Record<string, string> = {
+  gym: '健身房版',
+  home: '居家版',
+  outdoor: '户外版',
+  bodyweight: '自重版',
+};
+
 export default function Home(): JSX.Element {
   const [cycle] = useCycle();
+  const [profile] = useProfile();
+  const [schedule] = useSchedule();
   const [forceWorkout, setForceWorkout] = useState(false);
   const [streakOpen, setStreakOpen] = useState(false);
   const [supplementOpen, setSupplementOpen] = useState(false);
   const spokenRef = useRef(false);
 
-  const state = getTodayState({ forceWorkout }, cycle);
+  const state = getTodayState({ forceWorkout, profile, schedule }, cycle);
   const isWorkout = state.type === 'workout';
   const firstLaunch = cycle.history.length === 0;
+
+  // 休息日文案：排期强制休息（非"昨天练过"循环结果也非"已打卡"）时说明是按排期休息
+  const scheduleNote = (() => {
+    if (state.type !== 'rest' || state.doneToday || forceWorkout) return null;
+    if (schedule.mode === 'weekdays' && !schedule.weekdays.includes(new Date().getDay())) {
+      return '按排期今天休息，恢复好，下节课更有劲。';
+    }
+    if (schedule.mode === '2on1off') {
+      return '连练两天了，今天该休——恢复好，下节课更有劲。';
+    }
+    return null;
+  })();
+
+  // 场地标签：有档案才显示（如"健身房版"），无档案老用户保持原样
+  const venueTag = profile ? (VENUE_SHORT[bestVenue(profile.venues)] ?? null) : null;
 
   // 训练日态首次进入且语音开关开：读一句今日安排
   useEffect(() => {
@@ -625,10 +698,15 @@ export default function Home(): JSX.Element {
       {isWorkout && state.type === 'workout' ? (
         <WorkoutCard state={state} firstLaunch={firstLaunch} />
       ) : state.type === 'rest' ? (
-        <RestCard state={state} onSwitchToWorkout={() => setForceWorkout(true)} />
+        <RestCard
+          state={state}
+          modeLabel={MODE_LABEL[schedule.mode]}
+          scheduleNote={scheduleNote}
+          onSwitchToWorkout={() => setForceWorkout(true)}
+        />
       ) : null}
 
-      <CycleProgress currentLesson={cycle.nextWorkoutIndex} isRest={!isWorkout} />
+      <CycleProgress currentLesson={cycle.nextWorkoutIndex} isRest={!isWorkout} mode={schedule.mode} venueTag={venueTag} />
 
       {isWorkout ? <DepartureChecklist /> : null}
 
