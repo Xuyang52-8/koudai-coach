@@ -19,6 +19,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import { DangerTag, Tag, WarnTag } from '../components/Tag';
 import TTSToggle from '../components/TTSToggle';
 import { TAB_BAR_HEIGHT } from '../components/AppShell';
+import SubstituteSheet, { SwapIcon } from '../components/library/SubstituteSheet';
 import { ChevronDownIcon, ExternalIcon, StopIcon } from '../components/workout/icons';
 import { warmupSpec } from '../components/workout/warmup';
 import { weightSpec } from '../components/workout/weight';
@@ -26,7 +27,7 @@ import { zoneForExercise } from '../components/workout/zoneImage';
 import { startSession, updateSession, useCycle, useSettings } from '../lib/store';
 import { cancel, speak } from '../lib/tts';
 import type { Exercise, Workout } from '../lib/types';
-import { estimateWorkoutMinutes, getTodayState, resolveWorkout } from '../lib/utils-workout';
+import { estimateWorkoutMinutes, getExerciseById, getTodayState, resolveWorkout } from '../lib/utils-workout';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -77,7 +78,18 @@ function setsRepsTag(ex: Exercise): string {
 
 /* ================= 动作六要素展开卡 ================= */
 
-function ExerciseDetail({ ex, speaking, onToggleSpeak }: { ex: Exercise; speaking: boolean; onToggleSpeak: () => void }): JSX.Element {
+function ExerciseDetail({
+  ex,
+  speaking,
+  onToggleSpeak,
+  onSwap,
+}: {
+  ex: Exercise;
+  speaking: boolean;
+  onToggleSpeak: () => void;
+  /** 有替代链时提供：打开「换替代动作」弹层 */
+  onSwap?: () => void;
+}): JSX.Element {
   const miss = missingFields(ex);
   if (miss.length > 0) {
     return (
@@ -190,10 +202,10 @@ function ExerciseDetail({ ex, speaking, onToggleSpeak }: { ex: Exercise; speakin
     </div>,
   );
 
-  /* 6. 视听辅助 */
+  /* 6. 视听辅助（+ 换替代动作） */
   sections.push(
     <div key="av">
-      <div style={{ display: 'flex', gap: 10 }}>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <GhostButton
           size="sm"
           icon={speaking ? <StopIcon size={16} /> : <Icon name="play" size={16} />}
@@ -209,6 +221,11 @@ function ExerciseDetail({ ex, speaking, onToggleSpeak }: { ex: Exercise; speakin
         >
           视频搜索
         </GhostButton>
+        {onSwap ? (
+          <GhostButton size="sm" icon={<SwapIcon size={16} />} onClick={onSwap}>
+            换替代动作
+          </GhostButton>
+        ) : null}
       </div>
       <p className="text-3" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>
         视频跳到 B 站搜索「{ex.videoKeyword}」（外链，新窗口打开）
@@ -347,6 +364,16 @@ export default function Preview(): JSX.Element {
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const pulseRef = useRef(false);
 
+  /* 替代动作：页面级状态（位置下标 → 新动作 id），只改这次预习视图，不持久化 */
+  const [swaps, setSwaps] = useState<Record<number, string>>({});
+  const [swapIndex, setSwapIndex] = useState<number | null>(null);
+
+  /* 应用替代映射：渲染用动作列表（替代动作换到原位置，视图即时更新） */
+  const displayExercises = exercises.map((ex, i) => {
+    const sid = swaps[i];
+    return sid ? (getExerciseById(sid) ?? ex) : ex;
+  });
+
   /* 离开页面停止朗读 */
   useEffect(() => () => cancel(), []);
 
@@ -475,12 +502,14 @@ export default function Preview(): JSX.Element {
               detail={warmup ? <ExerciseDetail ex={warmup} speaking={speakingId === warmup.id} onToggleSpeak={() => toggleSpeak(warmup)} /> : null}
             />
 
-            {/* (02..) 动作 */}
-            {exercises.map((ex, i) => {
+            {/* (02..) 动作（可能被替代映射换掉） */}
+            {displayExercises.map((ex, i) => {
               const w = weightSpec(ex);
+              const orig = exercises[i] ?? ex;
+              const swapped = orig.id !== ex.id;
               return (
                 <AccordionRow
-                  key={ex.id}
+                  key={`${i}-${ex.id}`}
                   index={i + 1}
                   num={String(i + 2).padStart(2, '0')}
                   open={openKey === ex.id}
@@ -490,6 +519,7 @@ export default function Preview(): JSX.Element {
                       <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         <span className="text-1" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.3 }}>{ex.name}</span>
                         {ex.unilateral ? <WarnTag>先左后右</WarnTag> : null}
+                        {swapped ? <Tag>已替换</Tag> : null}
                       </span>
                       <span style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                         <Tag>{setsRepsTag(ex)}</Tag>
@@ -497,7 +527,14 @@ export default function Preview(): JSX.Element {
                       </span>
                     </span>
                   }
-                  detail={<ExerciseDetail ex={ex} speaking={speakingId === ex.id} onToggleSpeak={() => toggleSpeak(ex)} />}
+                  detail={
+                    <ExerciseDetail
+                      ex={ex}
+                      speaking={speakingId === ex.id}
+                      onToggleSpeak={() => toggleSpeak(ex)}
+                      onSwap={orig.substitutes && orig.substitutes.length > 0 ? () => setSwapIndex(i) : undefined}
+                    />
+                  }
                 />
               );
             })}
@@ -579,6 +616,33 @@ export default function Preview(): JSX.Element {
           )}
         </motion.div>
       </motion.div>
+
+      {/* 换替代动作（只改这次预习，不进计划） */}
+      <SubstituteSheet
+        open={swapIndex !== null}
+        onClose={() => setSwapIndex(null)}
+        original={swapIndex !== null ? (exercises[swapIndex] ?? null) : null}
+        current={swapIndex !== null ? (displayExercises[swapIndex] ?? null) : null}
+        onSwap={(ex) => {
+          if (swapIndex === null) return;
+          setSwaps((s) => ({ ...s, [swapIndex]: ex.id }));
+          setSwapIndex(null);
+          setOpenKey(ex.id); // 手风琴保持在换好的动作上展开
+          feedback.toast(`换成${ex.name}了，只改这次预习`);
+        }}
+        onRevert={() => {
+          if (swapIndex === null) return;
+          const orig = exercises[swapIndex];
+          setSwaps((s) => {
+            const next = { ...s };
+            delete next[swapIndex];
+            return next;
+          });
+          setSwapIndex(null);
+          if (orig) setOpenKey(orig.id);
+          feedback.toast('换回原动作');
+        }}
+      />
     </div>
   );
 }
