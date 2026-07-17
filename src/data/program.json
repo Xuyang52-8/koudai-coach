@@ -15,7 +15,46 @@
         "dead-hang",
         "dead-bug"
       ],
-      "coachNote": "今天全跟'拉'有关。每个动作先想后背再动手臂，单臂动作左手先做，做到力竭算数。"
+      "coachNote": "今天全跟'拉'有关。每个动作先想后背再动手臂，单臂动作左手先做，做到力竭算数。",
+      "warmupVariants": {
+        "gym": "treadmill-incline-walk",
+        "home": "jumping-jack",
+        "outdoor": "outdoor-run",
+        "bodyweight": "jumping-jack"
+      },
+      "variants": {
+        "gym": [
+          "lat-pulldown",
+          "seated-row",
+          "one-arm-db-row",
+          "db-curl",
+          "dead-hang",
+          "dead-bug"
+        ],
+        "home": [
+          "band-row",
+          "doorframe-row",
+          "one-arm-db-row",
+          "db-curl",
+          "superman",
+          "dead-bug"
+        ],
+        "outdoor": [
+          "pull-up",
+          "australian-row",
+          "dips",
+          "dead-hang",
+          "superman",
+          "dead-bug"
+        ],
+        "bodyweight": [
+          "towel-row",
+          "superman",
+          "pike-push-up",
+          "bicycle-crunch",
+          "dead-bug"
+        ]
+      }
     },
     {
       "id": "B",
@@ -32,7 +71,50 @@
         "plank",
         "crunch"
       ],
-      "coachNote": "腿日记住三条红线：膝盖对准脚尖不内扣、硬拉不弓腰、腿举不锁膝。保加利亚分腿蹲左腿先。"
+      "coachNote": "腿日记住三条红线：膝盖对准脚尖不内扣、硬拉不弓腰、腿举不锁膝。保加利亚分腿蹲左腿先。",
+      "warmupVariants": {
+        "gym": "treadmill-incline-walk",
+        "home": "jumping-jack",
+        "outdoor": "outdoor-run",
+        "bodyweight": "jumping-jack"
+      },
+      "variants": {
+        "gym": [
+          "goblet-squat",
+          "leg-press",
+          "db-rdl",
+          "bulgarian-split-squat",
+          "leg-curl",
+          "plank",
+          "crunch"
+        ],
+        "home": [
+          "goblet-squat",
+          "db-rdl",
+          "bulgarian-split-squat",
+          "single-leg-glute-bridge",
+          "wall-sit",
+          "plank",
+          "crunch"
+        ],
+        "outdoor": [
+          "air-squat",
+          "walking-lunge",
+          "bulgarian-split-squat",
+          "single-leg-glute-bridge",
+          "wall-sit",
+          "plank",
+          "lying-leg-raise"
+        ],
+        "bodyweight": [
+          "air-squat",
+          "glute-bridge",
+          "bulgarian-split-squat",
+          "single-leg-glute-bridge",
+          "plank",
+          "crunch"
+        ]
+      }
     },
     {
       "id": "C",
@@ -48,7 +130,45 @@
         "rope-pushdown",
         "db-lateral-raise"
       ],
-      "coachNote": "推日用哑铃不用杠铃：左手推不动时能安全放下。侧平举2.5kg起步，左手先做，别贪重。"
+      "coachNote": "推日用哑铃不用杠铃：左手推不动时能安全放下。侧平举2.5kg起步，左手先做，别贪重。",
+      "warmupVariants": {
+        "gym": "treadmill-incline-walk",
+        "home": "jumping-jack",
+        "outdoor": "outdoor-run",
+        "bodyweight": "jumping-jack"
+      },
+      "variants": {
+        "gym": [
+          "db-bench-press",
+          "incline-db-press",
+          "db-shoulder-press",
+          "pec-deck",
+          "rope-pushdown",
+          "db-lateral-raise"
+        ],
+        "home": [
+          "push-up",
+          "band-chest-press",
+          "decline-push-up",
+          "pike-push-up",
+          "db-lateral-raise",
+          "diamond-push-up"
+        ],
+        "outdoor": [
+          "push-up",
+          "decline-push-up",
+          "dips",
+          "pike-push-up",
+          "diamond-push-up"
+        ],
+        "bodyweight": [
+          "incline-push-up",
+          "push-up",
+          "pike-push-up",
+          "diamond-push-up",
+          "side-plank"
+        ]
+      }
     },
     {
       "id": "D",
@@ -64,7 +184,47 @@
         "glute-bridge",
         "mountain-climber"
       ],
-      "coachNote": "今天是功能日，强度不低但冲击小。登山跑做慢速踏步版，保护小腿。引体每做一次都在靠近5个目标。"
+      "coachNote": "今天是功能日，强度不低但冲击小。登山跑做慢速踏步版，保护小腿。引体每做一次都在靠近5个目标。",
+      "warmupVariants": {
+        "gym": "elliptical",
+        "home": "jumping-jack",
+        "outdoor": "outdoor-run",
+        "bodyweight": "jumping-jack"
+      },
+      "variants": {
+        "gym": [
+          "band-assisted-pullup",
+          "farmers-walk",
+          "walking-lunge",
+          "push-up",
+          "glute-bridge",
+          "mountain-climber"
+        ],
+        "home": [
+          "band-row",
+          "towel-row",
+          "farmers-walk",
+          "walking-lunge",
+          "push-up",
+          "mountain-climber"
+        ],
+        "outdoor": [
+          "pull-up",
+          "australian-row",
+          "dead-hang",
+          "walking-lunge",
+          "burpee",
+          "mountain-climber"
+        ],
+        "bodyweight": [
+          "towel-row",
+          "push-up",
+          "walking-lunge",
+          "glute-bridge",
+          "burpee",
+          "mountain-climber"
+        ]
+      }
     }
   ],
   "restDay": {
@@ -99,6 +259,7 @@
     "同一动作连续两次训练都能轻松完成目标次数，下次加最小重量（哑铃加2.5kg、插片加一片）",
     "单侧动作永远左侧先做，每组次数以左侧力竭为准，右侧不许多做",
     "每次训练含热身控制在50-60分钟，到点就收工，养成习惯比练爆重要",
-    "重量一律从建议最小值开始，第一个月目标是动作标准+不缺席，不是冲重量"
+    "重量一律从建议最小值开始，第一个月目标是动作标准+不缺席，不是冲重量",
+    "没有器械也别缺课：点动作卡上的'换替代动作'，替换链已经按器械要求从高到低排好了——高位下拉→弹力带划船→毛巾划船，总有一款是你现在能练的"
   ]
 }

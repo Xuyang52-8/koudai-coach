@@ -16,12 +16,19 @@ export interface EquipmentInfo {
 
 export type ExerciseCategory = 'cardio' | 'pull' | 'legs' | 'push' | 'fullbody' | 'core';
 
+/** 场地：gym=专业健身房 home=居家(瑜伽垫/弹力带/小哑铃) outdoor=户外(单杠/双杠/跑道) bodyweight=纯自重 */
+export type Venue = 'gym' | 'home' | 'outdoor' | 'bodyweight';
+
 export interface Exercise {
   id: string;
   name: string;
   /** 目标肌肉，如 "背阔肌、大圆肌" */
   muscle: string;
   category: ExerciseCategory | string;
+  /** 可在哪些场地做（新数据必填，旧数据可能缺省） */
+  venues?: Venue[];
+  /** 有序替代链：没有器械时的替代动作 id，第一个为最优替代 */
+  substitutes?: string[];
   equipment: EquipmentInfo;
   /** 口语步骤 */
   steps: string[];
@@ -52,7 +59,55 @@ export interface Workout {
   focus: string;
   warmupExerciseId: string;
   exerciseIds: string[];
+  /** 分场地课程变体：按用户场地选择对应动作列表（缺省回落 exerciseIds） */
+  variants?: Partial<Record<Venue, string[]>>;
+  /** 分场地热身变体 */
+  warmupVariants?: Partial<Record<Venue, string>>;
   coachNote: string;
+}
+
+/* ---------- 用户档案 / 排期（Onboarding 写入，键 koudai-coach:profile / koudai-coach:schedule） ---------- */
+
+export type Gender = 'male' | 'female';
+export type ExperienceLevel = 'newbie' | 'some' | 'regular';
+export type GoalType = 'cut' | 'recomp' | 'bulk';
+/** 1on1off=练一休一 2on1off=练二休一 weekdays=按固定星期 */
+export type ScheduleMode = '1on1off' | '2on1off' | 'weekdays';
+
+export interface UserProfile {
+  gender: Gender;
+  age: number;
+  heightCm: number;
+  weightKg: number;
+  experience: ExperienceLevel;
+  /** 'none' | 'waist' | 'shoulder' | 'knee' | 'wrist' 多选 */
+  injuries: string[];
+  /** 左右力量差：right-stronger=右臂强（单侧左先） */
+  leftRightDiff: 'none' | 'right-stronger' | 'left-stronger';
+  /** 脂肪主要堆积部位：'belly' | 'thigh' | 'arm' | 'overall' 多选 */
+  fatAreas: string[];
+  /** 饮食习惯：'takeout' | 'home-cook' | 'sugary-drinks' | 'low-protein' 多选 */
+  dietHabits: string[];
+  /** 可用场地（多选，按优先级取最丰富的一个排课） */
+  venues: Venue[];
+  goal: GoalType;
+  completedAt: number;
+}
+
+export interface ScheduleConfig {
+  mode: ScheduleMode;
+  /** mode==='weekdays' 时生效，0=周日 1=周一 … 6=周六 */
+  weekdays: number[];
+}
+
+/** 由 UserProfile 计算出的动态营养目标 */
+export interface ComputedTargets {
+  bmr: number;
+  tdee: number;
+  targetKcal: number;
+  proteinG: number;
+  fatG: number;
+  carbsG: number;
 }
 
 export interface RestOption {
