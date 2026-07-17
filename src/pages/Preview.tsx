@@ -24,10 +24,10 @@ import { ChevronDownIcon, ExternalIcon, StopIcon } from '../components/workout/i
 import { warmupSpec } from '../components/workout/warmup';
 import { weightSpec } from '../components/workout/weight';
 import { zoneForExercise } from '../components/workout/zoneImage';
-import { startSession, updateSession, useCycle, useSettings } from '../lib/store';
+import { startSession, updateSession, useCycle, useProfile, useSettings } from '../lib/store';
 import { cancel, speak } from '../lib/tts';
 import type { Exercise, Workout } from '../lib/types';
-import { estimateWorkoutMinutes, getExerciseById, getTodayState, resolveWorkout } from '../lib/utils-workout';
+import { estimateWorkoutMinutes, getExerciseById, getTodayState, resolveExercisesForProfile } from '../lib/utils-workout';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -348,6 +348,7 @@ export default function Preview(): JSX.Element {
   const navigate = useNavigate();
   const [cycle] = useCycle();
   const [settings] = useSettings();
+  const [profile] = useProfile();
   const feedback = useFeedback();
   const reduce = useReducedMotion();
 
@@ -355,7 +356,7 @@ export default function Preview(): JSX.Element {
   const isRestPreview = today.type === 'rest';
   const workout: Workout = isRestPreview ? today.nextWorkout : today.workout;
   const lessonNumber = isRestPreview ? today.nextLessonNumber : today.lessonNumber;
-  const { warmup, exercises } = resolveWorkout(workout);
+  const { warmup, exercises } = resolveExercisesForProfile(workout, profile);
   const estimatedMinutes = estimateWorkoutMinutes(workout);
   const wspec = warmupSpec(warmup);
 

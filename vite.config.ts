@@ -12,7 +12,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['app-icon.png', 'app-icon-192.png', '*.svg'],
+      includeAssets: ['*.svg'],
       manifest: {
         name: '口袋私教',
         short_name: '口袋私教',
@@ -24,9 +24,8 @@ export default defineConfig({
         lang: 'zh-CN',
         start_url: './',
         icons: [
-          { src: '/app-icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/app-icon.png', sizes: '512x512', type: 'image/png' },
-          { src: '/app-icon.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: './app-icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: './app-icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
         ],
       },
       workbox: {

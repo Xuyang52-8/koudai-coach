@@ -34,13 +34,14 @@ import {
   todayStr,
   updateSession,
   useCycle,
+  useProfile,
   useSession,
   useSettings,
   useStoreKey,
 } from '../lib/store';
 import { cancel, speak } from '../lib/tts';
 import type { Exercise } from '../lib/types';
-import { estimateWorkoutKcal, getExerciseById, getTodayState, program, resolveWorkout } from '../lib/utils-workout';
+import { estimateWorkoutKcal, getExerciseById, getTodayState, program, resolveExercisesForProfile } from '../lib/utils-workout';
 
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -276,6 +277,7 @@ export default function Workout(): JSX.Element {
   const [cycle] = useCycle();
   const [session] = useSession();
   const [settings] = useSettings();
+  const [profile] = useProfile();
   const feedback = useFeedback();
   const reduce = useReducedMotion();
   useWakeLock();
@@ -291,8 +293,8 @@ export default function Workout(): JSX.Element {
     return null;
   }, [session, today]);
 
-  const baseExercises = useMemo(() => (meta ? resolveWorkout(meta.workout).exercises : []), [meta]);
-  const warmup = useMemo(() => (meta ? resolveWorkout(meta.workout).warmup : null), [meta]);
+  const baseExercises = useMemo(() => (meta ? resolveExercisesForProfile(meta.workout, profile).exercises : []), [meta, profile]);
+  const warmup = useMemo(() => (meta ? resolveExercisesForProfile(meta.workout, profile).warmup : null), [meta, profile]);
 
   /* ---------- 确保 session 存在且是今天的（跨天作废） ---------- */
   const workoutId = meta?.workout.id ?? null;

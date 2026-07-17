@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router'
+import { HashRouter, Navigate, Outlet, Route, Routes } from 'react-router'
 import type { JSX } from 'react'
 import './App.css'
 import AppShell from './components/AppShell'
@@ -37,7 +37,7 @@ function OnboardingGate(): JSX.Element {
  */
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route element={<AppShell />}>
           <Route path="/onboarding" element={<Onboarding />} />
@@ -54,6 +54,6 @@ export default function App() {
           </Route>
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
