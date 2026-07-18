@@ -289,6 +289,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   visionModel: '',
   ttsOn: true,
   ttsCountdownOn: true,
+  ttsAuto: true,
+  keepScreenOn: true,
+  bgAudioKeepAlive: true,
   weightKg: 81.5,
 };
 

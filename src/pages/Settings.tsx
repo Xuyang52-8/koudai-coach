@@ -4,6 +4,7 @@
  * - §1 身体数据卡：身高 181 / 体重（可编辑，默认 81.5）/ 目标约 2250 大卡 / 蛋白约 150g；左右臂说明（只读）
  * - §2 AI 配置卡：DeepSeek Key（测试连通 testDeepSeekKey + 保存）+ 视觉端点三件套（OpenAI 兼容）
  * - §3 语音卡：ttsOn 总开关 + ttsCountdownOn 子开关 + 试听
+ * - §3.3 训练体验卡：ttsAuto 自动朗读要领 / keepScreenOn 屏幕常亮 / bgAudioKeepAlive 锁屏保活
  * - §4 数据卡：导出 JSON（koudai-coach:* 全部）/ 清空数据（输入"清空"二字确认）
  * - §5 关于卡：v1.0 + 免责声明
  */
@@ -640,6 +641,59 @@ export default function Settings(): JSX.Element {
                   当前浏览器不支持语音朗读（微信/内置浏览器常见）——请点右上角「在浏览器打开」，用系统浏览器访问就有声音了。
                 </p>
               )}
+            </PanelRow>
+          </Panel>
+        </div>
+      </motion.section>
+
+      {/* ============ §3.3 训练体验卡 ============ */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.14, ease: 'easeOut' }}
+        style={{ marginTop: 28 }}
+      >
+        <SectionLabel index="体验">训练体验</SectionLabel>
+        <div style={{ marginTop: 14 }}>
+          <Panel>
+            <PanelRow>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 17, fontWeight: 500 }}>自动朗读要领</div>
+                  <Caption>翻到下一个动作自动读要领，不用手点（需全局语音同开）</Caption>
+                </div>
+                <RowToggle
+                  on={settings.ttsAuto ?? true}
+                  onChange={(on) => updateSettings({ ttsAuto: on })}
+                  label="自动朗读要领"
+                />
+              </div>
+            </PanelRow>
+            <PanelRow>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 17, fontWeight: 500 }}>训练时屏幕常亮</div>
+                  <Caption>训练中不自动锁屏，离开训练页自动恢复</Caption>
+                </div>
+                <RowToggle
+                  on={settings.keepScreenOn ?? true}
+                  onChange={(on) => updateSettings({ keepScreenOn: on })}
+                  label="训练时屏幕常亮"
+                />
+              </div>
+            </PanelRow>
+            <PanelRow last>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 17, fontWeight: 500 }}>锁屏后保持语音</div>
+                  <Caption>锁屏后计时和朗读尽量继续。安卓更有效，iOS 受系统限制</Caption>
+                </div>
+                <RowToggle
+                  on={settings.bgAudioKeepAlive ?? true}
+                  onChange={(on) => updateSettings({ bgAudioKeepAlive: on })}
+                  label="锁屏后保持语音"
+                />
+              </div>
             </PanelRow>
           </Panel>
         </div>
