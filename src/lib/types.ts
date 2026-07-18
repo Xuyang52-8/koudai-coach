@@ -229,6 +229,10 @@ export interface AppSettings {
   /** 倒计时语音子开关 */
   ttsCountdownOn: boolean;
   weightKg: number;
+  /** 预留：账号体系用户 id（暂不使用，为以后账号/云同步留口） */
+  userId?: string;
+  /** 预留：授权密钥（暂不使用，为以后密钥体系留口） */
+  licenseKey?: string;
 }
 
 /** koudai-coach:session —— 进行中的训练（锁屏恢复用） */

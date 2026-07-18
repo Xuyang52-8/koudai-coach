@@ -290,6 +290,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   ttsOn: true,
   ttsCountdownOn: true,
   weightKg: 81.5,
+  // 预留字段：账号/密钥体系（当前代码不读不写，仅占位）
+  userId: '',
+  licenseKey: '',
 };
 
 export function getSettings(): AppSettings {

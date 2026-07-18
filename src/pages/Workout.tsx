@@ -1127,7 +1127,7 @@ function ExerciseStage({
           </div>
         </div>
         <p className="text-2" style={{ margin: '10px 0 0', fontSize: 13, lineHeight: 1.5 }}>
-          {ex.suggestedWeight}
+          {wspec.note}
         </p>
       </motion.div>
 

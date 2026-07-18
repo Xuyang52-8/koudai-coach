@@ -146,6 +146,9 @@ export default function Onboarding(): JSX.Element {
       >
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, color: 'var(--text-2)' }}>{data.disclaimer}</p>
       </motion.div>
+      <motion.p variants={itemV} className="text-3" style={{ margin: '14px 0 0', fontSize: 13, lineHeight: 1.6 }}>
+        接下来 6 个问题都是给计划定参数的：你填的每一项，都会变成课表、重量和热量里的数字。
+      </motion.p>
     </>,
     /* ---------- (02) 身体档案 ---------- */
     <>
@@ -171,6 +174,9 @@ export default function Onboarding(): JSX.Element {
           unit="kg"
         />
       </motion.div>
+      <motion.p variants={itemV} className="text-3" style={{ margin: '14px 0 0', fontSize: 13, lineHeight: 1.6 }}>
+        为什么问这个：性别和体重用来算你每天该吃多少、每个动作从多重开始举——推荐重量就是按这个分档的。
+      </motion.p>
     </>,
     /* ---------- (03) 训练底子 ---------- */
     <>
@@ -186,6 +192,9 @@ export default function Onboarding(): JSX.Element {
         <PickerLabel>左右力量差</PickerLabel>
         <LeftRightCards value={draft.leftRightDiff} onChange={(leftRightDiff) => patch({ leftRightDiff })} />
       </motion.div>
+      <motion.p variants={itemV} className="text-3" style={{ margin: '14px 0 0', fontSize: 13, lineHeight: 1.6 }}>
+        为什么问这个：练没练过决定起步难度，旧伤帮你绕开危险动作，左右差决定单侧动作先练哪边。
+      </motion.p>
     </>,
     /* ---------- (04) 脂肪与目标 ---------- */
     <>
@@ -197,6 +206,9 @@ export default function Onboarding(): JSX.Element {
         <PickerLabel>你的目标（三选一）</PickerLabel>
         <GoalCards value={draft.goal} onChange={(goal) => patch({ goal })} />
       </motion.div>
+      <motion.p variants={itemV} className="text-3" style={{ margin: '14px 0 0', fontSize: 13, lineHeight: 1.6 }}>
+        为什么问这个：目标决定每天热量是加还是减、重量往上顶还是稳一稳；脂肪位置只给你自己前后对比用，谁都不给看。
+      </motion.p>
     </>,
     /* ---------- (05) 饮食习惯 ---------- */
     <>
@@ -205,7 +217,7 @@ export default function Onboarding(): JSX.Element {
         <DietHabitChips value={draft.dietHabits} onChange={(dietHabits) => patch({ dietHabits })} />
       </motion.div>
       <motion.p variants={itemV} className="text-3" style={{ margin: '14px 0 0', fontSize: 13, lineHeight: 1.5 }}>
-        都不用精确称克，记个大概就行，饮食页会帮你估。
+        为什么问这个：照你真实的吃饭习惯给能执行的建议，而不是一份坚持不下来的食谱。都不用精确称克，记个大概就行，饮食页会帮你估。
       </motion.p>
     </>,
     /* ---------- (06) 场地 ---------- */
@@ -215,7 +227,7 @@ export default function Onboarding(): JSX.Element {
         <VenueCards value={draft.venues} onChange={(venues) => patch({ venues })} />
       </motion.div>
       <motion.p variants={itemV} className="text-2" style={{ margin: '14px 0 0', fontSize: 13, lineHeight: 1.6 }}>
-        计划会按你的场地自动换动作——选了健身房就排器械版，只有瑜伽垫就排居家版，不用你自己换算。
+        为什么问这个：计划会按你的场地自动换动作——选了健身房就排器械版，只有瑜伽垫就排居家版，不用你自己换算。
       </motion.p>
       {draft.venues.length === 0 ? (
         <motion.p variants={itemV} style={{ margin: '10px 0 0', fontSize: 13, lineHeight: 1.5, color: 'var(--warn)' }}>
@@ -232,6 +244,9 @@ export default function Onboarding(): JSX.Element {
           onChange={(mode) => setScheduleDraft((s) => ({ ...s, mode }))}
         />
       </motion.div>
+      <motion.p variants={itemV} className="text-3" style={{ margin: '14px 0 0', fontSize: 13, lineHeight: 1.6 }}>
+        为什么问这个：课表跟着你的节奏走，而不是你去迁就课表——选那个你能坚持三个月的。
+      </motion.p>
       <AnimatePresence initial={false}>
         {scheduleDraft.mode === 'weekdays' ? (
           <motion.div

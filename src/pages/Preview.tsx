@@ -191,7 +191,7 @@ function ExerciseDetail({
       </p>
       <p className="text-2" style={{ margin: '4px 0 0', fontSize: 13, lineHeight: 1.5 }}>
         {ex.restSeconds > 0 ? `组间休息 ${ex.restSeconds} 秒 · ` : ''}
-        {ex.suggestedWeight}
+        {w.note}
       </p>
     </div>,
   );
