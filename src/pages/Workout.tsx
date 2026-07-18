@@ -43,9 +43,11 @@ import {
   useSession,
   useSettings,
   useStoreKey,
+  useTodayVenue,
 } from '../lib/store';
+import { bestVenue } from '../lib/profile';
 import { cancel, speak } from '../lib/tts';
-import type { Exercise } from '../lib/types';
+import type { Exercise, Venue } from '../lib/types';
 import { estimateWorkoutKcal, getExerciseById, getTodayState, program, resolveExercisesForProfile } from '../lib/utils-workout';
 
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -277,12 +279,21 @@ interface RestPlan {
   tip: string;
 }
 
+/** 场地短名（顶部"今天在哪练"Tag 用） */
+const VENUE_TODAY_SHORT: Record<Venue, string> = {
+  gym: '健身房',
+  home: '居家',
+  outdoor: '户外',
+  bodyweight: '纯自重',
+};
+
 export default function Workout(): JSX.Element {
   const navigate = useNavigate();
   const [cycle] = useCycle();
   const [session] = useSession();
   const [settings] = useSettings();
   const [profile] = useProfile();
+  const [venueToday] = useTodayVenue();
   const feedback = useFeedback();
   const reduce = useReducedMotion();
   useWakeLock();
@@ -298,8 +309,15 @@ export default function Workout(): JSX.Element {
     return null;
   }, [session, today]);
 
-  const baseExercises = useMemo(() => (meta ? resolveExercisesForProfile(meta.workout, profile).exercises : []), [meta, profile]);
-  const warmup = useMemo(() => (meta ? resolveExercisesForProfile(meta.workout, profile).warmup : null), [meta, profile]);
+  /* 场地优先级：今日选择 > 档案 bestVenue（与首页"今天在哪练"联动） */
+  const baseExercises = useMemo(
+    () => (meta ? resolveExercisesForProfile(meta.workout, profile, venueToday).exercises : []),
+    [meta, profile, venueToday],
+  );
+  const warmup = useMemo(
+    () => (meta ? resolveExercisesForProfile(meta.workout, profile, venueToday).warmup : null),
+    [meta, profile, venueToday],
+  );
 
   /* ---------- 确保 session 存在且是今天的（跨天作废） ---------- */
   const workoutId = meta?.workout.id ?? null;
@@ -663,6 +681,14 @@ export default function Workout(): JSX.Element {
       ? `第 ${meta.lessonNumber} 课 · ${meta.workout.subtitle} — (01) 热身`
       : `第 ${meta.lessonNumber} 课 · ${meta.workout.subtitle} — (${exNum}) ${ex?.name ?? ''} · 第 ${Math.min(setIndex + 1, Math.max(1, ex?.sets ?? 1))}/${Math.max(1, ex?.sets ?? 1)} 组`;
 
+  /* 当前生效场地（今日选择 > 档案），顶部 Tag 提示 */
+  const effectiveVenue: Venue | null = venueToday ?? (profile ? bestVenue(profile.venues) : null);
+  const venueTagText = effectiveVenue
+    ? venueToday
+      ? `今天：${VENUE_TODAY_SHORT[effectiveVenue]}`
+      : VENUE_TODAY_SHORT[effectiveVenue]
+    : null;
+
   return (
     <div style={{ touchAction: 'manipulation' }}>
       {feedback.host}
@@ -730,6 +756,12 @@ export default function Workout(): JSX.Element {
           <TTSToggle size={26} />
         </div>
       </div>
+
+      {venueTagText ? (
+        <div style={{ marginTop: 8 }}>
+          <Tag>{venueTagText}</Tag>
+        </div>
+      ) : null}
 
       {resumeHint ? (
         <p className="text-2" style={{ margin: '4px 0 0', fontSize: 13 }}>

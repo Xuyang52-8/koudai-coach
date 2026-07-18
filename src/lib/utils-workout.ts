@@ -5,8 +5,9 @@
  */
 import exercisesJson from '../data/exercises.json';
 import programJson from '../data/program.json';
+import { applyCapability, getCapability } from './capability';
 import { bestVenue } from './profile';
-import { getCycle, getCustomExercises, shiftDate, todayStr } from './store';
+import { getCycle, getCustomExercises, getTodayVenue, shiftDate, todayStr } from './store';
 import type {
   CycleState,
   Exercise,
@@ -14,6 +15,7 @@ import type {
   ScheduleConfig,
   TodayState,
   UserProfile,
+  Venue,
   Workout,
 } from './types';
 
@@ -46,20 +48,44 @@ export function resolveWorkout(workout: Workout): { warmup: Exercise | null; exe
 
 /**
  * 分场地解析一节课（个性化版）：
- * 有 profile 时按 bestVenue 取 variants / warmupVariants 对应列表；
- * 缺变体或变体全失效时回落 exerciseIds / warmupExerciseId。无 profile 等价于 resolveWorkout。
+ * 场地优先级——今日选择 overrideVenue > 档案 bestVenue > 无（等价 resolveWorkout）。
+ * 缺变体或变体全失效时回落 exerciseIds / warmupExerciseId。
+ * 返回前过能力引擎：容量随已完成的课数等级增长（Lv.1 原样，level 内部自取当前 cycle）。
  */
 export function resolveExercisesForProfile(
   workout: Workout,
   profile: UserProfile | null | undefined,
+  overrideVenue?: Venue | null,
 ): { warmup: Exercise | null; exercises: Exercise[] } {
-  if (!profile) return resolveWorkout(workout);
-  const venue = bestVenue(profile.venues);
-  const ids = workout.variants?.[venue] ?? workout.exerciseIds;
-  const exercises = ids.map((id) => getExerciseById(id)).filter((e): e is Exercise => e !== null);
-  if (exercises.length === 0) return resolveWorkout(workout);
-  const warmupId = workout.warmupVariants?.[venue] ?? workout.warmupExerciseId;
-  return { warmup: getExerciseById(warmupId), exercises };
+  const venue = overrideVenue ?? (profile ? bestVenue(profile.venues) : null);
+  let warmup: Exercise | null;
+  let exercises: Exercise[];
+  if (!venue) {
+    ({ warmup, exercises } = resolveWorkout(workout));
+  } else {
+    const ids = workout.variants?.[venue] ?? workout.exerciseIds;
+    exercises = ids.map((id) => getExerciseById(id)).filter((e): e is Exercise => e !== null);
+    if (exercises.length === 0) {
+      // 变体全失效：回落原始课程
+      ({ warmup, exercises } = resolveWorkout(workout));
+    } else {
+      warmup = getExerciseById(workout.warmupVariants?.[venue] ?? workout.warmupExerciseId);
+    }
+  }
+  const level = getCapability(getCycle()).level;
+  return { warmup, exercises: applyCapability(exercises, level) };
+}
+
+/**
+ * 今日课程解析便捷版：等价 resolveExercisesForProfile，
+ * overrideVenue 缺省时自动读今日场地覆盖（koudai-coach:venueToday:{今天}，null = 跟档案）。
+ */
+export function resolveTodayExercises(
+  workout: Workout,
+  profile: UserProfile | null | undefined,
+  overrideVenue: Venue | null = getTodayVenue(),
+): { warmup: Exercise | null; exercises: Exercise[] } {
+  return resolveExercisesForProfile(workout, profile, overrideVenue);
 }
 
 /** 估算一节课消耗：kcalPerSet × sets 求和（含热身），"约"字由 UI 加 */
@@ -110,6 +136,8 @@ export interface TodayStateOpts {
   profile?: UserProfile | null;
   /** 排期配置：缺省按练一休一 */
   schedule?: ScheduleConfig;
+  /** 今日场地覆盖：有值时优先于档案 bestVenue（仅今天，不改档案） */
+  overrideVenue?: Venue | null;
 }
 
 /**
@@ -141,6 +169,7 @@ function isScheduledRest(cycle: CycleState, schedule: ScheduleConfig | undefined
  * - 上次是休息日打卡 或 完全没有记录 → 今天训练（第一课）
  * - opts.forceWorkout：用户手动"今天状态好，想练"
  * - opts.profile：有档案则课程按场地变体解析（热身同理）
+ * - opts.overrideVenue：今日场地覆盖，优先级高于档案 bestVenue
  */
 export function getTodayState(opts: TodayStateOpts = {}, cycle: CycleState = getCycle()): TodayState {
   const today = todayStr();
@@ -152,7 +181,7 @@ export function getTodayState(opts: TodayStateOpts = {}, cycle: CycleState = get
   if (shouldRest) {
     return { type: 'rest', nextWorkout: workout, nextLessonNumber: lessonNumber, doneToday };
   }
-  const { warmup, exercises } = resolveExercisesForProfile(workout, opts.profile);
+  const { warmup, exercises } = resolveExercisesForProfile(workout, opts.profile, opts.overrideVenue);
   return {
     type: 'workout',
     workout,

@@ -19,6 +19,7 @@ import type {
   ScheduleConfig,
   SupplementState,
   UserProfile,
+  Venue,
   WorkoutSession,
 } from './types';
 import programJson from '../data/program.json';
@@ -143,6 +144,7 @@ export const KEYS = {
   dietKey: (date: string) => `diet:${date}`,
   supplementsKey: (date: string) => `supplements:${date}`,
   checklistKey: (date: string) => `checklist:${date}`,
+  venueTodayKey: (date: string) => `venueToday:${date}`,
   exerciseOverrideKey: (exerciseId: string) => `exoverride:${exerciseId}`,
 } as const;
 
@@ -386,6 +388,19 @@ export function toggleChecklistItem(key: string, date: string = todayStr()): boo
   const next = { ...cur, [key]: !cur[key] };
   writeKey(KEYS.checklistKey(date), next);
   return next[key];
+}
+
+/* ================= venueToday：今日场地覆盖（按天存储，明天自动回档案默认） ================= */
+
+/** 今天的场地覆盖：null = 跟档案（默认）。键按日期存，天然每天重置，不改档案 */
+export function getTodayVenue(date: string = todayStr()): Venue | null {
+  return readKey<Venue | null>(KEYS.venueTodayKey(date), null);
+}
+
+export function useTodayVenue(
+  date: string = todayStr(),
+): [Venue | null, (next: Venue | null | ((p: Venue | null) => Venue | null)) => void] {
+  return useStoreKey<Venue | null>(KEYS.venueTodayKey(date), null);
 }
 
 /* ================= profile：用户身体档案（Onboarding 写入，null = 未填过问卷） ================= */

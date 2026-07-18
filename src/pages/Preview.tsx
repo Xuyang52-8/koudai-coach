@@ -24,7 +24,7 @@ import { ChevronDownIcon, ExternalIcon, StopIcon } from '../components/workout/i
 import { warmupSpec } from '../components/workout/warmup';
 import { zoneForExercise } from '../components/workout/zoneImage';
 import { adjustedReps, adjustedWeightSpec, hasAdjustment } from '../lib/adjust';
-import { getExerciseOverride, startSession, updateSession, useCycle, useExerciseOverride, useProfile, useSettings } from '../lib/store';
+import { getExerciseOverride, startSession, updateSession, useCycle, useExerciseOverride, useProfile, useSettings, useTodayVenue } from '../lib/store';
 import { cancel, speak } from '../lib/tts';
 import type { Exercise, Workout } from '../lib/types';
 import { estimateWorkoutMinutes, getExerciseById, getTodayState, resolveExercisesForProfile } from '../lib/utils-workout';
@@ -365,7 +365,9 @@ export default function Preview(): JSX.Element {
   const isRestPreview = today.type === 'rest';
   const workout: Workout = isRestPreview ? today.nextWorkout : today.workout;
   const lessonNumber = isRestPreview ? today.nextLessonNumber : today.lessonNumber;
-  const { warmup, exercises } = resolveExercisesForProfile(workout, profile);
+  // 今日场地覆盖（首页"今天在哪练"选过就生效，优先级高于档案）
+  const [venueToday] = useTodayVenue();
+  const { warmup, exercises } = resolveExercisesForProfile(workout, profile, venueToday);
   const estimatedMinutes = estimateWorkoutMinutes(workout);
   const wspec = warmupSpec(warmup);
 

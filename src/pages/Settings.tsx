@@ -35,7 +35,8 @@ import {
 } from '@/components/onboarding/selectors';
 import { testDeepSeekKey } from '@/lib/ai';
 import { RPE_LABELS, overrideDeltaText } from '@/lib/adjust';
-import { getAllExerciseOverrides, resetExerciseOverride, updateSettings, useProfile, useSchedule, useSettings, useTargets } from '@/lib/store';
+import { getCapability } from '@/lib/capability';
+import { getAllExerciseOverrides, resetExerciseOverride, updateSettings, useCycle, useProfile, useSchedule, useSettings, useTargets } from '@/lib/store';
 import { speak } from '@/lib/tts';
 import type { UserProfile } from '@/lib/types';
 import { getExerciseById } from '@/lib/utils-workout';
@@ -127,6 +128,10 @@ export default function Settings(): JSX.Element {
   const navigate = useNavigate();
   const [settings] = useSettings();
   const { toast, host } = useFeedback();
+
+  /* ---- 能力等级（按已完成课数自动升级，容量跟着长） ---- */
+  const [cycle] = useCycle();
+  const capability = getCapability(cycle);
 
   /* ---- §1 身体数据 / 完整档案 ---- */
   const [profile, setProfile] = useProfile();
@@ -635,11 +640,46 @@ export default function Settings(): JSX.Element {
         </div>
       </motion.section>
 
-      {/* ============ §3.5 自适应训练卡 ============ */}
+      {/* ============ §3.4 能力等级卡 ============ */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.15, ease: 'easeOut' }}
+        style={{ marginTop: 28 }}
+      >
+        <SectionLabel index="能力">能力等级</SectionLabel>
+        <div style={{ marginTop: 14 }}>
+          <Panel>
+            <PanelRow>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 17, fontWeight: 500 }}>
+                    Lv.{capability.level} {capability.label}
+                  </div>
+                  <Caption>
+                    已练 <span className="num">{capability.lessonsDone}</span> 节课
+                  </Caption>
+                </div>
+                <Tag>Lv.{capability.level}</Tag>
+              </div>
+            </PanelRow>
+            <PanelRow>
+              <p className="text-1" style={{ margin: 0, fontSize: 15, lineHeight: 1.6 }}>
+                {capability.coachNote}
+              </p>
+            </PanelRow>
+            <PanelRow last>
+              <Caption>等级按你完成的课数自动升级，方案容量跟着长。</Caption>
+            </PanelRow>
+          </Panel>
+        </div>
+      </motion.section>
+
+      {/* ============ §3.5 自适应训练卡 ============ */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.17, ease: 'easeOut' }}
         style={{ marginTop: 28 }}
       >
         <SectionLabel index="自适应">自适应训练</SectionLabel>

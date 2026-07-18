@@ -29,10 +29,13 @@ import {
   useProfile,
   useSchedule,
   useSupplements,
+  useTodayVenue,
 } from '../lib/store';
+import { getCapability } from '../lib/capability';
+import type { Capability } from '../lib/capability';
 import { bestVenue } from '../lib/profile';
 import { speak } from '../lib/tts';
-import type { ScheduleMode, Supplement, TodayRestState, TodayWorkoutState } from '../lib/types';
+import type { ScheduleMode, Supplement, TodayRestState, TodayWorkoutState, Venue } from '../lib/types';
 import { getTimeHint, getTodayState, LESSON_SHORT_NAMES } from '../lib/utils-workout';
 
 const supplements = nutritionJson.supplements as Supplement[];
@@ -48,6 +51,58 @@ const LESSON_TAGS: Record<string, string[]> = {
 };
 
 const CHECKLIST_ITEMS = ['水杯装满', '蛋白粉和摇摇杯带了', '耳机带了', '换洗衣服'];
+
+/** 今日场地 chips：null = 跟档案（默认）。单选 pill，只改今天，明天自动回档案 */
+const VENUE_CHIPS: { value: Venue | null; label: string }[] = [
+  { value: null, label: '跟档案（默认）' },
+  { value: 'gym', label: '健身房' },
+  { value: 'home', label: '居家' },
+  { value: 'outdoor', label: '户外' },
+  { value: 'bodyweight', label: '纯自重' },
+];
+
+/** 今日场地单选 chips（≥48px 热区，选中 accent） */
+function VenueChips({ value, onChange }: { value: Venue | null; onChange: (v: Venue | null) => void }): JSX.Element {
+  return (
+    <div style={{ marginTop: 16 }}>
+      <div className="font-display font-semibold uppercase text-3" style={{ fontSize: 13, letterSpacing: '0.14em' }}>
+        今天在哪练
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }} role="radiogroup" aria-label="今天在哪练">
+        {VENUE_CHIPS.map((chip) => {
+          const active = value === chip.value;
+          return (
+            <button
+              key={chip.label}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => {
+                vibrate(15);
+                onChange(chip.value);
+              }}
+              style={{
+                minHeight: 48,
+                padding: '0 16px',
+                borderRadius: 999,
+                border: active ? '1px solid var(--accent)' : '1px solid var(--line-strong)',
+                background: active ? 'var(--accent-dim)' : 'transparent',
+                color: active ? 'var(--accent)' : 'var(--text-2)',
+                fontSize: 14,
+                fontWeight: active ? 600 : 500,
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+                transition: 'border-color 150ms, color 150ms, background 150ms',
+              }}
+            >
+              {chip.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 /* ================= streak 徽章 ================= */
 
@@ -193,11 +248,15 @@ function CycleProgress({
   isRest,
   mode,
   venueTag,
+  venueTodayOnly,
 }: {
   currentLesson: number;
   isRest: boolean;
   mode: ScheduleMode;
+  /** 实际生效场地短名（今日选择 > 档案），无档案无覆盖时为 null */
   venueTag: string | null;
+  /** 今天选了非档案场地：提示"仅今天" */
+  venueTodayOnly: boolean;
 }): JSX.Element {
   const reduce = useReducedMotion();
   // currentLesson：下一节课下标 0-3。训练日它是"当前课"；休息日"休"是当前。
@@ -234,6 +293,11 @@ function CycleProgress({
       {venueTag ? (
         <div style={{ marginTop: 10 }}>
           <Tag>{venueTag}</Tag>
+          {venueTodayOnly ? (
+            <p className="text-3" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>
+              仅今天，明天回档案默认。
+            </p>
+          ) : null}
         </div>
       ) : null}
     </section>
@@ -496,7 +560,20 @@ function StreakSheet({ open, onClose }: { open: boolean; onClose: () => void }):
 
 /* ================= §1 训练日卡 ================= */
 
-function WorkoutCard({ state, firstLaunch }: { state: TodayWorkoutState; firstLaunch: boolean }): JSX.Element {
+function WorkoutCard({
+  state,
+  firstLaunch,
+  capability,
+  venueToday,
+  onVenueChange,
+}: {
+  state: TodayWorkoutState;
+  firstLaunch: boolean;
+  capability: Capability;
+  /** 今日场地覆盖（null = 跟档案） */
+  venueToday: Venue | null;
+  onVenueChange: (v: Venue | null) => void;
+}): JSX.Element {
   const navigate = useNavigate();
   const reduce = useReducedMotion();
   const { workout, lessonNumber, exercises, estimatedMinutes } = state;
@@ -519,11 +596,15 @@ function WorkoutCard({ state, firstLaunch }: { state: TodayWorkoutState; firstLa
         {exercises.length} 个动作 · 约 {estimatedMinutes} 分钟 · 含 5 分钟热身
       </p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+        <Tag>
+          Lv.{capability.level} {capability.label} · 已练 {capability.lessonsDone} 节课
+        </Tag>
         {tags.map((t) => (
           <Tag key={t}>{t}</Tag>
         ))}
         {state.doneToday ? <WarnTag>今天已打卡</WarnTag> : null}
       </div>
+      <VenueChips value={venueToday} onChange={onVenueChange} />
       {firstLaunch ? (
         <p style={{ margin: '14px 0 0', fontSize: 13, color: 'var(--accent)', lineHeight: 1.5 }}>
           第一节课从空杆和轻重量开始，别慌。
@@ -650,14 +731,17 @@ export default function Home(): JSX.Element {
   const [cycle] = useCycle();
   const [profile] = useProfile();
   const [schedule] = useSchedule();
+  const [venueToday, setVenueToday] = useTodayVenue();
   const [forceWorkout, setForceWorkout] = useState(false);
   const [streakOpen, setStreakOpen] = useState(false);
   const [supplementOpen, setSupplementOpen] = useState(false);
   const spokenRef = useRef(false);
 
-  const state = getTodayState({ forceWorkout, profile, schedule }, cycle);
+  // 课程解析优先级：今日选择 > 档案 bestVenue
+  const state = getTodayState({ forceWorkout, profile, schedule, overrideVenue: venueToday }, cycle);
   const isWorkout = state.type === 'workout';
   const firstLaunch = cycle.history.length === 0;
+  const capability = getCapability(cycle);
 
   // 休息日文案：排期强制休息（非"昨天练过"循环结果也非"已打卡"）时说明是按排期休息
   const scheduleNote = (() => {
@@ -671,8 +755,11 @@ export default function Home(): JSX.Element {
     return null;
   })();
 
-  // 场地标签：有档案才显示（如"健身房版"），无档案老用户保持原样
-  const venueTag = profile ? (VENUE_SHORT[bestVenue(profile.venues)] ?? null) : null;
+  // 场地标签：显示实际生效场地（今日选择 > 档案）；无档案无覆盖时不显示，老用户保持原样
+  const profileVenue = profile ? bestVenue(profile.venues) : null;
+  const effectiveVenue = venueToday ?? profileVenue;
+  const venueTag = effectiveVenue ? (VENUE_SHORT[effectiveVenue] ?? null) : null;
+  const venueTodayOnly = venueToday !== null && venueToday !== profileVenue;
 
   // 训练日态首次进入且语音开关开：读一句今日安排
   useEffect(() => {
@@ -696,7 +783,7 @@ export default function Home(): JSX.Element {
       />
 
       {isWorkout && state.type === 'workout' ? (
-        <WorkoutCard state={state} firstLaunch={firstLaunch} />
+        <WorkoutCard state={state} firstLaunch={firstLaunch} capability={capability} venueToday={venueToday} onVenueChange={setVenueToday} />
       ) : state.type === 'rest' ? (
         <RestCard
           state={state}
@@ -706,7 +793,13 @@ export default function Home(): JSX.Element {
         />
       ) : null}
 
-      <CycleProgress currentLesson={cycle.nextWorkoutIndex} isRest={!isWorkout} mode={schedule.mode} venueTag={venueTag} />
+      <CycleProgress
+        currentLesson={cycle.nextWorkoutIndex}
+        isRest={!isWorkout}
+        mode={schedule.mode}
+        venueTag={venueTag}
+        venueTodayOnly={venueTodayOnly}
+      />
 
       {isWorkout ? <DepartureChecklist /> : null}
 
