@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <!-- 《口袋私教》内联图标 sprite：24×24 viewBox · 2px 描边 · currentColor
+       用法：<svg><use href="/icon-sprite.svg#flame"/></svg>（React 里优先用 src/components/Icon.tsx） -->
+  <defs>
+    <g id="kd-proto" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></g>
+  </defs>
+  <symbol id="flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+  </symbol>
+  <symbol id="tts-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+  </symbol>
+  <symbol id="tts-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/>
+  </symbol>
+  <symbol id="check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9"/><path d="m8.5 12.2 2.4 2.4 4.8-5"/>
+  </symbol>
+  <symbol id="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 12.5l4.5 4.5L19 7"/>
+  </symbol>
+  <symbol id="plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 5v14"/><path d="M5 12h14"/>
+  </symbol>
+  <symbol id="camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.2"/>
+  </symbol>
+  <symbol id="mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><path d="M12 18v3"/>
+  </symbol>
+  <symbol id="arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+  </symbol>
+  <symbol id="arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>
+  </symbol>
+  <symbol id="timer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 2h4"/><circle cx="12" cy="14" r="8"/><path d="M12 14l2.8-2.8"/>
+  </symbol>
+  <symbol id="dumbbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.8 12h10.4"/><rect x="2" y="8" width="2.8" height="8" rx="0.5"/><rect x="19.2" y="8" width="2.8" height="8" rx="0.5"/><rect x="5.2" y="9.6" width="1.9" height="4.8" rx="0.5"/><rect x="16.9" y="9.6" width="1.9" height="4.8" rx="0.5"/>
+  </symbol>
+  <symbol id="droplet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+  </symbol>
+  <symbol id="hand-l" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="4"/><text x="12" y="16.5" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor" stroke="none" font-family="Oswald, sans-serif">L</text>
+  </symbol>
+  <symbol id="hand-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="4"/><text x="12" y="16.5" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor" stroke="none" font-family="Oswald, sans-serif">R</text>
+  </symbol>
+  <symbol id="waves" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 8q2.5-3 5 0t5 0t5 0t5 0"/><path d="M2 15q2.5-3 5 0t5 0t5 0t5 0"/>
+  </symbol>
+  <symbol id="walk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="13" cy="4.3" r="2"/><path d="M13 7l-2.4 5.4"/><path d="M10.6 12.4 8 18.6"/><path d="M10.6 12.4l3.1 3.4.6 4.2"/><path d="M12.8 8.6 9.2 10.4"/><path d="M12.8 8.6 16.2 11"/>
+  </symbol>
+  <symbol id="stretch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="9.5" cy="4.6" r="2"/><path d="M9.5 7v6"/><path d="M9.5 13l-3 7"/><path d="M9.5 13l3 7"/><path d="M9.5 9c2.2-3 5.4-3.8 8.5-2.6"/>
+  </symbol>
+  <symbol id="export" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 14V3"/><path d="m7 8 5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>
+  </symbol>
+  <symbol id="trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>
+  </symbol>
+  <symbol id="key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="16" r="4"/><path d="m11 13 9-9"/><path d="m15.5 8.5 2.5 2.5"/><path d="m18 6 2 2"/>
+  </symbol>
+  <symbol id="book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+  </symbol>
+  <symbol id="play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.5 4.8v14.4L19 12z" fill="currentColor" stroke="none"/>
+  </symbol>
+  <symbol id="bowl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 13h16a8 8 0 0 1-16 0z"/><path d="M9.5 9.5c0-1.6 1.2-1.6 1.2-3.2"/><path d="M13.5 9.5c0-1.6 1.2-1.6 1.2-3.2"/>
+  </symbol>
+  <symbol id="user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c1.6-3.8 4.7-5.3 7.5-5.3s5.9 1.5 7.5 5.3"/>
+  </symbol>
+</svg>

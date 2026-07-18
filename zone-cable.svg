@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" fill="none" stroke="#F4F4F2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <rect width="320" height="200" fill="#0A0A0B" stroke="none"/>
+  <!-- 龙门架：两立柱 + 顶部横梁 -->
+  <rect x="40" y="34" width="18" height="140" rx="2"/>
+  <rect x="262" y="34" width="18" height="140" rx="2"/>
+  <rect x="34" y="22" width="252" height="14" rx="2"/>
+  <!-- 立柱内配重刻度 -->
+  <line x1="45" y1="128" x2="53" y2="128"/>
+  <line x1="45" y1="140" x2="53" y2="140"/>
+  <line x1="45" y1="152" x2="53" y2="152"/>
+  <line x1="267" y1="128" x2="275" y2="128"/>
+  <line x1="267" y1="140" x2="275" y2="140"/>
+  <line x1="267" y1="152" x2="275" y2="152"/>
+  <!-- 滑轮（薄荷绿小圆） -->
+  <circle cx="70" cy="43" r="4" stroke="#3FE1B1"/>
+  <circle cx="250" cy="43" r="4" stroke="#3FE1B1"/>
+  <!-- 一侧钢索垂下 + 绳索把手 -->
+  <line x1="70" y1="47" x2="70" y2="118"/>
+  <line x1="70" y1="118" x2="60" y2="140"/>
+  <line x1="70" y1="118" x2="80" y2="140"/>
+  <circle cx="60" cy="143" r="2.5"/>
+  <circle cx="80" cy="143" r="2.5"/>
+  <!-- 另一侧钢索短挂 -->
+  <line x1="250" y1="47" x2="250" y2="86"/>
+  <circle cx="250" cy="90" r="3"/>
+  <!-- 地面 -->
+  <line x1="24" y1="174" x2="296" y2="174"/>
+</svg>

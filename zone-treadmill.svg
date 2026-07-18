@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" fill="none" stroke="#F4F4F2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <rect width="320" height="200" fill="#0A0A0B" stroke="none"/>
+  <!-- 地面 -->
+  <line x1="16" y1="170" x2="304" y2="170"/>
+  <!-- 跑带底座 -->
+  <rect x="45" y="148" width="215" height="14" rx="7"/>
+  <!-- 后滚筒 -->
+  <circle cx="54" cy="155" r="3.5"/>
+  <!-- 前立柱 -->
+  <line x1="235" y1="148" x2="250" y2="86"/>
+  <!-- 扶手 -->
+  <line x1="252" y1="94" x2="214" y2="132"/>
+  <!-- 控制面板 -->
+  <rect x="228" y="66" width="58" height="22" rx="3"/>
+  <!-- 面板小圆点（薄荷绿） -->
+  <circle cx="240" cy="77" r="2.5" stroke="#3FE1B1"/>
+  <line x1="250" y1="77" x2="276" y2="77"/>
+  <!-- 跑带速度线 ×3 -->
+  <line x1="18" y1="146" x2="40" y2="146"/>
+  <line x1="12" y1="154" x2="38" y2="154"/>
+  <line x1="22" y1="162" x2="42" y2="162"/>
+</svg>
