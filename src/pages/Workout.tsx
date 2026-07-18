@@ -95,7 +95,7 @@ function WarmupStage({
   const [started, setStarted] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const startTsRef = useRef(0);
-  const zone = warmup ? zoneForExercise(warmup) : { src: '/zone-treadmill.svg', label: '有氧区' };
+  const zone = warmup ? zoneForExercise(warmup) : { src: './zone-treadmill.svg', label: '有氧区' };
 
   /* 正计时（时间戳法，超时不响铃继续累加） */
   useEffect(() => {

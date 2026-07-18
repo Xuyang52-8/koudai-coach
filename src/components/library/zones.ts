@@ -18,12 +18,12 @@ export interface ZoneDef {
 }
 
 export const ZONES: ZoneDef[] = [
-  { id: 'cardio', name: '有氧区', caption: '跑步机/椭圆机，进门最显眼那排', svg: '/zone-treadmill.svg' },
-  { id: 'dumbbell', name: '哑铃区', caption: '自由力量区那排哑铃架', svg: '/zone-dumbbell.svg' },
-  { id: 'barbell', name: '杠铃区', caption: '深蹲架/卧推架', svg: '/zone-barbell.svg' },
-  { id: 'machine', name: '固定器械区', caption: '带配重片的大家伙们', svg: '/zone-machine.svg' },
-  { id: 'cable', name: '绳索区', caption: '龙门架，两边有滑轮', svg: '/zone-cable.svg' },
-  { id: 'bodyweight', name: '自重区', caption: '单杠/双杠/垫子', svg: '/zone-bodyweight.svg' },
+  { id: 'cardio', name: '有氧区', caption: '跑步机/椭圆机，进门最显眼那排', svg: './zone-treadmill.svg' },
+  { id: 'dumbbell', name: '哑铃区', caption: '自由力量区那排哑铃架', svg: './zone-dumbbell.svg' },
+  { id: 'barbell', name: '杠铃区', caption: '深蹲架/卧推架', svg: './zone-barbell.svg' },
+  { id: 'machine', name: '固定器械区', caption: '带配重片的大家伙们', svg: './zone-machine.svg' },
+  { id: 'cable', name: '绳索区', caption: '龙门架，两边有滑轮', svg: './zone-cable.svg' },
+  { id: 'bodyweight', name: '自重区', caption: '单杠/双杠/垫子', svg: './zone-bodyweight.svg' },
 ];
 
 export const ZONE_MAP: Record<ZoneId, ZoneDef> = Object.fromEntries(

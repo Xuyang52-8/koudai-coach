@@ -16,12 +16,12 @@ export interface ZoneInfo {
 }
 
 const ZONE_TABLE: Record<ZoneKey, ZoneInfo> = {
-  treadmill: { src: '/zone-treadmill.svg', label: '有氧区' },
-  dumbbell: { src: '/zone-dumbbell.svg', label: '自由力量区' },
-  barbell: { src: '/zone-barbell.svg', label: '自由力量区 · 深蹲架' },
-  machine: { src: '/zone-machine.svg', label: '固定器械区' },
-  cable: { src: '/zone-cable.svg', label: '龙门架绳索区' },
-  bodyweight: { src: '/zone-bodyweight.svg', label: '自重训练区' },
+  treadmill: { src: './zone-treadmill.svg', label: '有氧区' },
+  dumbbell: { src: './zone-dumbbell.svg', label: '自由力量区' },
+  barbell: { src: './zone-barbell.svg', label: '自由力量区 · 深蹲架' },
+  machine: { src: './zone-machine.svg', label: '固定器械区' },
+  cable: { src: './zone-cable.svg', label: '龙门架绳索区' },
+  bodyweight: { src: './zone-bodyweight.svg', label: '自重训练区' },
 };
 
 /** 匹配顺序敏感：自重开头优先（"自重（进阶可拿哑铃）"），再有氧，再绳索，再哑铃/杠铃，再自重关键词，最后"机"兜底固定器械。

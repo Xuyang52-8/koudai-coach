@@ -27,6 +27,32 @@ export interface WarmupSpec {
 export function warmupSpec(warmup: Exercise | null): WarmupSpec {
   const name = warmup?.equipment.name ?? '跑步机';
   const durationSec = 5 * 60;
+  if (warmup?.id === 'outdoor-run' || /跑道|操场|户外/.test(name)) {
+    return {
+      title: '去操场或跑道',
+      params: [
+        { value: '慢跑', unit: '能说话的配速' },
+        { value: '5', unit: '分钟' },
+        { value: '微汗', unit: '就算数' },
+      ],
+      summary: '户外慢跑 · 能说话的配速 · 5分钟',
+      fallback: '下雨或没地方跑？原地开合跳 5 分钟一样算数。',
+      durationSec,
+    };
+  }
+  if (warmup?.id === 'jumping-jack' || /开合跳/.test(name)) {
+    return {
+      title: '原地开合跳',
+      params: [
+        { value: '30', unit: '秒/组' },
+        { value: '间歇30秒', unit: '' },
+        { value: '5', unit: '分钟' },
+      ],
+      summary: '开合跳 · 30秒一组歇30秒 · 5分钟',
+      fallback: '膝盖或小腿不舒服？换成原地踏步抬高膝盖，5 分钟微微出汗就算数。',
+      durationSec,
+    };
+  }
   if (/椭圆机/.test(name)) {
     return {
       title: '去椭圆机',

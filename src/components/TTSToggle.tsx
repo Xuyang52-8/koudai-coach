@@ -4,7 +4,7 @@
  */
 import type { JSX } from 'react';
 import { updateSettings, useSettings } from '../lib/store';
-import { cancel } from '../lib/tts';
+import { cancel, speak } from '../lib/tts';
 import { Icon } from './Icon';
 
 export interface TTSToggleProps {
@@ -22,8 +22,14 @@ export function TTSToggle({ size = 24, className }: TTSToggleProps): JSX.Element
       aria-pressed={on}
       className={className}
       onClick={() => {
-        if (on) cancel();
-        updateSettings({ ttsOn: !on });
+        if (on) {
+          cancel();
+          updateSettings({ ttsOn: false });
+        } else {
+          updateSettings({ ttsOn: true });
+          // 在用户手势里立即朗读确认：既给反馈又解锁移动端语音
+          speak('语音已开启，我是你的口袋私教', { force: true });
+        }
       }}
       style={{
         display: 'inline-flex',

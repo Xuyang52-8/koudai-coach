@@ -284,7 +284,7 @@ export default function Summary(): JSX.Element {
       >
         <motion.img
           key={wheyShake}
-          src="/illust-shaker.svg"
+          src="./illust-shaker.svg"
           alt="摇摇杯线稿图"
           animate={wheyShake > 0 && !reduce ? { rotate: [0, -8, 8, 0] } : undefined}
           transition={{ duration: 0.3 }}

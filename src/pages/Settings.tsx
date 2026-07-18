@@ -37,7 +37,7 @@ import { testDeepSeekKey } from '@/lib/ai';
 import { RPE_LABELS, overrideDeltaText } from '@/lib/adjust';
 import { getCapability } from '@/lib/capability';
 import { getAllExerciseOverrides, resetExerciseOverride, updateSettings, useCycle, useProfile, useSchedule, useSettings, useTargets } from '@/lib/store';
-import { speak } from '@/lib/tts';
+import { speak, ttsSupported } from '@/lib/tts';
 import type { UserProfile } from '@/lib/types';
 import { getExerciseById } from '@/lib/utils-workout';
 
@@ -635,6 +635,11 @@ export default function Settings(): JSX.Element {
               >
                 {auditioning ? '正在试听…' : '试听一句'}
               </GhostButton>
+              {!ttsSupported() && (
+                <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.6, color: 'var(--warn)' }}>
+                  当前浏览器不支持语音朗读（微信/内置浏览器常见）——请点右上角「在浏览器打开」，用系统浏览器访问就有声音了。
+                </p>
+              )}
             </PanelRow>
           </Panel>
         </div>
