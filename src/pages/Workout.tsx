@@ -30,6 +30,7 @@ import { clampWeight, formatKg, weightSpec } from '../components/workout/weight'
 import { zoneForExercise } from '../components/workout/zoneImage';
 import { adjustedReps, adjustedWeightKg, hasAdjustment, rpeToast } from '../lib/adjust';
 import type { RpeChoice } from '../lib/adjust';
+import { useBgAudioKeepAlive } from '../lib/keepalive';
 import {
   applyRpeOverride,
   clearSession,
@@ -49,36 +50,20 @@ import { bestVenue } from '../lib/profile';
 import { cancel, speak } from '../lib/tts';
 import type { Exercise, Venue } from '../lib/types';
 import { estimateWorkoutKcal, getExerciseById, getTodayState, program, resolveExercisesForProfile } from '../lib/utils-workout';
+import { useWakeLock } from '../lib/wakelock';
 
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-/* ================= 屏幕常亮（失败静默降级） ================= */
-
-function useWakeLock(): void {
-  useEffect(() => {
-    interface Sentinel {
-      release(): Promise<void>;
-    }
-    const nav = navigator as Navigator & { wakeLock?: { request(type: 'screen'): Promise<Sentinel> } };
-    let sentinel: Sentinel | null = null;
-    const acquire = () => {
-      nav.wakeLock
-        ?.request('screen')
-        .then((s) => {
-          sentinel = s;
-        })
-        .catch(() => {});
-    };
-    acquire();
-    const onVis = () => {
-      if (document.visibilityState === 'visible') acquire();
-    };
-    document.addEventListener('visibilitychange', onVis);
-    return () => {
-      document.removeEventListener('visibilitychange', onVis);
-      sentinel?.release().catch(() => {});
-    };
-  }, []);
+/**
+ * 要领朗读脚本：动作名 + 口语步骤 + 邪修口诀（拼接后走 speak()，内部按句切分排队）。
+ * 风格对齐 CustomExerciseForm 的自动合成 voiceScript。
+ */
+function scriptForExercise(ex: Exercise): string {
+  const steps = ex.steps
+    .filter(Boolean)
+    .map((t, i) => `第${i + 1}步，${t}`)
+    .join('。');
+  return `${ex.name}。怎么做：${steps}。记住口诀：${ex.mantra}。`;
 }
 
 /* ================= 阶段 A：热身引导 ================= */
@@ -296,7 +281,8 @@ export default function Workout(): JSX.Element {
   const [venueToday] = useTodayVenue();
   const feedback = useFeedback();
   const reduce = useReducedMotion();
-  useWakeLock();
+  /* 防锁屏：训练页持有 screen Wake Lock（不支持的环境静默降级） */
+  useWakeLock(settings.keepScreenOn ?? true);
 
   /* ---------- 解析当前课：session 优先（中断恢复），否则今天的课 ---------- */
   const today = getTodayState({}, cycle);
@@ -343,6 +329,8 @@ export default function Workout(): JSX.Element {
   const [rpeTarget, setRpeTarget] = useState<Exercise | null>(null); // 刚完成、待评价的动作
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipAutoSpeakRef = useRef(false);
+  /** 朗读代数：手动停止/关开关后使旧的 onEnd 串联失效，避免停了又被接话 */
+  const speakSeqRef = useRef(0);
 
   const [weights, setWeights] = useStoreKey<Record<string, number>>('weights', {});
   const [skips, setSkips] = useSkips(todayStr());
@@ -373,9 +361,10 @@ export default function Workout(): JSX.Element {
     );
   });
 
-  /* 离开页面：停朗读、清过场计时 */
+  /* 离开页面：停朗读（含失效 onEnd 串联）、清过场计时 */
   useEffect(
     () => () => {
+      speakSeqRef.current += 1;
       cancel();
       if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
     },
@@ -388,14 +377,35 @@ export default function Workout(): JSX.Element {
   const setIndex = session?.setIndex ?? 0;
   const isLastExercise = exerciseIndex === exercises.length - 1;
 
+  /* ---------- 锁屏音频保活：静音循环 + Media Session（安卓优先，iOS 尽力而为） ---------- */
+  const hasWorkout = meta !== null;
+  useBgAudioKeepAlive(
+    (settings.bgAudioKeepAlive ?? true) && hasWorkout && session !== null,
+    phase === 'warmup' ? '热身' : (ex?.name ?? ''),
+  );
+
   /* ---------- RPE 覆盖：当前动作的调整量（步进器初值 / 次数文案 / 「已为你调整」Tag） ---------- */
   const [exOverride] = useExerciseOverride(ex?.id ?? null);
   const adjustedBaseKg = useMemo(() => (ex ? adjustedWeightKg(ex, exOverride) : null), [ex, exOverride]);
 
-  /* ---------- 进入新动作自动读要领；热身进场读热身脚本 ---------- */
+  /* ---------- 动作卡切换自动朗读（需 ttsOn && ttsAuto）：含热身进场、热身→动作1、动作间切换；单侧左右切换不在依赖里，不重复读 ---------- */
   useEffect(() => {
+    if (!hasWorkout) return;
+    if (!settings.ttsOn || !(settings.ttsAuto ?? true)) {
+      // 总开关/自动朗读关闭：切换动作或刚关掉开关时，停掉当前朗读
+      speakSeqRef.current += 1;
+      cancel();
+      setSpeaking(false);
+      return;
+    }
     if (phase === 'warmup') {
-      speak(warmup?.voiceScript ?? '先热身五分钟，让身体热起来。');
+      const seq = ++speakSeqRef.current;
+      setSpeaking(true);
+      speak(warmup?.voiceScript ?? '先热身五分钟，让身体热起来。', {
+        onEnd: () => {
+          if (speakSeqRef.current === seq) setSpeaking(false);
+        },
+      });
       return;
     }
     if (skipAutoSpeakRef.current) {
@@ -403,9 +413,17 @@ export default function Workout(): JSX.Element {
       skipAutoSpeakRef.current = false;
       return;
     }
-    if (ex) speak(ex.voiceScript);
+    if (ex) {
+      const seq = ++speakSeqRef.current;
+      setSpeaking(true);
+      speak(scriptForExercise(ex), {
+        onEnd: () => {
+          if (speakSeqRef.current === seq) setSpeaking(false);
+        },
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, exerciseIndex]);
+  }, [phase, exerciseIndex, settings.ttsOn, settings.ttsAuto, hasWorkout]);
 
   /* ---------- 收尾：写快照 → 清 session → 跳总结 ---------- */
   const finishWorkout = useCallback(
@@ -578,9 +596,17 @@ export default function Workout(): JSX.Element {
       setSwapOpen(false);
       vibrate(30);
       feedback.toast(`换成${newEx.name}了`);
-      speak(newEx.voiceScript);
+      if (settings.ttsOn && (settings.ttsAuto ?? true)) {
+        const seq = ++speakSeqRef.current;
+        setSpeaking(true);
+        speak(scriptForExercise(newEx), {
+          onEnd: () => {
+            if (speakSeqRef.current === seq) setSpeaking(false);
+          },
+        });
+      }
     },
-    [session, setSwaps, exerciseIndex, setIndex, feedback],
+    [session, setSwaps, exerciseIndex, setIndex, feedback, settings.ttsOn, settings.ttsAuto],
   );
 
   /* ---------- 一键换回原动作 ---------- */
@@ -598,28 +624,48 @@ export default function Workout(): JSX.Element {
         setIndex: setIndex >= origSets ? origSets - 1 : setIndex,
         side: orig.unilateral ? 'L' : null,
       });
-      speak(orig.voiceScript);
+      if (settings.ttsOn && (settings.ttsAuto ?? true)) {
+        const seq = ++speakSeqRef.current;
+        setSpeaking(true);
+        speak(scriptForExercise(orig), {
+          onEnd: () => {
+            if (speakSeqRef.current === seq) setSpeaking(false);
+          },
+        });
+      }
     }
     setSwapOpen(false);
     feedback.toast('换回原动作');
-  }, [session, setSwaps, baseExercises, exerciseIndex, setIndex, feedback]);
+  }, [session, setSwaps, baseExercises, exerciseIndex, setIndex, feedback, settings.ttsOn, settings.ttsAuto]);
 
-  /* ---------- 热身结束 → 动作一 ---------- */
+  /* ---------- 热身结束 → 动作一（ttsOn && ttsAuto 时串联播报：提示语 → 动作一要领） ---------- */
   const finishWarmup = useCallback(() => {
     if (!session) return;
     vibrate(120);
     const first = exercises[0];
-    if (first) {
+    if (first && settings.ttsOn && (settings.ttsAuto ?? true)) {
+      const seq = ++speakSeqRef.current;
       skipAutoSpeakRef.current = true;
-      speak('热身完成，进入第一个动作', { onEnd: () => speak(first.voiceScript) });
+      setSpeaking(true);
+      speak('热身完成，进入第一个动作', {
+        onEnd: () => {
+          if (speakSeqRef.current !== seq) return;
+          speak(scriptForExercise(first), {
+            onEnd: () => {
+              if (speakSeqRef.current === seq) setSpeaking(false);
+            },
+          });
+        },
+      });
     }
     updateSession({ exerciseIndex: 0, setIndex: 0, side: first?.unilateral ? 'L' : null });
-  }, [session, exercises]);
+  }, [session, exercises, settings.ttsOn, settings.ttsAuto]);
 
-  /* ---------- 听要领 ---------- */
+  /* ---------- 听要领（手动入口，不受 ttsAuto 限制） ---------- */
   const toggleSpeak = useCallback(() => {
     if (!ex) return;
     if (speaking) {
+      speakSeqRef.current += 1;
       cancel();
       setSpeaking(false);
       return;
@@ -628,8 +674,13 @@ export default function Workout(): JSX.Element {
       feedback.toast('语音开关关着呢，点右上角喇叭打开');
       return;
     }
+    const seq = ++speakSeqRef.current;
     setSpeaking(true);
-    speak(ex.voiceScript, { onEnd: () => setSpeaking(false) });
+    speak(scriptForExercise(ex), {
+      onEnd: () => {
+        if (speakSeqRef.current === seq) setSpeaking(false);
+      },
+    });
   }, [ex, speaking, settings.ttsOn, feedback]);
 
   /* ---------- 渲染 ---------- */

@@ -228,6 +228,12 @@ export interface AppSettings {
   ttsOn: boolean;
   /** 倒计时语音子开关 */
   ttsCountdownOn: boolean;
+  /** 翻到动作卡自动朗读要领（需 ttsOn 同开）。可选：老用户已存数据缺省，消费端按 ?? true 处理 */
+  ttsAuto?: boolean;
+  /** 训练时屏幕常亮（Screen Wake Lock）。可选同上，缺省视为 true */
+  keepScreenOn?: boolean;
+  /** 锁屏后保持语音（静音循环 + Media Session 保活，安卓更有效）。可选同上，缺省视为 true */
+  bgAudioKeepAlive?: boolean;
   weightKg: number;
   /** 预留：账号体系用户 id（暂不使用，为以后账号/云同步留口） */
   userId?: string;

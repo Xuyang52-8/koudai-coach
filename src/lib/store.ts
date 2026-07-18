@@ -289,6 +289,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   visionModel: '',
   ttsOn: true,
   ttsCountdownOn: true,
+  ttsAuto: true,
+  keepScreenOn: true,
+  bgAudioKeepAlive: true,
   weightKg: 81.5,
   // 预留字段：账号/密钥体系（当前代码不读不写，仅占位）
   userId: '',
