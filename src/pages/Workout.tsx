@@ -9,7 +9,7 @@
  */
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { JSX } from 'react';
+import type { CSSProperties, JSX } from 'react';
 import { useNavigate } from 'react-router';
 import BottomSheet from '../components/BottomSheet';
 import { DangerButton, GhostButton, PrimaryButton } from '../components/Buttons';
@@ -22,6 +22,7 @@ import { DangerTag, Tag, WarnTag } from '../components/Tag';
 import TTSToggle from '../components/TTSToggle';
 import SubstituteSheet, { SwapIcon } from '../components/library/SubstituteSheet';
 import RpeSheet from '../components/rpe/RpeSheet';
+import BigActionButton from '../components/workout/BigActionButton';
 import { useSkips, useWorkoutExtra } from '../components/workout/extra';
 import type { SkipEntry } from '../components/workout/extra';
 import { ExternalIcon, MinusIcon, StopIcon } from '../components/workout/icons';
@@ -53,6 +54,23 @@ import { estimateWorkoutKcal, getExerciseById, getTodayState, program, resolveEx
 import { useWakeLock } from '../lib/wakelock';
 
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+/** 次要操作文字按钮样式：小号、无框、--text-2，降级不抢大圆主按钮视觉 */
+const SECONDARY_ACTION_STYLE: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  minHeight: 44,
+  padding: '6px 2px',
+  background: 'none',
+  border: 'none',
+  color: 'var(--text-2)',
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: 'pointer',
+  WebkitTapHighlightColor: 'transparent',
+  touchAction: 'manipulation',
+};
 
 /**
  * 要领朗读脚本：动作名 + 口语步骤 + 邪修口诀（拼接后走 speak()，内部按句切分排队）。
@@ -331,6 +349,8 @@ export default function Workout(): JSX.Element {
   const skipAutoSpeakRef = useRef(false);
   /** 朗读代数：手动停止/关开关后使旧的 onEnd 串联失效，避免停了又被接话 */
   const speakSeqRef = useRef(0);
+  /** 自动滚到底部主按钮的去重：记录上一次滚动落点对应的动作下标（-1=热身） */
+  const scrolledKeyRef = useRef(-1);
 
   const [weights, setWeights] = useStoreKey<Record<string, number>>('weights', {});
   const [skips, setSkips] = useSkips(todayStr());
@@ -683,6 +703,31 @@ export default function Workout(): JSX.Element {
     });
   }, [ex, speaking, settings.ttsOn, feedback]);
 
+  /* ---------- 自动滚到底部：让大圆主按钮完整落在屏幕中下部舒适拇指区 ----------
+   * 落点：主按钮圆心 ≈ 视口高 68%（中下部拇指区），必要时向下夹取到可滚到底，
+   * 保证圆 + label + 次要操作都完整露出（页底已留 20px padding）。 */
+  const scrollToPrimaryAction = useCallback(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const el = document.querySelector<HTMLElement>('[data-primary-action]');
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const centerY = window.scrollY + rect.top + rect.height / 2;
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - vh);
+    const top = Math.min(Math.max(0, Math.round(centerY - vh * 0.68)), maxScroll);
+    window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+  }, [reduce]);
+
+  /* 进入训练页 / 切换动作（含热身收尾进动作一）时滚到底部主按钮；
+   * 完成一组/换侧（动作下标不变）不滚，避免打断汗手连点。 */
+  useEffect(() => {
+    const key = phase === 'exercise' ? exerciseIndex : -1;
+    if (scrolledKeyRef.current === key) return;
+    scrolledKeyRef.current = key;
+    const t = setTimeout(scrollToPrimaryAction, 320);
+    return () => clearTimeout(t);
+  }, [phase, exerciseIndex, scrollToPrimaryAction]);
+
   /* ---------- 渲染 ---------- */
 
   if (!meta) {
@@ -848,7 +893,6 @@ export default function Workout(): JSX.Element {
             onCompleteSet={completeSet}
             onUndoSet={undoSet}
             onSkipExercise={() => setSkipOpen(true)}
-            onLeftFirstHint={() => feedback.toast('先练弱的左边，私教说的。')}
             canSwap={Boolean(baseExercises[exerciseIndex]?.substitutes?.length)}
             swappedFrom={
               baseExercises[exerciseIndex] && baseExercises[exerciseIndex].id !== ex.id ? baseExercises[exerciseIndex].name : null
@@ -948,7 +992,6 @@ interface ExerciseStageProps {
   onCompleteSet: () => void;
   onUndoSet: () => void;
   onSkipExercise: () => void;
-  onLeftFirstHint: () => void;
   /** 该位置原动作有替代链：显示「换替代动作」按钮 */
   canSwap: boolean;
   /** 当前动作是替换来的：原动作名（未替换为 null） */
@@ -973,7 +1016,6 @@ function ExerciseStage({
   onCompleteSet,
   onUndoSet,
   onSkipExercise,
-  onLeftFirstHint,
   canSwap,
   swappedFrom,
   onOpenSwap,
@@ -987,6 +1029,19 @@ function ExerciseStage({
   const kg = weight ?? wspec.kg;
   const videoUrl = `https://search.bilibili.com/all?keyword=${encodeURIComponent(ex.videoKeyword)}`;
   const mistakes = ex.commonMistakes.slice(0, 2);
+
+  /* 大圆主按钮文案：当前阶段主操作（纯呈现；完成/换侧/结束状态机仍在父组件 completeSet）。
+   * 单侧动作右侧永远在左侧完成后才成为当前侧，天然保证「先左后右」，无需 disabled 右按钮。 */
+  const primaryLabel = ex.unilateral
+    ? side === 'R'
+      ? lastSet
+        ? '完成动作'
+        : '右侧完成'
+      : '左侧完成'
+    : lastSet
+      ? '完成动作'
+      : '完成本组';
+  const sideHint = ex.unilateral ? (side === 'R' ? '左侧已做' : '接着右侧 · 先左后右') : undefined;
 
   const item = {
     hidden: { opacity: 0, y: 16 },
@@ -1212,101 +1267,66 @@ function ExerciseStage({
         </p>
       </motion.div>
 
-      {/* 9. 主按钮区（单侧双按钮，右侧在左侧完成前 disabled） */}
-      <motion.div variants={item} style={{ marginTop: 20 }}>
-        {ex.unilateral ? (
+      {/* 9. 底部操作区：大圆形主按钮（视觉中心）+ 降级的次要操作（小号文字按钮） */}
+      <motion.div variants={item} style={{ marginTop: 28 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <motion.div
-            key={side ?? 'L'}
-            initial={reduce ? { opacity: 0 } : { x: side === 'R' ? 12 : -12, opacity: 0.6 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.2 }}
-            style={{ display: 'flex', gap: 10 }}
+            key={ex.unilateral ? `big-${side ?? 'L'}` : 'big'}
+            initial={reduce ? { opacity: 0 } : { scale: 0.88, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={reduce ? { duration: 0.1 } : { type: 'spring', stiffness: 320, damping: 20 }}
+            style={{ display: 'flex', justifyContent: 'center' }}
           >
-            {side === 'R' ? (
-              <GhostButton size="lg" disabled icon={<Icon name="check" size={20} />}>
-                左侧已做
-              </GhostButton>
-            ) : (
-              <PrimaryButton size="lg" icon={<Icon name="check" size={20} />} onClick={onCompleteSet}>
-                左侧完成
-              </PrimaryButton>
-            )}
-            {side === 'R' ? (
-              <PrimaryButton size="lg" icon={<Icon name="check" size={20} />} onClick={onCompleteSet}>
-                {lastSet ? '完成这个动作' : '右侧完成'}
-              </PrimaryButton>
-            ) : (
-              <LongPressHint onHint={onLeftFirstHint} style={{ flex: 1 }}>
-                <GhostButton size="lg" disabled icon={<Icon name="hand-r" size={20} />} style={{ pointerEvents: 'none' }}>
-                  右侧完成
-                </GhostButton>
-              </LongPressHint>
-            )}
+            <BigActionButton label={primaryLabel} sideHint={sideHint} onPress={onCompleteSet} />
           </motion.div>
-        ) : (
-          <PrimaryButton size="lg" icon={<Icon name="check" size={20} />} onClick={onCompleteSet}>
-            {lastSet ? '完成这个动作' : `完成第 ${currentSetNo} 组`}
-          </PrimaryButton>
-        )}
-      </motion.div>
 
-      {/* 10. 辅助行（听要领 / 视频 / 换替代动作） */}
-      <motion.div variants={item} style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <GhostButton
-          size="sm"
-          icon={speaking ? <StopIcon size={16} /> : <Icon name="play" size={16} />}
-          onClick={onToggleSpeak}
-          style={speaking ? { borderColor: 'var(--accent)', color: 'var(--accent)' } : undefined}
-        >
-          {speaking ? '停止' : '听要领'}
-        </GhostButton>
-        <GhostButton size="sm" icon={<ExternalIcon size={16} />} onClick={() => window.open(videoUrl, '_blank', 'noopener,noreferrer')}>
-          视频
-        </GhostButton>
-        {canSwap ? (
-          <GhostButton size="sm" icon={<SwapIcon size={16} />} onClick={onOpenSwap}>
-            换替代动作
-          </GhostButton>
-        ) : null}
+          {/* 次要操作：跳过 / 听要领 / 视频 / 换替代动作 —— 降级为小号文字按钮，排在圆下方 */}
+          <div
+            style={{
+              marginTop: 18,
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '4px 20px',
+            }}
+          >
+            <motion.button type="button" whileTap={{ scale: 0.96 }} transition={{ duration: 0.12 }} onClick={onSkipExercise} style={SECONDARY_ACTION_STYLE}>
+              跳过
+            </motion.button>
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.96 }}
+              transition={{ duration: 0.12 }}
+              onClick={onToggleSpeak}
+              style={{ ...SECONDARY_ACTION_STYLE, ...(speaking ? { color: 'var(--accent)' } : null) }}
+            >
+              <span style={{ display: 'inline-flex', flexShrink: 0 }}>{speaking ? <StopIcon size={16} /> : <Icon name="play" size={16} />}</span>
+              {speaking ? '停止' : '听要领'}
+            </motion.button>
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.96 }}
+              transition={{ duration: 0.12 }}
+              onClick={() => window.open(videoUrl, '_blank', 'noopener,noreferrer')}
+              style={SECONDARY_ACTION_STYLE}
+            >
+              <span style={{ display: 'inline-flex', flexShrink: 0 }}>
+                <ExternalIcon size={16} />
+              </span>
+              视频
+            </motion.button>
+            {canSwap ? (
+              <motion.button type="button" whileTap={{ scale: 0.96 }} transition={{ duration: 0.12 }} onClick={onOpenSwap} style={SECONDARY_ACTION_STYLE}>
+                <span style={{ display: 'inline-flex', flexShrink: 0 }}>
+                  <SwapIcon size={16} />
+                </span>
+                换替代动作
+              </motion.button>
+            ) : null}
+          </div>
+        </div>
       </motion.div>
     </motion.div>
-  );
-}
-
-/* ================= 长按 disabled 右侧按钮的提示（先左后右铁律） ================= */
-
-function LongPressHint({
-  onHint,
-  children,
-  style,
-}: {
-  onHint: () => void;
-  children: JSX.Element;
-  style?: React.CSSProperties;
-}): JSX.Element {
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const clear = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  };
-  useEffect(() => clear, []);
-  return (
-    <span
-      onPointerDown={() => {
-        clear();
-        timerRef.current = setTimeout(() => {
-          vibrate(20);
-          onHint();
-        }, 400);
-      }}
-      onPointerUp={clear}
-      onPointerLeave={clear}
-      onContextMenu={(e) => e.preventDefault()}
-      style={{ display: 'inline-flex', touchAction: 'manipulation', ...style }}
-    >
-      {children}
-    </span>
   );
 }
