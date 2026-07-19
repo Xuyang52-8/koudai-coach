@@ -149,7 +149,7 @@ function WarmupStage({
               borderLeft: i > 0 ? '1px solid var(--line)' : 'none',
             }}
           >
-            <span className="num" style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: 'var(--accent)' }}>
+            <span className="num" style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: 'var(--accent-ink)' }}>
               {p.value}
             </span>
             <span className="text-2" style={{ fontSize: 13 }}>
@@ -1165,7 +1165,7 @@ function ExerciseStage({
         <ol style={{ margin: '10px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {ex.steps.map((s, i) => (
             <li key={i} className="text-1" style={{ display: 'flex', gap: 10, fontSize: 17, fontWeight: 500, lineHeight: 1.7 }}>
-              <span className="num" style={{ color: 'var(--accent)', fontWeight: 600, flexShrink: 0 }}>
+              <span className="num" style={{ color: 'var(--accent-ink)', fontWeight: 600, flexShrink: 0 }}>
                 {i + 1}.
               </span>
               <span>{s}</span>
@@ -1177,10 +1177,10 @@ function ExerciseStage({
       {/* 5. 邪修口诀 */}
       <motion.div variants={item} style={{ marginTop: 18 }}>
         <div style={{ background: 'var(--accent-dim)', borderRadius: 4, padding: '14px 16px', display: 'flex', gap: 10 }}>
-          <span className="font-display" style={{ color: 'var(--accent)', fontSize: 28, lineHeight: 1, flexShrink: 0 }}>
+          <span className="font-display" style={{ color: 'var(--accent-ink)', fontSize: 28, lineHeight: 1, flexShrink: 0 }}>
             “
           </span>
-          <p style={{ margin: 0, fontSize: 17, fontWeight: 500, lineHeight: 1.6, color: 'var(--accent)' }}>{ex.mantra}</p>
+          <p style={{ margin: 0, fontSize: 17, fontWeight: 500, lineHeight: 1.6, color: 'var(--accent-ink)' }}>{ex.mantra}</p>
         </div>
       </motion.div>
 
@@ -1299,7 +1299,7 @@ function ExerciseStage({
               whileTap={{ scale: 0.96 }}
               transition={{ duration: 0.12 }}
               onClick={onToggleSpeak}
-              style={{ ...SECONDARY_ACTION_STYLE, ...(speaking ? { color: 'var(--accent)' } : null) }}
+              style={{ ...SECONDARY_ACTION_STYLE, ...(speaking ? { color: 'var(--accent-ink)' } : null) }}
             >
               <span style={{ display: 'inline-flex', flexShrink: 0 }}>{speaking ? <StopIcon size={16} /> : <Icon name="play" size={16} />}</span>
               {speaking ? '停止' : '听要领'}

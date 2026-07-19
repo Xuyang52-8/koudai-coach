@@ -8,8 +8,8 @@
  * - 汗手反馈：按下 whileTap scale 0.9（明显的缩放反馈）+ onPointerDown vibrate(10) 触感确认；
  *   完成时的 vibrate(30) 仍由父组件 feedback.celebrate 反馈链触发，二者保持一致、不重复。
  * - 边缘对比：accent 实心圆 + accent-dim 光晕描边，和 --bg 底色反差强。
- * - 颜色全部走 CSS 变量（--accent / --accent-hi / --accent-dim / --bg-inset / --text-2），
- *   on-accent 用 --bg-inset（对齐 PrimaryButton/SetDot 的深色 #060607 约定），黑/白两主题都成立。
+ * - 颜色全部走 CSS 变量（--accent / --accent-hi / --accent-dim / --on-accent / --text-2），
+ *   on-accent 用 --on-accent（主题系统提供的 accent 面深色文字变量），黑/白两主题都成立。
  *
  * 只负责呈现：onPress 由父组件接 completeSet（状态机原逻辑不变）。
  */
@@ -74,7 +74,7 @@ export function BigActionButton({
           height: BIG_ACTION_SIZE,
           borderRadius: '50%',
           background: 'var(--accent)',
-          color: 'var(--bg-inset)',
+          color: 'var(--on-accent)',
           boxShadow: '0 0 0 8px var(--accent-dim)',
           display: 'flex',
           alignItems: 'center',
