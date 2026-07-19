@@ -24,7 +24,7 @@ interface RpeButtonSpec {
 }
 
 const BUTTONS: RpeButtonSpec[] = [
-  { rpe: 'easy', label: '太轻松', caption: '下次加点量', background: 'var(--accent)', color: '#060607', border: 'none' },
+  { rpe: 'easy', label: '太轻松', caption: '下次加点量', background: 'var(--accent)', color: 'var(--on-accent)', border: 'none' },
   { rpe: 'ok', label: '刚好', caption: '保持现状', background: 'transparent', color: 'var(--text-1)', border: '1px solid var(--line-strong)' },
   { rpe: 'hard', label: '太累', caption: '下次减点量，姿势先对', background: 'var(--warn-dim)', color: 'var(--warn)', border: 'none' },
 ];

@@ -164,7 +164,7 @@ function TimerBody({ seconds, nextLabel, onDone, onSkip, doneCue, tip }: RestTim
   const sec = Math.ceil(remainingMs / 1000);
   const lastTen = !finished && sec <= 10;
   const pct = totalMs > 0 ? Math.min(100, Math.max(0, (remainingMs / totalMs) * 100)) : 0;
-  const numberColor = finished ? 'var(--accent-hi)' : !running ? 'var(--text-2)' : lastTen ? 'var(--warn)' : 'var(--accent)';
+  const numberColor = finished ? 'var(--accent-hi)' : !running ? 'var(--text-2)' : lastTen ? 'var(--warn)' : 'var(--accent-ink)';
 
   return (
     <motion.div

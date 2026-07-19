@@ -99,7 +99,7 @@ function OptionCard({ option, recommended, checked, delay, onCheckin }: OptionCa
       </AnimatePresence>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <span style={{ display: 'inline-flex', color: 'var(--accent)', flexShrink: 0 }}>
+        <span style={{ display: 'inline-flex', color: 'var(--accent-ink)', flexShrink: 0 }}>
           <Icon name={icon} size={24} />
         </span>
         <h3 className="font-display text-1" style={{ margin: 0, fontSize: 20, fontWeight: 600, lineHeight: 1.3 }}>
@@ -127,7 +127,7 @@ function OptionCard({ option, recommended, checked, delay, onCheckin }: OptionCa
               border: 'none',
               padding: '4px 0',
               fontSize: 13,
-              color: 'var(--accent)',
+              color: 'var(--accent-ink)',
               cursor: 'pointer',
               WebkitTapHighlightColor: 'transparent',
             }}
@@ -170,7 +170,7 @@ function OptionCard({ option, recommended, checked, delay, onCheckin }: OptionCa
                         <div style={{ fontSize: 16, color: 'var(--text-1)' }}>{mv.name}</div>
                         <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>{mv.tip}</div>
                       </div>
-                      <span className="num" style={{ fontSize: 16, fontWeight: 600, color: 'var(--accent)', flexShrink: 0 }}>
+                      <span className="num" style={{ fontSize: 16, fontWeight: 600, color: 'var(--accent-ink)', flexShrink: 0 }}>
                         {mv.duration}
                       </span>
                     </motion.div>
@@ -193,7 +193,7 @@ function OptionCard({ option, recommended, checked, delay, onCheckin }: OptionCa
               minHeight: 48,
               borderRadius: 4,
               background: 'var(--accent)',
-              color: '#060607',
+              color: 'var(--on-accent)',
               fontSize: 15,
               fontWeight: 600,
             }}
@@ -242,7 +242,7 @@ function FeelSection({ feel, onSelect, lessonNumber }: { feel: FeelId | ''; onSe
                 onClick={() => onSelect(f.id)}
                 style={{
                   background: active ? 'var(--accent)' : 'transparent',
-                  color: active ? '#060607' : 'var(--text-1)',
+                  color: active ? 'var(--on-accent)' : 'var(--text-1)',
                   border: active ? 'none' : '1px solid var(--line-strong)',
                   transition: 'background 200ms, color 200ms',
                 }}
@@ -265,7 +265,7 @@ function FeelSection({ feel, onSelect, lessonNumber }: { feel: FeelId | ''; onSe
               margin: '12px 0 0',
               fontSize: 13,
               lineHeight: 1.6,
-              color: feel === 'tired' ? 'var(--warn)' : 'var(--accent)',
+              color: feel === 'tired' ? 'var(--warn)' : 'var(--accent-ink)',
             }}
           >
             {feedbackText}
@@ -320,7 +320,7 @@ function SupplementSection(): JSX.Element {
             borderRadius: 4,
             border: supp.creatine ? 'none' : '1px solid var(--line-strong)',
             background: supp.creatine ? 'var(--accent)' : 'transparent',
-            color: supp.creatine ? '#060607' : 'var(--text-1)',
+            color: supp.creatine ? 'var(--on-accent)' : 'var(--text-1)',
             fontSize: 15,
             fontWeight: 600,
             fontFamily: 'var(--font-body)',
@@ -513,7 +513,7 @@ export default function Rest(): JSX.Element {
               style={{
                 background: 'var(--bg-raised)',
                 border: '1px solid var(--accent)',
-                color: 'var(--accent)',
+                color: 'var(--accent-ink)',
                 borderRadius: 4,
                 padding: '10px 16px',
                 fontSize: 13,

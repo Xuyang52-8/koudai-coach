@@ -274,8 +274,8 @@ export default function Onboarding(): JSX.Element {
       >
         <PickerLabel>按你的档案，每天大概这么吃</PickerLabel>
         <p style={{ margin: 0, fontSize: 15, lineHeight: 1.8, color: 'var(--text-1)' }}>
-          热量约 <span className="num" style={{ color: 'var(--accent)', fontWeight: 600 }}>{targets.targetKcal}</span> 大卡
-          · 蛋白约 <span className="num" style={{ color: 'var(--accent)', fontWeight: 600 }}>{targets.proteinG}</span> g
+          热量约 <span className="num" style={{ color: 'var(--accent-ink)', fontWeight: 600 }}>{targets.targetKcal}</span> 大卡
+          · 蛋白约 <span className="num" style={{ color: 'var(--accent-ink)', fontWeight: 600 }}>{targets.proteinG}</span> g
         </p>
         <p className="text-2" style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 1.6 }}>
           脂肪约 {targets.fatG} g · 碳水约 {targets.carbsG} g。改身体数据随时自动重算。

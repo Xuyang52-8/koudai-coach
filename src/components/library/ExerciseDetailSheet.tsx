@@ -141,7 +141,7 @@ export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdi
             <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
               {ex.steps.map((step, i) => (
                 <li key={i} style={{ display: 'flex', gap: 12, fontSize: 16, lineHeight: 1.65 }}>
-                  <span className="num" style={{ flexShrink: 0, width: 22, fontSize: 15, fontWeight: 600, color: 'var(--accent)' }}>
+                  <span className="num" style={{ flexShrink: 0, width: 22, fontSize: 15, fontWeight: 600, color: 'var(--accent-ink)' }}>
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <span style={{ color: 'var(--text-1)' }}>{step}</span>
@@ -158,7 +158,7 @@ export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdi
                 fontSize: 17,
                 fontWeight: 500,
                 lineHeight: 1.6,
-                color: 'var(--accent)',
+                color: 'var(--accent-ink)',
                 borderLeft: '2px solid var(--accent)',
                 paddingLeft: 12,
               }}
@@ -177,7 +177,7 @@ export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdi
             </div>
             <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.6, color: 'var(--text-2)' }}>建议重量：{ex.suggestedWeight}</p>
             {rpeOverride ? (
-              <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.6, color: 'var(--accent)' }}>
+              <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.6, color: 'var(--accent-ink)' }}>
                 你当前的强度：{strengthKg !== null ? formatKg(strengthKg) : '自重'} / {strengthReps}
               </p>
             ) : null}

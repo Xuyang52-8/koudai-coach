@@ -54,7 +54,7 @@ function TabBar(): JSX.Element {
             justifyContent: 'center',
             gap: 4,
             textDecoration: 'none',
-            color: isActive ? 'var(--accent)' : 'var(--text-3)',
+            color: isActive ? 'var(--accent-ink)' : 'var(--text-3)',
             WebkitTapHighlightColor: 'transparent',
           })}
         >

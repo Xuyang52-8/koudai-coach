@@ -2,7 +2,7 @@
  * SetDot：组次圆点，直径 40px，三态。
  *  - todo：1px --line-strong 描边 + --text-3 数字
  *  - current：accent 2px 描边 + accent 数字 + accent-dim 光晕
- *  - done：accent 实心 + #060607 打勾
+ *  - done：accent 实心 + --on-accent 打勾
  * 用法：<SetDot state="current" index={2} />（index 从 1 开始显示）
  */
 import { motion } from 'framer-motion';
@@ -33,7 +33,7 @@ export function SetDot({ state, index, onClick, className }: SetDotProps): JSX.E
     flexShrink: 0,
     border: state === 'done' ? 'none' : state === 'current' ? '2px solid var(--accent)' : '1px solid var(--line-strong)',
     background: state === 'done' ? 'var(--accent)' : state === 'current' ? 'var(--accent-dim)' : 'transparent',
-    color: state === 'done' ? '#060607' : state === 'current' ? 'var(--accent)' : 'var(--text-3)',
+    color: state === 'done' ? 'var(--on-accent)' : state === 'current' ? 'var(--accent-ink)' : 'var(--text-3)',
     boxShadow: state === 'current' ? '0 0 0 6px var(--accent-dim)' : 'none',
     cursor: onClick ? 'pointer' : 'default',
     WebkitTapHighlightColor: 'transparent',

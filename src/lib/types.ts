@@ -235,6 +235,8 @@ export interface AppSettings {
   /** 锁屏后保持语音（静音循环 + Media Session 保活，安卓更有效）。可选同上，缺省视为 true */
   bgAudioKeepAlive?: boolean;
   weightKg: number;
+  /** 外观主题：'dark' 黑夜（默认）| 'light' 白天。可选：老用户已存数据缺省，消费端按 ?? 'dark' 处理 */
+  theme?: 'dark' | 'light';
   /** 预留：账号体系用户 id（暂不使用，为以后账号/云同步留口） */
   userId?: string;
   /** 预留：授权密钥（暂不使用，为以后密钥体系留口） */

@@ -80,7 +80,7 @@ export function SelectCard({
         <span style={{ flex: 1, fontSize: 16, fontWeight: 500, lineHeight: 1.4 }}>{title}</span>
         {right ??
           (selected ? (
-            <span style={{ color: 'var(--accent)', display: 'inline-flex', flexShrink: 0 }}>
+            <span style={{ color: 'var(--accent-ink)', display: 'inline-flex', flexShrink: 0 }}>
               <Icon name="check" size={18} strokeWidth={2.5} />
             </span>
           ) : null)}
@@ -115,7 +115,7 @@ export function Chip({
         borderRadius: 4,
         border: selected ? '1px solid var(--accent)' : '1px solid var(--line-strong)',
         background: selected ? 'var(--accent-dim)' : 'transparent',
-        color: selected ? 'var(--accent)' : 'var(--text-1)',
+        color: selected ? 'var(--accent-ink)' : 'var(--text-1)',
         fontSize: 15,
         fontWeight: 500,
         cursor: 'pointer',

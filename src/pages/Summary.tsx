@@ -228,7 +228,7 @@ export default function Summary(): JSX.Element {
       {/* §1 三个大数字 */}
       <section style={{ display: 'flex', marginTop: 28, borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '16px 0' }}>
-          <span style={{ color: 'var(--accent)', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+          <span style={{ color: 'var(--accent-ink)', display: 'flex', alignItems: 'baseline', gap: 4 }}>
             <span style={{ fontSize: 14 }}>约</span>
             <RollingNumber target={data.kcal} delay={0} />
           </span>
@@ -251,7 +251,7 @@ export default function Summary(): JSX.Element {
           </span>
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '16px 0', borderLeft: '1px solid var(--line)' }}>
-          <span style={{ color: 'var(--accent)', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+          <span style={{ color: 'var(--accent-ink)', display: 'flex', alignItems: 'baseline', gap: 4 }}>
             <RollingNumber target={cycle.streak} delay={0.24} />
             <span style={{ fontSize: 14 }}>天</span>
           </span>
@@ -325,7 +325,7 @@ export default function Summary(): JSX.Element {
           gap: 12,
         }}
       >
-        <span style={{ color: 'var(--accent)', display: 'inline-flex', flexShrink: 0 }}>
+        <span style={{ color: 'var(--accent-ink)', display: 'inline-flex', flexShrink: 0 }}>
           <Icon name="droplet" size={22} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -333,7 +333,7 @@ export default function Summary(): JSX.Element {
             肌酸今天喝了没？3-5g，随时都行
           </p>
           {creatineDone ? (
-            <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--accent)' }}>
+            <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--accent-ink)' }}>
               今天已补{cStreak > 0 ? ` · 连续 ${cStreak} 天` : ''}
             </p>
           ) : null}

@@ -44,7 +44,7 @@ interface VariantSpec {
 const VARIANTS = {
   primary: {
     background: 'var(--accent)',
-    color: '#060607',
+    color: 'var(--on-accent)',
     border: 'none',
     activeBackground: 'var(--accent-hi)',
   },
@@ -135,13 +135,13 @@ function BaseButton({
   );
 }
 
-/** accent 底 / #060607 字 / 通栏。按压 accent-hi + scale .97 */
+/** accent 底 / --on-accent 字 / 通栏。按压 accent-hi + scale .97 */
 export function PrimaryButton(props: AppButtonProps): JSX.Element {
   const { className, ...rest } = props;
   return (
     <BaseButton
       variant="primary"
-      className={`transition-colors active:bg-[#6FF5CB] ${className ?? ''}`}
+      className={`transition-colors active:bg-accent-hi ${className ?? ''}`}
       {...rest}
     />
   );
@@ -153,7 +153,7 @@ export function GhostButton(props: AppButtonProps): JSX.Element {
   return (
     <BaseButton
       variant="ghost"
-      className={`transition-colors active:bg-[rgba(244,244,242,0.06)] ${className ?? ''}`}
+      className={`transition-colors active:bg-[var(--press-ink)] ${className ?? ''}`}
       {...rest}
     />
   );
@@ -165,7 +165,7 @@ export function WarnButton(props: AppButtonProps): JSX.Element {
   return (
     <BaseButton
       variant="warn"
-      className={`transition-colors active:bg-[rgba(255,178,36,0.2)] ${className ?? ''}`}
+      className={`transition-colors active:bg-[var(--warn-press)] ${className ?? ''}`}
       {...rest}
     />
   );
@@ -177,7 +177,7 @@ export function DangerButton(props: AppButtonProps): JSX.Element {
   return (
     <BaseButton
       variant="danger"
-      className={`transition-colors active:bg-[rgba(255,92,69,0.2)] ${className ?? ''}`}
+      className={`transition-colors active:bg-[var(--danger-press)] ${className ?? ''}`}
       {...rest}
     />
   );

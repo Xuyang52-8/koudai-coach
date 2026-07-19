@@ -88,7 +88,7 @@ function ZoneCard({
           {zone.caption}
         </span>
         <span style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-          <span className="num" style={{ fontSize: 20, fontWeight: 600, color: 'var(--accent)', lineHeight: 1 }}>{count}</span>
+          <span className="num" style={{ fontSize: 20, fontWeight: 600, color: 'var(--accent-ink)', lineHeight: 1 }}>{count}</span>
           <span className="text-3" style={{ fontSize: 11 }}>
             个动作
           </span>
@@ -236,7 +236,7 @@ export default function Library(): JSX.Element {
                 borderRadius: 999,
                 border: `1px solid ${active ? 'var(--accent)' : 'var(--line-strong)'}`,
                 background: active ? 'var(--accent-dim)' : 'transparent',
-                color: active ? 'var(--accent)' : 'var(--text-2)',
+                color: active ? 'var(--accent-ink)' : 'var(--text-2)',
                 fontSize: 14,
                 fontWeight: active ? 600 : 500,
                 cursor: 'pointer',

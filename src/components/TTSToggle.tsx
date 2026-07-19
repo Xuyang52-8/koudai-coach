@@ -41,7 +41,7 @@ export function TTSToggle({ size = 24, className }: TTSToggleProps): JSX.Element
         border: 'none',
         padding: 0,
         cursor: 'pointer',
-        color: on ? 'var(--accent)' : 'var(--text-3)',
+        color: on ? 'var(--accent-ink)' : 'var(--text-3)',
         transition: 'color 150ms',
         WebkitTapHighlightColor: 'transparent',
       }}

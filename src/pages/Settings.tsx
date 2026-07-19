@@ -369,16 +369,16 @@ export default function Settings(): JSX.Element {
                 <PickerLabel>你的营养目标（自动重算）</PickerLabel>
                 <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap' }}>
                   <span className="text-2" style={{ fontSize: 13 }}>
-                    热量 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 {targets.targetKcal}</span> 大卡/天
+                    热量 <span className="num" style={{ fontSize: 16, color: 'var(--accent-ink)' }}>约 {targets.targetKcal}</span> 大卡/天
                   </span>
                   <span className="text-2" style={{ fontSize: 13 }}>
-                    蛋白 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 {targets.proteinG}</span> g/天
+                    蛋白 <span className="num" style={{ fontSize: 16, color: 'var(--accent-ink)' }}>约 {targets.proteinG}</span> g/天
                   </span>
                   <span className="text-2" style={{ fontSize: 13 }}>
-                    脂肪 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 {targets.fatG}</span> g
+                    脂肪 <span className="num" style={{ fontSize: 16, color: 'var(--accent-ink)' }}>约 {targets.fatG}</span> g
                   </span>
                   <span className="text-2" style={{ fontSize: 13 }}>
-                    碳水 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 {targets.carbsG}</span> g
+                    碳水 <span className="num" style={{ fontSize: 16, color: 'var(--accent-ink)' }}>约 {targets.carbsG}</span> g
                   </span>
                 </div>
                 <Caption>按 Mifflin 公式算（基础代谢约 {targets.bmr} · 日常消耗约 {targets.tdee}），改上面任意一项即时更新。</Caption>
@@ -417,10 +417,10 @@ export default function Settings(): JSX.Element {
               <PanelRow>
                 <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap' }}>
                   <span className="text-2" style={{ fontSize: 13 }}>
-                    目标 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 {legacyTargetKcal}</span> 大卡/天
+                    目标 <span className="num" style={{ fontSize: 16, color: 'var(--accent-ink)' }}>约 {legacyTargetKcal}</span> 大卡/天
                   </span>
                   <span className="text-2" style={{ fontSize: 13 }}>
-                    蛋白 <span className="num" style={{ fontSize: 16, color: 'var(--accent)' }}>约 150</span> g/天
+                    蛋白 <span className="num" style={{ fontSize: 16, color: 'var(--accent-ink)' }}>约 150</span> g/天
                   </span>
                 </div>
               </PanelRow>
@@ -502,7 +502,7 @@ export default function Settings(): JSX.Element {
                   icon={dsTest === 'testing' ? <Spinner /> : undefined}
                   style={
                     dsTest === 'ok'
-                      ? { borderColor: 'var(--accent)', color: 'var(--accent)' }
+                      ? { borderColor: 'var(--accent)', color: 'var(--accent-ink)' }
                       : dsTest === 'fail'
                         ? { borderColor: 'var(--danger)', color: 'var(--danger)' }
                         : undefined
@@ -527,7 +527,7 @@ export default function Settings(): JSX.Element {
                 target="_blank"
                 rel="noreferrer noopener"
                 className="text-2"
-                style={{ display: 'inline-block', marginTop: 6, fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}
+                style={{ display: 'inline-block', marginTop: 6, fontSize: 13, color: 'var(--accent-ink)', textDecoration: 'none' }}
               >
                 没有 Key？去 platform.deepseek.com 注册 ↗
               </a>
@@ -632,7 +632,7 @@ export default function Settings(): JSX.Element {
                 size="sm"
                 icon={<Icon name="tts-on" size={18} />}
                 onClick={audition}
-                style={auditioning ? { borderColor: 'var(--accent)', color: 'var(--accent)' } : undefined}
+                style={auditioning ? { borderColor: 'var(--accent)', color: 'var(--accent-ink)' } : undefined}
               >
                 {auditioning ? '正在试听…' : '试听一句'}
               </GhostButton>
@@ -641,6 +641,61 @@ export default function Settings(): JSX.Element {
                   当前浏览器不支持语音朗读（微信/内置浏览器常见）——请点右上角「在浏览器打开」，用系统浏览器访问就有声音了。
                 </p>
               )}
+            </PanelRow>
+          </Panel>
+        </div>
+      </motion.section>
+
+      {/* ============ §3.2 外观卡 ============ */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.13, ease: 'easeOut' }}
+        style={{ marginTop: 28 }}
+      >
+        <SectionLabel index="外观">白天 / 黑夜</SectionLabel>
+        <div style={{ marginTop: 14 }}>
+          <Panel>
+            <PanelRow last>
+              <div role="radiogroup" aria-label="外观主题" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {([
+                  { value: 'light', label: '白天模式', hint: '白灰极简' },
+                  { value: 'dark', label: '黑夜模式', hint: '默认深色' },
+                ] as const).map((opt) => {
+                  const active = (settings.theme ?? 'dark') === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => {
+                        updateSettings({ theme: opt.value });
+                        vibrate(15);
+                      }}
+                      style={{
+                        minHeight: 52,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2,
+                        borderRadius: 4,
+                        border: active ? '1px solid var(--accent)' : '1px solid var(--line-strong)',
+                        background: active ? 'var(--accent-dim)' : 'transparent',
+                        color: active ? 'var(--accent-ink)' : 'var(--text-1)',
+                        cursor: 'pointer',
+                        WebkitTapHighlightColor: 'transparent',
+                        transition: 'border-color 150ms, background 150ms, color 150ms',
+                      }}
+                    >
+                      <span style={{ fontSize: 16, fontWeight: 600 }}>{opt.label}</span>
+                      <span style={{ fontSize: 12, color: active ? 'var(--accent-ink)' : 'var(--text-3)' }}>{opt.hint}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <Caption>白天模式是白灰极简风，薄荷绿强调色不变；切换立即生效，下次打开记住。</Caption>
             </PanelRow>
           </Panel>
         </div>
@@ -799,7 +854,7 @@ export default function Settings(): JSX.Element {
               <GhostButton
                 icon={exported ? <Icon name="check" size={18} /> : <Icon name="export" size={18} />}
                 onClick={exportData}
-                style={exported ? { borderColor: 'var(--accent)', color: 'var(--accent)' } : undefined}
+                style={exported ? { borderColor: 'var(--accent)', color: 'var(--accent-ink)' } : undefined}
               >
                 {exported ? '已导出 ✓' : '导出我的数据'}
               </GhostButton>

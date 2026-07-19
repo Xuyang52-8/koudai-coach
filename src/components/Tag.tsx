@@ -7,7 +7,7 @@ import type { JSX, ReactNode } from 'react';
 type TagTone = 'accent' | 'warn' | 'danger';
 
 const TONE_STYLE: Record<TagTone, { background: string; color: string }> = {
-  accent: { background: 'var(--accent-dim)', color: 'var(--accent)' },
+  accent: { background: 'var(--accent-dim)', color: 'var(--accent-ink)' },
   warn: { background: 'var(--warn-dim)', color: 'var(--warn)' },
   danger: { background: 'var(--danger-dim)', color: 'var(--danger)' },
 };

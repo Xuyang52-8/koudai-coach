@@ -43,7 +43,7 @@ function RollingNumber({ target, delay, size = 20 }: { target: number; delay: nu
     return () => controls.stop();
   }, [target, delay, count, reduce]);
   return (
-    <motion.span className="num" style={{ fontSize: size, fontWeight: 600, lineHeight: 1, color: 'var(--accent)' }}>
+    <motion.span className="num" style={{ fontSize: size, fontWeight: 600, lineHeight: 1, color: 'var(--accent-ink)' }}>
       {rounded}
     </motion.span>
   );
@@ -149,7 +149,7 @@ function ExerciseDetail({
       <ol style={{ margin: '10px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {ex.steps.map((s, i) => (
           <li key={i} style={{ display: 'flex', gap: 10, fontSize: 17, fontWeight: 500, lineHeight: 1.6, color: 'var(--text-1)' }}>
-            <span className="num" style={{ color: 'var(--accent)', fontWeight: 600, flexShrink: 0 }}>
+            <span className="num" style={{ color: 'var(--accent-ink)', fontWeight: 600, flexShrink: 0 }}>
               {i + 1}.
             </span>
             <span>{s}</span>
@@ -162,10 +162,10 @@ function ExerciseDetail({
   /* 3. 邪修口诀 */
   sections.push(
     <div key="mantra" style={{ background: 'var(--accent-dim)', borderRadius: 4, padding: '14px 16px', display: 'flex', gap: 10 }}>
-      <span className="font-display" style={{ color: 'var(--accent)', fontSize: 28, lineHeight: 1, flexShrink: 0 }}>
+      <span className="font-display" style={{ color: 'var(--accent-ink)', fontSize: 28, lineHeight: 1, flexShrink: 0 }}>
         “
       </span>
-      <p style={{ margin: 0, fontSize: 17, fontWeight: 500, lineHeight: 1.6, color: 'var(--accent)' }}>{ex.mantra}</p>
+      <p style={{ margin: 0, fontSize: 17, fontWeight: 500, lineHeight: 1.6, color: 'var(--accent-ink)' }}>{ex.mantra}</p>
     </div>,
   );
 
@@ -177,7 +177,7 @@ function ExerciseDetail({
           {repsMain(reps) !== null ? `${ex.sets}×${repsMain(reps)}` : `${ex.sets}组`}
           {ex.unilateral ? <span style={{ fontSize: 16, color: 'var(--text-2)', marginLeft: 4 }}>每侧</span> : null}
         </span>
-        <span className="num" style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: 'var(--accent)' }}>
+        <span className="num" style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: 'var(--accent-ink)' }}>
           {w.kg !== null ? `${w.display}起` : '自重'}
         </span>
       </div>
@@ -219,7 +219,7 @@ function ExerciseDetail({
           size="sm"
           icon={speaking ? <StopIcon size={16} /> : <Icon name="play" size={16} />}
           onClick={onToggleSpeak}
-          style={speaking ? { borderColor: 'var(--accent)', color: 'var(--accent)' } : undefined}
+          style={speaking ? { borderColor: 'var(--accent)', color: 'var(--accent-ink)' } : undefined}
         >
           {speaking ? '停止' : '听要领'}
         </GhostButton>
@@ -474,7 +474,7 @@ export default function Preview(): JSX.Element {
                   borderLeft: i > 0 ? '1px solid var(--line)' : 'none',
                 }}
               >
-                {item.prefix ? <span style={{ fontSize: 13, color: 'var(--accent)' }}>{item.prefix}</span> : null}
+                {item.prefix ? <span style={{ fontSize: 13, color: 'var(--accent-ink)' }}>{item.prefix}</span> : null}
                 <RollingNumber target={item.value} delay={i * 0.1} />
                 <span className="text-2" style={{ fontSize: 13 }}>
                   {item.label}
@@ -502,7 +502,7 @@ export default function Preview(): JSX.Element {
               onToggle={() => setOpenKey((cur) => (cur === 'warmup' ? null : 'warmup'))}
               summary={
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
-                  <span style={{ color: 'var(--accent)', flexShrink: 0, display: 'inline-flex' }}>
+                  <span style={{ color: 'var(--accent-ink)', flexShrink: 0, display: 'inline-flex' }}>
                     <Icon name="timer" size={20} />
                   </span>
                   <span style={{ minWidth: 0 }}>

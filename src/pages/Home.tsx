@@ -87,7 +87,7 @@ function VenueChips({ value, onChange }: { value: Venue | null; onChange: (v: Ve
                 borderRadius: 999,
                 border: active ? '1px solid var(--accent)' : '1px solid var(--line-strong)',
                 background: active ? 'var(--accent-dim)' : 'transparent',
-                color: active ? 'var(--accent)' : 'var(--text-2)',
+                color: active ? 'var(--accent-ink)' : 'var(--text-2)',
                 fontSize: 14,
                 fontWeight: active ? 600 : 500,
                 cursor: 'pointer',
@@ -128,7 +128,7 @@ function StreakBadge({ streak, onClick }: { streak: number; onClick: () => void 
         borderRadius: 999,
         padding: '6px 12px',
         cursor: 'pointer',
-        color: 'var(--accent)',
+        color: 'var(--accent-ink)',
         WebkitTapHighlightColor: 'transparent',
       }}
     >
@@ -170,7 +170,7 @@ function TodayCardShell({ tone, children }: { tone: 'accent' | 'warn'; children:
         initial={{ width: '0%' }}
         animate={{
           width: '100%',
-          backgroundColor: tone === 'warn' ? '#FFB224' : '#3FE1B1',
+          backgroundColor: tone === 'warn' ? 'var(--warn)' : 'var(--accent)',
         }}
         transition={{
           width: reduce ? { duration: 0.1 } : { duration: 0.5, delay: 0.15, ease: 'easeOut' },
@@ -216,7 +216,7 @@ function CycleNode({ state, label, index, delay }: { state: NodeState; label: st
           fontSize: 15,
           border: state === 'current' ? '2px solid var(--accent)' : state === 'done' ? 'none' : '1px solid var(--line-strong)',
           background: state === 'done' ? 'var(--accent)' : state === 'current' ? 'var(--accent-dim)' : 'transparent',
-          color: state === 'done' ? '#060607' : state === 'current' ? 'var(--accent)' : 'var(--text-3)',
+          color: state === 'done' ? 'var(--on-accent)' : state === 'current' ? 'var(--accent-ink)' : 'var(--text-3)',
           boxShadow: state === 'current' ? '0 0 0 6px var(--accent-dim)' : 'none',
         }}
       >
@@ -227,7 +227,7 @@ function CycleNode({ state, label, index, delay }: { state: NodeState; label: st
           fontSize: 11,
           lineHeight: 1.2,
           whiteSpace: 'nowrap',
-          color: state === 'current' ? 'var(--accent)' : state === 'done' ? 'var(--text-2)' : 'var(--text-3)',
+          color: state === 'current' ? 'var(--accent-ink)' : state === 'done' ? 'var(--text-2)' : 'var(--text-3)',
         }}
       >
         {label}
@@ -395,7 +395,7 @@ function DepartureChecklist(): JSX.Element {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          style={{ margin: '12px 0 0', fontSize: 13, color: 'var(--accent)', lineHeight: 1.5 }}
+          style={{ margin: '12px 0 0', fontSize: 13, color: 'var(--accent-ink)', lineHeight: 1.5 }}
         >
           齐了，出发。
         </motion.p>
@@ -495,7 +495,7 @@ function SupplementSheet({ open, onClose }: { open: boolean; onClose: () => void
                   justifyContent: 'center',
                   border: checked ? 'none' : '1px solid var(--line-strong)',
                   background: checked ? 'var(--accent)' : 'transparent',
-                  color: checked ? '#060607' : 'var(--text-3)',
+                  color: checked ? 'var(--on-accent)' : 'var(--text-3)',
                   transition: 'background 150ms',
                 }}
               >
@@ -507,7 +507,7 @@ function SupplementSheet({ open, onClose }: { open: boolean; onClose: () => void
                 </span>
                 <span style={{ display: 'block', fontSize: 13, color: 'var(--text-2)', marginTop: 2 }}>{sup.timing}</span>
               </span>
-              <span style={{ fontSize: 13, color: checked ? 'var(--accent)' : 'var(--text-3)', flexShrink: 0 }}>
+              <span style={{ fontSize: 13, color: checked ? 'var(--accent-ink)' : 'var(--text-3)', flexShrink: 0 }}>
                 {checked ? '已打卡' : '点一下打卡'}
               </span>
             </button>
@@ -541,7 +541,7 @@ function StreakSheet({ open, onClose }: { open: boolean; onClose: () => void }):
                 background:
                   d.kind === 'workout' ? 'var(--accent)' : d.kind === 'rest' ? 'var(--warn)' : 'transparent',
                 border: d.checked ? 'none' : '1px solid var(--line-strong)',
-                color: d.checked ? '#060607' : 'var(--text-3)',
+                color: d.checked ? 'var(--on-accent)' : 'var(--text-3)',
               }}
             >
               {d.checked ? <Icon name="check" size={14} strokeWidth={2.5} /> : null}
@@ -551,7 +551,7 @@ function StreakSheet({ open, onClose }: { open: boolean; onClose: () => void }):
         ))}
       </div>
       <p style={{ margin: '14px 0 4px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
-        <span style={{ color: 'var(--accent)' }}>绿点</span> 是训练日，<span style={{ color: 'var(--warn)' }}>黄点</span>{' '}
+        <span style={{ color: 'var(--accent-ink)' }}>绿点</span> 是训练日，<span style={{ color: 'var(--warn)' }}>黄点</span>{' '}
         是休息日恢复打卡——休息日也算坚持。
       </p>
     </BottomSheet>
@@ -606,7 +606,7 @@ function WorkoutCard({
       </div>
       <VenueChips value={venueToday} onChange={onVenueChange} />
       {firstLaunch ? (
-        <p style={{ margin: '14px 0 0', fontSize: 13, color: 'var(--accent)', lineHeight: 1.5 }}>
+        <p style={{ margin: '14px 0 0', fontSize: 13, color: 'var(--accent-ink)', lineHeight: 1.5 }}>
           第一节课从空杆和轻重量开始，别慌。
         </p>
       ) : null}

@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* ===== 《口袋私教》设计 token（design.md §2） ===== */
+    /* ===== 《口袋私教》设计 token（design.md §2） · 黑夜模式（默认主题） ===== */
     --bg: #0a0a0b;
     --bg-raised: #131315;
     --bg-inset: #060607;
@@ -16,10 +16,25 @@
     --accent: #3fe1b1;
     --accent-hi: #6ff5cb;
     --accent-dim: rgba(63, 225, 177, 0.12);
+    /* accent 作文字/图标色用（黑夜下 = accent；白天下加深保对比度） */
+    --accent-ink: #3fe1b1;
+    /* accent 实心填充上的深色文字/图形（主按钮字、打勾、开关圆点） */
+    --on-accent: #060607;
+    /* accent 实心填充上的半透明深轨道（估算 loading 环） */
+    --on-accent-dim: rgba(6, 6, 7, 0.3);
+    /* accent 脉冲光圈起止色（录音按钮 boxShadow，双主题同值） */
+    --accent-glow: rgba(63, 225, 177, 0.35);
+    --accent-glow-fade: rgba(63, 225, 177, 0);
     --warn: #ffb224;
     --warn-dim: rgba(255, 178, 36, 0.12);
     --danger: #ff5c45;
     --danger-dim: rgba(255, 92, 69, 0.12);
+    /* 按钮 :active 按压底色（ghost / warn / danger） */
+    --press-ink: rgba(244, 244, 242, 0.06);
+    --warn-press: rgba(255, 178, 36, 0.2);
+    --danger-press: rgba(255, 92, 69, 0.2);
+    /* 弹层遮罩（BottomSheet 等，双主题同值） */
+    --scrim: #000;
 
     /* ===== 字体（design.md §3） ===== */
     --font-display: 'Oswald', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
@@ -32,9 +47,42 @@
     --vh: 1vh;
   }
 
+  /* ===== 白天模式（设置页「外观」切换，App.tsx 写到 <html data-theme>） =====
+     白灰极简：暖白底 / 近黑字 / 近黑细边框；薄荷绿 #3FE1B1 仍是唯一品牌强调色
+     （填充沿用 accent，白底上的 accent 文字用 accent-ink 加深保证对比度） */
+  [data-theme='light'] {
+    --bg: #fafaf8;
+    --bg-raised: #ffffff;
+    --bg-inset: #f1f1ec;
+    --line: #e4e4de;
+    --line-strong: #17171a;
+    --text-1: #17171a;
+    --text-2: #5f5f66;
+    --text-3: #86868e;
+    --accent: #3fe1b1;
+    /* accent-hi 在白天反转为深色：按压加深、「上！」大字/选中区文字在白底可读 */
+    --accent-hi: #0ba87e;
+    --accent-dim: rgba(63, 225, 177, 0.16);
+    --accent-ink: #0ba87e;
+    --on-accent: #060607;
+    --on-accent-dim: rgba(6, 6, 7, 0.3);
+    /* warn / danger 白底下加深保可读 */
+    --warn: #9c6e00;
+    --warn-dim: rgba(156, 110, 0, 0.13);
+    --warn-press: rgba(156, 110, 0, 0.2);
+    --danger: #c93a22;
+    --danger-dim: rgba(201, 58, 34, 0.13);
+    --danger-press: rgba(201, 58, 34, 0.2);
+    --press-ink: rgba(23, 23, 26, 0.06);
+  }
+
   html {
     background: var(--bg);
     color-scheme: dark;
+  }
+
+  html[data-theme='light'] {
+    color-scheme: light;
   }
 
   body {
@@ -87,9 +135,19 @@
     background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.028) 0 1px, transparent 1px 3px);
   }
 
+  /* 白天模式：扫描线改极浅黑纹（白纹在白底上会显脏） */
+  [data-theme='light'] .crt {
+    background-image: repeating-linear-gradient(0deg, rgba(23, 23, 26, 0.03) 0 1px, transparent 1px 3px);
+  }
+
   /* 唯一允许的渐变：强调色径向微光（计时器数字背后 / 首页训练卡顶部氛围） */
   .glow-accent {
     background-image: radial-gradient(closest-side, rgba(63, 225, 177, 0.14), transparent);
+  }
+
+  /* 白天模式：白底上微光略增强，保证可见 */
+  [data-theme='light'] .glow-accent {
+    background-image: radial-gradient(closest-side, rgba(63, 225, 177, 0.2), transparent);
   }
 
   /* 倒计时最后 10 秒闪烁 */

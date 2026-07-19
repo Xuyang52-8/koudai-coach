@@ -191,8 +191,8 @@ function useTypewriter(text: string): string {
 /** 估算中 loading 圆环（accent 描边旋转 700ms 循环） */
 function Spinner({ tone = 'dark' }: { tone?: 'dark' | 'accent' }): JSX.Element {
   const reduce = useReducedMotion();
-  const track = tone === 'dark' ? 'rgba(6,6,7,.3)' : 'var(--accent-dim)';
-  const head = tone === 'dark' ? '#060607' : 'var(--accent)';
+  const track = tone === 'dark' ? 'var(--on-accent-dim)' : 'var(--accent-dim)';
+  const head = tone === 'dark' ? 'var(--on-accent)' : 'var(--accent-ink)';
   return (
     <motion.span
       animate={reduce ? undefined : { rotate: 360 }}
@@ -300,7 +300,7 @@ function ProgressSection({ entries }: { entries: DietEntry[] }): JSX.Element {
               fontSize: 24,
               fontWeight: 600,
               lineHeight: 1,
-              color: totalProtein >= targets.proteinG ? 'var(--accent)' : 'var(--text-1)',
+              color: totalProtein >= targets.proteinG ? 'var(--accent-ink)' : 'var(--text-1)',
             }}
           />
           <span style={{ fontSize: 13, color: 'var(--text-2)' }}>g / {targets.proteinG}g</span>
@@ -421,8 +421,8 @@ function QuickLogger({
           aria-label={voiceSupported ? (recording ? '停止录音' : '语音输入') : '浏览器不支持语音输入'}
           animate={
             recording && !reduce
-              ? { boxShadow: ['0 0 0 0 rgba(63,225,177,.35)', '0 0 0 10px rgba(63,225,177,0)'] }
-              : { boxShadow: '0 0 0 0 rgba(63,225,177,0)' }
+              ? { boxShadow: ['0 0 0 0 var(--accent-glow)', '0 0 0 10px var(--accent-glow-fade)'] }
+              : { boxShadow: '0 0 0 0 var(--accent-glow-fade)' }
           }
           transition={recording && !reduce ? { repeat: Infinity, duration: 1, ease: 'easeOut' } : { duration: 0.15 }}
           style={{
@@ -436,7 +436,7 @@ function QuickLogger({
             borderRadius: 4,
             border: recording ? 'none' : '1px solid var(--line-strong)',
             background: recording ? 'var(--accent)' : 'transparent',
-            color: recording ? '#060607' : 'var(--text-1)',
+            color: recording ? 'var(--on-accent)' : 'var(--text-1)',
             fontSize: 12,
             fontWeight: 500,
             fontFamily: 'var(--font-body)',
@@ -502,7 +502,7 @@ function QuickLogger({
             background: 'transparent',
             border: 'none',
             fontSize: 13,
-            color: 'var(--accent)',
+            color: 'var(--accent-ink)',
             lineHeight: 1.5,
             textAlign: 'left',
             cursor: 'pointer',
@@ -568,7 +568,7 @@ function EstimateSheet({ items, meal, onMeal, onChange, onClose, onConfirm }: Es
                   <Tag>{it.source === 'ai' ? 'AI 估算' : '本地估算'}</Tag>
                 </div>
                 <div style={{ marginTop: 4, fontSize: 13, color: 'var(--text-2)' }}>
-                  <span className="num" style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                  <span className="num" style={{ color: 'var(--accent-ink)', fontWeight: 600 }}>
                     约 {Math.round(it.kcal * it.qty)}
                   </span>{' '}
                   大卡 · 蛋白 约 {Math.round(it.protein * it.qty)}g
@@ -670,7 +670,7 @@ function EstimateSheet({ items, meal, onMeal, onChange, onClose, onConfirm }: Es
                   borderRadius: 4,
                   border: active ? '1px solid var(--accent)' : '1px solid var(--line-strong)',
                   background: active ? 'var(--accent-dim)' : 'transparent',
-                  color: active ? 'var(--accent)' : 'var(--text-2)',
+                  color: active ? 'var(--accent-ink)' : 'var(--text-2)',
                   fontSize: 15,
                   fontWeight: active ? 600 : 500,
                   fontFamily: 'var(--font-body)',
@@ -878,7 +878,7 @@ function SupplementRows(): JSX.Element {
         borderRadius: 4,
         border: checked ? 'none' : tone === 'warn' ? '1px solid var(--warn)' : '1px solid var(--line-strong)',
         background: checked ? 'var(--accent)' : tone === 'warn' ? 'var(--warn-dim)' : 'transparent',
-        color: checked ? '#060607' : tone === 'warn' ? 'var(--warn)' : 'var(--text-3)',
+        color: checked ? 'var(--on-accent)' : tone === 'warn' ? 'var(--warn)' : 'var(--text-3)',
         fontSize: 15,
         fontWeight: 600,
         fontFamily: 'var(--font-body)',
@@ -949,7 +949,7 @@ function SupplementRows(): JSX.Element {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'var(--accent)',
+              color: 'var(--accent-ink)',
               flexShrink: 0,
             }}
           >
@@ -959,7 +959,7 @@ function SupplementRows(): JSX.Element {
             <div style={{ fontSize: 17, fontWeight: 500, color: 'var(--text-1)' }}>肌酸</div>
             <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 2 }}>
               每天 3-5g · 练不练都要喝
-              {streak >= 2 ? <span style={{ color: 'var(--accent)' }}> · 连续 {streak} 天</span> : null}
+              {streak >= 2 ? <span style={{ color: 'var(--accent-ink)' }}> · 连续 {streak} 天</span> : null}
             </div>
           </div>
           {supp.creatine

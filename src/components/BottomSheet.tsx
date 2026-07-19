@@ -34,7 +34,7 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
             exit={{ opacity: 0 }}
             transition={{ duration: reduce ? 0.1 : 0.28 }}
             onClick={onClose}
-            style={{ position: 'absolute', inset: 0, background: '#000' }}
+            style={{ position: 'absolute', inset: 0, background: 'var(--scrim)' }}
           />
           <motion.div
             key="sheet"

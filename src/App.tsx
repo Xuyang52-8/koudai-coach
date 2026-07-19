@@ -1,4 +1,5 @@
 import { HashRouter, Navigate, Outlet, Route, Routes } from 'react-router'
+import { useEffect } from 'react'
 import type { JSX } from 'react'
 import './App.css'
 import AppShell from './components/AppShell'
@@ -11,7 +12,7 @@ import Diet from './pages/Diet'
 import Library from './pages/Library'
 import Settings from './pages/Settings'
 import Onboarding from './pages/Onboarding'
-import { useProfile } from './lib/store'
+import { useProfile, useSettings } from './lib/store'
 
 /**
  * 首启动闸门：无 profile 的用户（首次启动）一律先去 /onboarding 填问卷。
@@ -36,6 +37,15 @@ function OnboardingGate(): JSX.Element {
  *  /settings   我的/设置
  */
 export default function App() {
+  const [settings] = useSettings()
+  /* 主题同步：settings.theme → <html data-theme>（index.css 变量切换）
+     + PWA theme-color meta（黑 #0A0A0B / 白 #FAFAF8，状态栏跟随） */
+  useEffect(() => {
+    const theme = settings.theme ?? 'dark'
+    document.documentElement.dataset.theme = theme
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+    if (meta) meta.content = theme === 'light' ? '#FAFAF8' : '#0A0A0B'
+  }, [settings.theme])
   return (
     <HashRouter>
       <Routes>
