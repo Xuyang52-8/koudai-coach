@@ -30,6 +30,11 @@ export interface Exercise {
   /** 有序替代链：没有器械时的替代动作 id，第一个为最优替代 */
   substitutes?: string[];
   equipment: EquipmentInfo;
+  /**
+   * 动作所需器械（equipment.json 目录 id；数组 = 缺一不可）。
+   * 可选：缺省/无法确定时按"都有"处理（保守，不做器械过滤）。
+   */
+  equipmentId?: string | string[];
   /** 口语步骤 */
   steps: string[];
   /** 邪修口诀（一句画面感提示） */
@@ -90,6 +95,11 @@ export interface UserProfile {
   dietHabits: string[];
   /** 可用场地（多选，按优先级取最丰富的一个排课） */
   venues: Venue[];
+  /**
+   * 我的器械：健身房实际有的器械目录 id 列表（equipment.json）。
+   * 可选：undefined = 没设置过，按"全都有"处理不过滤，老用户无感。
+   */
+  ownedEquipment?: string[];
   goal: GoalType;
   /** 想额外加强（多选）：'posture' | 'hip' | 'legs' | 'pelvic' | 'none'；可选：老用户无此字段 */
   extras?: string[];
@@ -131,6 +141,37 @@ export interface Program {
   workouts: Workout[];
   restDay: RestDay;
   rules: string[];
+}
+
+/* ---------- equipment.json（我的器械目录） ---------- */
+
+export interface EquipmentItem {
+  id: string;
+  /** 器械名，如 "龙门架" */
+  name: string;
+  /** 一句口语解释长什么样（给不认识器械的新手） */
+  hint: string;
+}
+
+export interface EquipmentGroup {
+  id: string;
+  /** 分组名：自由力量 / 固定器械 / 绳索 / 有氧 */
+  name: string;
+  items: EquipmentItem[];
+}
+
+/** 内置快捷预设：一键勾选整组器械 */
+export interface EquipmentPreset {
+  id: string;
+  name: string;
+  /** 一句话说明这个预设是什么配置 */
+  blurb: string;
+  equipmentIds: string[];
+}
+
+export interface EquipmentCatalog {
+  groups: EquipmentGroup[];
+  presets: EquipmentPreset[];
 }
 
 /* ---------- nutrition.json ---------- */

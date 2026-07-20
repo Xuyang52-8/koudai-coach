@@ -1,0 +1,125 @@
+{
+  "groups": [
+    {
+      "id": "free",
+      "name": "自由力量",
+      "items": [
+        { "id": "dumbbell", "name": "哑铃", "hint": "一只手一个的小铁疙瘩，成排摆在矮架上，把手上标着公斤数" },
+        { "id": "barbell", "name": "杠铃（直奥杆）", "hint": "两米多长的直铁杆，两头套圆铁片，常躺在卧推架或深蹲架上" },
+        { "id": "ez-bar", "name": "EZ曲杆", "hint": "一米多长的波浪形短铁杆，握把是斜的，弯举不别手腕" },
+        { "id": "flat-bench", "name": "哑铃凳（平板凳）", "hint": "一条平平的窄长凳，躺着推哑铃、撑着划船都用它" },
+        { "id": "incline-bench", "name": "上斜凳（可调角度）", "hint": "靠背能扳起好几个角度的凳子，调斜了练上胸和肩" },
+        { "id": "ab-bench", "name": "腹肌凳", "hint": "一头高一头低的斜凳，高处有勾脚的海绵辊，躺上去做卷腹" },
+        { "id": "bench-press-rack", "name": "卧推架", "hint": "两根立柱带钩子的铁架，杠铃架在钩子上，人躺中间凳子上推" },
+        { "id": "squat-rack", "name": "深蹲架", "hint": "齐肩高的四脚铁架，两边有安全横杆，杠铃架上去扛着蹲" },
+        { "id": "smith-machine", "name": "史密斯机", "hint": "杠铃两头卡在竖直滑轨里、只能上下走的大铁架，两边带挂钩" }
+      ]
+    },
+    {
+      "id": "machine",
+      "name": "固定器械",
+      "items": [
+        { "id": "lat-pulldown", "name": "高位下拉机", "hint": "头顶横一根长杆垂着钢索，坐下压好大腿，把杆往胸前拉" },
+        { "id": "chest-press", "name": "坐姿推胸机", "hint": "坐着把两个把手往正前方推的机器，像坐着推开一扇门" },
+        { "id": "shoulder-press", "name": "坐姿推肩机", "hint": "坐着把头顶两个把手往天上推的机器" },
+        { "id": "leg-press", "name": "腿举机（仰卧腿举）", "hint": "半躺在斜椅上，双脚蹬一块大铁板把它推远的机器" },
+        { "id": "leg-curl", "name": "腿弯举机", "hint": "趴着或坐着，小腿勾住海绵辊往后弯的机器" },
+        { "id": "hip-abductor", "name": "髋外展内收机", "hint": "坐着两腿往两边撑开、或往中间夹挡板的机器" },
+        { "id": "hack-squat", "name": "哈克深蹲机", "hint": "后背靠斜板、肩膀顶垫子，人站着往下蹲、机器跟着滑" },
+        { "id": "assisted-pullup", "name": "辅助引体机", "hint": "带一块跪板托着你、帮你省力做引体向上的机器" },
+        { "id": "pec-deck", "name": "蝴蝶机（夹胸机）", "hint": "坐着两条胳膊像蝴蝶扇翅膀一样往中间夹的机器" },
+        { "id": "seated-row", "name": "坐姿划船机", "hint": "坐着脚踩挡板、双手把V形把手往肚子拉的机器" },
+        { "id": "leg-extension", "name": "坐姿腿屈伸机", "hint": "坐着把小腿往前踢直、脚背顶海绵辊的机器" },
+        { "id": "ab-crunch", "name": "卷腹机", "hint": "坐着抱住胸前垫子、往前卷肚子的机器" }
+      ]
+    },
+    {
+      "id": "cable",
+      "name": "绳索",
+      "items": [
+        { "id": "cable-crossover", "name": "龙门架", "hint": "像一个大铁门框，两边高滑轮垂着钢索，中间能站人" },
+        { "id": "single-pulley", "name": "单滑轮（钢索柱）", "hint": "一根独立的钢索柱子，滑轮能调高低，可换直杆或绳把" }
+      ]
+    },
+    {
+      "id": "cardio",
+      "name": "有氧",
+      "items": [
+        { "id": "treadmill", "name": "跑步机", "hint": "一条会自己转的宽跑带，前面有扶手和屏幕" },
+        { "id": "elliptical", "name": "椭圆机", "hint": "脚踩两块踏板画椭圆、手扶长杆跟着摆的机器" },
+        { "id": "stair-climber", "name": "爬楼机", "hint": "两块踏板交替往下踩、像永远爬不完的自动楼梯" },
+        { "id": "rowing-machine", "name": "划船机", "hint": "矮长条滑座，蹬腿拉带子，像在水上划船" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "id": "preset-full-gym",
+      "name": "全套商健",
+      "blurb": "连锁大健身房，器械全选",
+      "equipmentIds": [
+        "dumbbell",
+        "barbell",
+        "ez-bar",
+        "flat-bench",
+        "incline-bench",
+        "ab-bench",
+        "bench-press-rack",
+        "squat-rack",
+        "smith-machine",
+        "lat-pulldown",
+        "chest-press",
+        "shoulder-press",
+        "leg-press",
+        "leg-curl",
+        "hip-abductor",
+        "hack-squat",
+        "assisted-pullup",
+        "pec-deck",
+        "seated-row",
+        "leg-extension",
+        "ab-crunch",
+        "cable-crossover",
+        "single-pulley",
+        "treadmill",
+        "elliptical",
+        "stair-climber",
+        "rowing-machine"
+      ]
+    },
+    {
+      "id": "preset-xu-gym",
+      "name": "我的健身房模板",
+      "blurb": "哑铃2.5-25kg、卧推深蹲史密斯齐全、有氧三台",
+      "equipmentIds": [
+        "dumbbell",
+        "flat-bench",
+        "ab-bench",
+        "incline-bench",
+        "bench-press-rack",
+        "squat-rack",
+        "smith-machine",
+        "barbell",
+        "ez-bar",
+        "hack-squat",
+        "lat-pulldown",
+        "cable-crossover",
+        "hip-abductor",
+        "assisted-pullup",
+        "leg-curl",
+        "leg-press",
+        "shoulder-press",
+        "chest-press",
+        "treadmill",
+        "elliptical",
+        "stair-climber"
+      ]
+    },
+    {
+      "id": "preset-dorm",
+      "name": "宿舍简易",
+      "blurb": "只有一副哑铃和一张凳",
+      "equipmentIds": ["dumbbell", "flat-bench"]
+    }
+  ]
+}

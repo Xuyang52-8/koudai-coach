@@ -6,6 +6,7 @@
 import exercisesJson from '../data/exercises.json';
 import programJson from '../data/program.json';
 import { applyCapability, getCapability } from './capability';
+import { exerciseAvailableWith } from './equipment';
 import { bestVenue } from './profile';
 import { getCycle, getCustomExercises, getTodayVenue, shiftDate, todayStr } from './store';
 import type {
@@ -46,10 +47,60 @@ export function resolveWorkout(workout: Workout): { warmup: Exercise | null; exe
   };
 }
 
+/* ================= 我的器械过滤层（仅 gym 场地 + profile.ownedEquipment 存在时启用） ================= */
+
+/**
+ * 单个动作在 owned 下的可用候选：原动作 → substitutes 有序替代链（替代动作同样验器械）
+ * → 再降级本课 home / bodyweight 同位变体。全部不可用返回空数组。
+ * 铁律：宁可少排一个动作，绝不推荐用户健身房没有的器械。
+ */
+function equipmentCandidates(workout: Workout, ex: Exercise, index: number, owned: string[]): Exercise[] {
+  const out: Exercise[] = [];
+  const push = (c: Exercise | null): void => {
+    if (c && !out.some((x) => x.id === c.id)) out.push(c);
+  };
+  push(ex);
+  for (const sid of ex.substitutes ?? []) push(getExerciseById(sid));
+  push(getExerciseById(workout.variants?.home?.[index] ?? '__none__'));
+  push(getExerciseById(workout.variants?.bodyweight?.[index] ?? '__none__'));
+  return out.filter((c) => exerciseAvailableWith(c, owned));
+}
+
+/** 正式动作列表过器械：保持位置与数量（某位全不可用才忍痛去掉），并尽量避开已排重复动作 */
+function filterExercisesByEquipment(workout: Workout, exercises: Exercise[], owned: string[]): Exercise[] {
+  const used = new Set<string>();
+  const out: Exercise[] = [];
+  exercises.forEach((ex, i) => {
+    const candidates = equipmentCandidates(workout, ex, i, owned);
+    if (candidates.length === 0) return; // 全不行：放弃这个位置（铁律优先于课表完整）
+    const pick = candidates.find((c) => !used.has(c.id)) ?? candidates[0];
+    used.add(pick.id);
+    out.push(pick);
+  });
+  return out;
+}
+
+/** 热身过器械：原热身 → 替代链 → 热身 home/bodyweight 变体 → null（页面本就有 null 兜底） */
+function filterWarmupByEquipment(workout: Workout, warmup: Exercise | null, owned: string[]): Exercise | null {
+  if (!warmup) return null;
+  if (exerciseAvailableWith(warmup, owned)) return warmup;
+  for (const sid of warmup.substitutes ?? []) {
+    const sub = getExerciseById(sid);
+    if (sub && exerciseAvailableWith(sub, owned)) return sub;
+  }
+  for (const vid of [workout.warmupVariants?.home, workout.warmupVariants?.bodyweight]) {
+    const variant = vid ? getExerciseById(vid) : null;
+    if (variant && exerciseAvailableWith(variant, owned)) return variant;
+  }
+  return null;
+}
+
 /**
  * 分场地解析一节课（个性化版）：
  * 场地优先级——今日选择 overrideVenue > 档案 bestVenue > 无（等价 resolveWorkout）。
  * 缺变体或变体全失效时回落 exerciseIds / warmupExerciseId。
+ * 器械过滤——场地=gym 且 profile.ownedEquipment 存在时，缺器械动作走替代链（替代也验器械），
+ * 全不行降级本课居家/自重变体；ownedEquipment 为 undefined（老用户）时完全不过滤。
  * 返回前过能力引擎：容量随已完成的课数等级增长（Lv.1 原样，level 内部自取当前 cycle）。
  */
 export function resolveExercisesForProfile(
@@ -71,6 +122,12 @@ export function resolveExercisesForProfile(
     } else {
       warmup = getExerciseById(workout.warmupVariants?.[venue] ?? workout.warmupExerciseId);
     }
+  }
+  // 我的器械过滤：仅 gym 场地 + 用户设置过自有器械清单（undefined = 全都有，老用户无感不过滤）
+  const owned = profile?.ownedEquipment;
+  if (venue === 'gym' && owned) {
+    exercises = filterExercisesByEquipment(workout, exercises, owned);
+    warmup = filterWarmupByEquipment(workout, warmup, owned);
   }
   const level = getCapability(getCycle()).level;
   return { warmup, exercises: applyCapability(exercises, level) };

@@ -466,6 +466,14 @@ export function useProfile(): [
   return useStoreKey<UserProfile | null>(KEYS.profile, null);
 }
 
+/**
+ * 我的器械（存 profile.ownedEquipment）默认值：undefined = 没设置过，解析引擎按"全都有"不过滤。
+ * 老用户数据里本就没有这个字段——这里只原样读取、绝不补写，行为与升级前完全一致。
+ */
+export function getOwnedEquipment(): string[] | undefined {
+  return getProfile()?.ownedEquipment;
+}
+
 /* ================= schedule：排期配置（默认练一休一） ================= */
 
 export const DEFAULT_SCHEDULE: ScheduleConfig = { mode: '1on1off', weekdays: [1, 3, 5] };
