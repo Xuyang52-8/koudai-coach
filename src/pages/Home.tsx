@@ -26,11 +26,13 @@ import {
   toggleSupplement,
   useChecklist,
   useCycle,
+  useMinisCompleted,
   useProfile,
   useSchedule,
   useSupplements,
   useTodayVenue,
 } from '../lib/store';
+import { filterMinisForProfile, miniDisplayName, sortMinisForProfile } from '../components/mini/minis';
 import { getCapability } from '../lib/capability';
 import type { Capability } from '../lib/capability';
 import { bestVenue } from '../lib/profile';
@@ -418,6 +420,91 @@ function DepartureChecklist(): JSX.Element {
   );
 }
 
+/* ================= §1.5 日常小练（今日卡片下方横区） ================= */
+
+/**
+ * 日常小练横滑 chip 区：主课表之外的碎片时间训练包。
+ * 凯格尔按 profile.gender 过滤（男不显女版/女不显男版/未填两版都显示）；
+ * 问卷「额外加强」选中的包置顶。点击进 /mini/:packId。
+ */
+function MiniSection(): JSX.Element | null {
+  const navigate = useNavigate();
+  const reduce = useReducedMotion();
+  const [profile] = useProfile();
+  const [doneToday] = useMinisCompleted();
+  const packs = sortMinisForProfile(filterMinisForProfile(profile), profile);
+  if (packs.length === 0) return null;
+  return (
+    <section style={{ marginTop: 28 }}>
+      <SectionLabel index="碎片">日常小练</SectionLabel>
+      <p className="text-3" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>
+        几分钟一套，练完也算连续打卡。
+      </p>
+      <div
+        style={{
+          display: 'flex',
+          gap: 12,
+          marginTop: 14,
+          overflowX: 'auto',
+          scrollSnapType: 'x mandatory',
+          paddingBottom: 4,
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
+        {packs.map((pack, i) => {
+          const done = doneToday.includes(pack.id);
+          return (
+            <motion.button
+              key={pack.id}
+              type="button"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reduce ? { duration: 0.1 } : { delay: i * 0.05, duration: 0.25, ease: 'easeOut' }}
+              onClick={() => {
+                vibrate(15);
+                navigate(`/mini/${pack.id}`);
+              }}
+              style={{
+                flexShrink: 0,
+                scrollSnapAlign: 'start',
+                width: 208,
+                minHeight: 120,
+                padding: '14px 16px',
+                background: 'var(--bg-raised)',
+                border: '1px solid var(--line-strong)',
+                borderRadius: 4,
+                cursor: 'pointer',
+                textAlign: 'left',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
+                <span className="text-1" style={{ flex: 1, fontSize: 16, fontWeight: 600, lineHeight: 1.3 }}>
+                  {miniDisplayName(pack, profile)}
+                </span>
+                {done ? (
+                  <span style={{ color: 'var(--accent-ink)', display: 'inline-flex', flexShrink: 0 }} aria-label="今天已练过">
+                    <Icon name="check" size={16} strokeWidth={2.5} />
+                  </span>
+                ) : null}
+              </span>
+              <span className="num" style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-ink)', lineHeight: 1 }}>
+                约 {pack.minutes} 分钟
+              </span>
+              <span className="text-2" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                {pack.tagline}
+              </span>
+            </motion.button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 /* ================= §4 快捷入口 ================= */
 
 function QuickEntries({ onSupplement }: { onSupplement: () => void }): JSX.Element {
@@ -792,6 +879,8 @@ export default function Home(): JSX.Element {
           onSwitchToWorkout={() => setForceWorkout(true)}
         />
       ) : null}
+
+      <MiniSection />
 
       <CycleProgress
         currentLesson={cycle.nextWorkoutIndex}

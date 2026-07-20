@@ -8,6 +8,7 @@ import Preview from './pages/Preview'
 import Workout from './pages/Workout'
 import Summary from './pages/Summary'
 import Rest from './pages/Rest'
+import MiniSession from './pages/MiniSession'
 import Diet from './pages/Diet'
 import Library from './pages/Library'
 import Settings from './pages/Settings'
@@ -32,6 +33,7 @@ function OnboardingGate(): JSX.Element {
  *  /workout    训练进行（AppShell 在此路径隐藏 TabBar）
  *  /summary    练后总结
  *  /rest       休息日
+ *  /mini/:packId 日常小练（全屏间歇计时，AppShell 不为其隐藏 TabBar，计时器自身 fixed 全屏覆盖）
  *  /diet       饮食
  *  /library    动作库
  *  /settings   我的/设置
@@ -57,6 +59,7 @@ export default function App() {
             <Route path="/workout" element={<Workout />} />
             <Route path="/summary" element={<Summary />} />
             <Route path="/rest" element={<Rest />} />
+            <Route path="/mini/:packId" element={<MiniSession />} />
             <Route path="/diet" element={<Diet />} />
             <Route path="/library" element={<Library />} />
             <Route path="/settings" element={<Settings />} />

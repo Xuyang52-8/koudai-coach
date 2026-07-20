@@ -145,6 +145,7 @@ export const KEYS = {
   supplementsKey: (date: string) => `supplements:${date}`,
   checklistKey: (date: string) => `checklist:${date}`,
   venueTodayKey: (date: string) => `venueToday:${date}`,
+  minisKey: (date: string) => `minis:${date}`,
   exerciseOverrideKey: (exerciseId: string) => `exoverride:${exerciseId}`,
 } as const;
 
@@ -166,11 +167,17 @@ export function useCycle(): [CycleState, (next: CycleState | ((p: CycleState) =>
   return useStoreKey(KEYS.cycle, DEFAULT_CYCLE);
 }
 
-/** 打卡后的新 streak：同一天不重复累计；昨天有记录则 +1；否则重新计 1 */
+/** 某日期是否有小练完成记录（koudai-coach:minis:{date} 非空）。小练与休息日恢复打卡同等地位 */
+function hasMiniOn(date: string): boolean {
+  return readKey<string[]>(KEYS.minisKey(date), EMPTY_MINIS).length > 0;
+}
+
+/** 打卡后的新 streak：同一天不重复累计；昨天有记录则 +1；否则重新计 1。小练完成记录同等计入 */
 function nextStreak(cycle: CycleState, today: string): number {
   const dates = new Set(cycle.history.map((h) => h.date));
-  if (dates.has(today)) return cycle.streak;
-  if (dates.has(shiftDate(today, -1))) return cycle.streak + 1;
+  if (dates.has(today) || hasMiniOn(today)) return cycle.streak;
+  const yesterday = shiftDate(today, -1);
+  if (dates.has(yesterday) || hasMiniOn(yesterday)) return cycle.streak + 1;
   return 1;
 }
 
@@ -215,7 +222,7 @@ export function completeRestDay(kcal = 0): CycleState {
   return next;
 }
 
-/** 近 N 天打卡情况（streak 日历用），从旧到新排列 */
+/** 近 N 天打卡情况（streak 日历用），从旧到新排列。小练完成日无训练记录时按恢复打卡（rest）呈现 */
 export function getRecentCheckins(days: number): { date: string; checked: boolean; kind: 'workout' | 'rest' | null }[] {
   const cycle = getCycle();
   const map = new Map<string, 'workout' | 'rest'>();
@@ -224,7 +231,7 @@ export function getRecentCheckins(days: number): { date: string; checked: boolea
   const out: { date: string; checked: boolean; kind: 'workout' | 'rest' | null }[] = [];
   for (let i = days - 1; i >= 0; i--) {
     const date = shiftDate(today, -i);
-    const kind = map.get(date) ?? null;
+    const kind = map.get(date) ?? (hasMiniOn(date) ? 'rest' : null);
     out.push({ date, checked: kind !== null, kind });
   }
   return out;
@@ -409,6 +416,41 @@ export function useTodayVenue(
   date: string = todayStr(),
 ): [Venue | null, (next: Venue | null | ((p: Venue | null) => Venue | null)) => void] {
   return useStoreKey<Venue | null>(KEYS.venueTodayKey(date), null);
+}
+
+/* ================= minis：日常小练完成记录（按天存储，存完成包 id 列表） ================= */
+
+const EMPTY_MINIS: string[] = [];
+
+/** 某天完成的小练包 id 列表 */
+export function getMinisCompleted(date: string = todayStr()): string[] {
+  return readKey(KEYS.minisKey(date), EMPTY_MINIS);
+}
+
+export function useMinisCompleted(
+  date: string = todayStr(),
+): [string[], (next: string[] | ((p: string[]) => string[])) => void] {
+  return useStoreKey(KEYS.minisKey(date), EMPTY_MINIS);
+}
+
+/**
+ * 完成一个小练包：记入 minis:{today}（同包同日不重复），并续 streak。
+ * 与休息日主动恢复打卡同等地位：不推进课程序号、不写 history、不动 lastTraining/RestDate——
+ * 主课表逻辑零影响，只通过 nextStreak 的小练判定把今天算作"练过"。
+ * @returns 更新后的 CycleState
+ */
+export function completeMini(packId: string): CycleState {
+  const today = todayStr();
+  const cycle = getCycle();
+  const list = getMinisCompleted(today);
+  // 顺序关键：先用旧 minis 列表 + history 判定"今天是否已算过"，再写 minis 键
+  const countedToday = cycle.history.some((h) => h.date === today) || list.length > 0;
+  const streak = countedToday ? cycle.streak : nextStreak(cycle, today);
+  if (!list.includes(packId)) writeKey(KEYS.minisKey(today), [...list, packId]);
+  if (streak === cycle.streak) return cycle;
+  const next: CycleState = { ...cycle, streak };
+  writeKey(KEYS.cycle, next);
+  return next;
 }
 
 /* ================= profile：用户身体档案（Onboarding 写入，null = 未填过问卷） ================= */

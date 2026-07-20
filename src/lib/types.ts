@@ -91,6 +91,8 @@ export interface UserProfile {
   /** 可用场地（多选，按优先级取最丰富的一个排课） */
   venues: Venue[];
   goal: GoalType;
+  /** 想额外加强（多选）：'posture' | 'hip' | 'legs' | 'pelvic' | 'none'；可选：老用户无此字段 */
+  extras?: string[];
   completedAt: number;
 }
 
@@ -178,6 +180,68 @@ export interface OnboardingData {
   welcome: string;
   disclaimer: string;
   firstWeekTips: string[];
+  /** 「额外加强」步骤的"为什么问这个"说明句（v5 风格） */
+  extrasWhy?: string;
+}
+
+/* ---------- minis.json（日常小练） ---------- */
+
+/** 适用人群：male/female/all（凯格尔按性别过滤，其余通用） */
+export type MiniAudience = 'male' | 'female' | 'all';
+
+/** 新动作内联六要素简版（无 exerciseId 时提供）：目标肌肉 / 步骤 / 口诀 */
+export interface MiniCustomMove {
+  muscle: string;
+  steps: string[];
+  mantra: string;
+}
+
+/**
+ * 小练阶段（最小单元）：
+ * name 阶段名（'准备' | '收紧' | '放松' | 动作名…）· secs 秒数 · cue 阶段切换时 TTS 播报 · hint 屏幕小字
+ */
+export interface MiniPhase {
+  name: string;
+  secs: number;
+  cue: string;
+  hint?: string;
+  /** 复用 exercises.json 已有动作时填其 id（如 air-squat） */
+  exerciseId?: string;
+  /** 新动作：内联六要素简版（与 exerciseId 二选一） */
+  custom?: MiniCustomMove;
+}
+
+/** 阶段组：rounds>1 时整组循环（如 收3秒放3秒×10）；缺省 1 */
+export interface MiniPhaseGroup {
+  rounds?: number;
+  phases: MiniPhase[];
+}
+
+/** 凯格尔等级（数据结构预留，当前默认只跑 levels[0]，其内容与 pack.phases 一致） */
+export interface MiniLevel {
+  id: string;
+  name: string;
+  phases: MiniPhaseGroup[];
+}
+
+export interface MiniPack {
+  id: string;
+  name: string;
+  /** 一句话说明 */
+  tagline: string;
+  audience: MiniAudience;
+  /** 问卷「额外加强」选项值（posture/hip/legs/pelvic），首页置顶排序用 */
+  goalTag?: string;
+  /** 总时长（分钟，展示用；冒烟校验与阶段总秒数换算一致） */
+  minutes: number;
+  /** 教学卡（开始前展示，如凯格尔"先找到对的肌肉"） */
+  teach?: { title: string; body: string }[];
+  /** 注意事项（如"产后建议医生评估后开始"） */
+  note?: string;
+  /** 默认执行的阶段序列（开头"准备"阶段，跑完进"完成"态） */
+  phases: MiniPhaseGroup[];
+  /** 凯格尔等级阶梯（预留） */
+  levels?: MiniLevel[];
 }
 
 /* ---------- localStorage 持久化结构（键空间 koudai-coach:*） ---------- */

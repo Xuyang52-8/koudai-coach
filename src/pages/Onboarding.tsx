@@ -1,8 +1,9 @@
 /**
- * 首次引导问卷（/onboarding）：7 步一屏一问，写完 profile + schedule 进首页。
+ * 首次引导问卷（/onboarding）：8 步一屏一问，写完 profile + schedule 进首页。
  * 1 欢迎 → 2 身体档案 → 3 训练底子（经验/旧伤/左右差）→ 4 脂肪与目标
- * → 5 饮食习惯 → 6 场地 → 7 排期（练一休一/练二休一/按固定星期）
- * 风格遵循 design.md：深色底、SectionLabel 编号 (01)-(07)、accent 大按钮、stagger 入场、
+ * → 5 额外加强（体态/髋部/腿/盆底肌，写入 profile.extras，首页小练置顶用）
+ * → 6 饮食习惯 → 7 场地 → 8 排期（练一休一/练二休一/按固定星期）
+ * 风格遵循 design.md：深色底、SectionLabel 编号 (01)-(08)、accent 大按钮、stagger 入场、
  * 步骤切换 translateX（reduced-motion 降级为淡入淡出）。可返回上一步。
  */
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -15,6 +16,8 @@ import SectionLabel from '../components/SectionLabel';
 import { Stepper } from '../components/library/inputs';
 import { vibrate } from '../components/feedback';
 import {
+  Chip,
+  ChipRow,
   DietHabitChips,
   ExperienceCards,
   FatAreaChips,
@@ -52,9 +55,10 @@ const DEFAULT_DRAFT: ProfileDraft = {
   dietHabits: [],
   venues: [],
   goal: 'recomp',
+  extras: [],
 };
 
-/** 已有档案（设置页重填问卷）→ 回填草稿 */
+/** 已有档案（设置页重填问卷）→ 回填草稿（extras 老用户可能无此字段，兜底空数组） */
 function draftFromProfile(p: UserProfile): ProfileDraft {
   return {
     gender: p.gender,
@@ -68,19 +72,28 @@ function draftFromProfile(p: UserProfile): ProfileDraft {
     dietHabits: p.dietHabits,
     venues: p.venues,
     goal: p.goal,
+    extras: p.extras ?? [],
   };
 }
 
-const STEP_LABELS = ['欢迎', '身体', '底子', '目标', '饮食', '场地', '排期'];
+const STEP_LABELS = ['欢迎', '身体', '底子', '目标', '加强', '饮食', '场地', '排期'];
 const STEP_TITLES = [
   '口袋私教',
   '先认识一下你的身体',
   '你的训练底子',
   '想练成什么样',
+  '想额外加强什么',
   '平时怎么吃',
   '你能在哪练',
   '几天练一次',
 ];
+
+/** 「额外加强」多选：'none' 与其他项互斥 */
+function toggleExtras(list: string[], key: string): string[] {
+  if (key === 'none') return list.includes('none') ? [] : ['none'];
+  const rest = list.filter((k) => k !== 'none');
+  return rest.includes(key) ? rest.filter((k) => k !== key) : [...rest, key];
+}
 
 export default function Onboarding(): JSX.Element {
   const navigate = useNavigate();
@@ -99,9 +112,9 @@ export default function Onboarding(): JSX.Element {
   const patch = (p: Partial<ProfileDraft>) => setDraft((d) => ({ ...d, ...p }));
 
   const canNext =
-    step === 5
+    step === 6
       ? draft.venues.length > 0
-      : step === 6
+      : step === 7
         ? scheduleDraft.mode !== 'weekdays' || scheduleDraft.weekdays.length > 0
         : true;
 
@@ -147,7 +160,7 @@ export default function Onboarding(): JSX.Element {
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, color: 'var(--text-2)' }}>{data.disclaimer}</p>
       </motion.div>
       <motion.p variants={itemV} className="text-3" style={{ margin: '14px 0 0', fontSize: 13, lineHeight: 1.6 }}>
-        接下来 6 个问题都是给计划定参数的：你填的每一项，都会变成课表、重量和热量里的数字。
+        接下来 7 个问题都是给计划定参数的：你填的每一项，都会变成课表、重量和热量里的数字。
       </motion.p>
     </>,
     /* ---------- (02) 身体档案 ---------- */
@@ -210,7 +223,32 @@ export default function Onboarding(): JSX.Element {
         为什么问这个：目标决定每天热量是加还是减、重量往上顶还是稳一稳；脂肪位置只给你自己前后对比用，谁都不给看。
       </motion.p>
     </>,
-    /* ---------- (05) 饮食习惯 ---------- */
+    /* ---------- (05) 额外加强（日常小练置顶用） ---------- */
+    <>
+      <motion.div variants={itemV}>
+        <PickerLabel>想额外加强什么（多选，选不出来就"都不要"）</PickerLabel>
+        <ChipRow>
+          {[
+            { value: 'posture', label: '体态矫正' },
+            { value: 'hip', label: '髋部灵活' },
+            { value: 'legs', label: '腿部强化' },
+            { value: 'pelvic', label: draft.gender === 'female' ? '盆底肌（产后先问医生）' : '盆底肌（男性健康）' },
+            { value: 'none', label: '都不要' },
+          ].map((o) => (
+            <Chip
+              key={o.value}
+              label={o.label}
+              selected={(draft.extras ?? []).includes(o.value)}
+              onClick={() => patch({ extras: toggleExtras(draft.extras ?? [], o.value) })}
+            />
+          ))}
+        </ChipRow>
+      </motion.div>
+      <motion.p variants={itemV} className="text-3" style={{ margin: '14px 0 0', fontSize: 13, lineHeight: 1.6 }}>
+        {data.extrasWhy ?? '为什么问这个：选了你关心的小练就置顶到首页，碎片时间随手练。'}
+      </motion.p>
+    </>,
+    /* ---------- (06) 饮食习惯 ---------- */
     <>
       <motion.div variants={itemV}>
         <PickerLabel>饮食习惯（多选，选中给你一句实话）</PickerLabel>
@@ -220,7 +258,7 @@ export default function Onboarding(): JSX.Element {
         为什么问这个：照你真实的吃饭习惯给能执行的建议，而不是一份坚持不下来的食谱。都不用精确称克，记个大概就行，饮食页会帮你估。
       </motion.p>
     </>,
-    /* ---------- (06) 场地 ---------- */
+    /* ---------- (07) 场地 ---------- */
     <>
       <motion.div variants={itemV}>
         <PickerLabel>你能在哪练（多选，至少一个）</PickerLabel>
@@ -235,7 +273,7 @@ export default function Onboarding(): JSX.Element {
         </motion.p>
       ) : null}
     </>,
-    /* ---------- (07) 排期 ---------- */
+    /* ---------- (08) 排期 ---------- */
     <>
       <motion.div variants={itemV}>
         <PickerLabel>排期（三选一）</PickerLabel>
@@ -307,8 +345,8 @@ export default function Onboarding(): JSX.Element {
           </motion.div>
 
           <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <PrimaryButton size="lg" onClick={() => (step === 6 ? finish() : go(step + 1))} disabled={!canNext}>
-              {step === 6 ? '开始我的计划' : '下一步'}
+            <PrimaryButton size="lg" onClick={() => (step === 7 ? finish() : go(step + 1))} disabled={!canNext}>
+              {step === 7 ? '开始我的计划' : '下一步'}
             </PrimaryButton>
             {step > 0 ? (
               <GhostButton icon={<Icon name="arrow-left" size={18} />} onClick={() => go(step - 1)}>
