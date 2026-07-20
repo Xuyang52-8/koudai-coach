@@ -299,6 +299,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   ttsAuto: true,
   keepScreenOn: true,
   bgAudioKeepAlive: true,
+  // 训练提醒：仅安卓 App 生效，网页端只存配置不弹通知
+  notifyOn: false,
+  notifyTime: '18:00',
   weightKg: 81.5,
   // 每日训练提醒：默认关、18:00（仅原生端真正发通知，网页端静默 no-op）
   notifyOn: false,

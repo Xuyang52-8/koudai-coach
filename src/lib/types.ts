@@ -339,6 +339,10 @@ export interface AppSettings {
   keepScreenOn?: boolean;
   /** 锁屏后保持语音（静音循环 + Media Session 保活，安卓更有效）。可选同上，缺省视为 true */
   bgAudioKeepAlive?: boolean;
+  /** 训练提醒开关（仅安卓 App 生效，网页端只存配置）。可选：老用户已存数据缺省，消费端按 ?? false 处理 */
+  notifyOn?: boolean;
+  /** 训练提醒时间 HH:mm，如 '18:00'（仅安卓 App 生效）。可选同上，缺省视为 '18:00' */
+  notifyTime?: string;
   weightKg: number;
   /** 每日训练提醒（本地通知）总开关。可选：老用户已存数据缺省，消费端按 ?? false 处理 */
   notifyOn?: boolean;
