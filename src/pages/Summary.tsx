@@ -199,6 +199,57 @@ export default function Summary(): JSX.Element {
         </span>
       </div>
 
+      {/* 成长页引流卡（/growth：日历 · 力量线 · 里程碑） */}
+      <motion.button
+        type="button"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: reduce ? 0.1 : 0.3, ease: 'easeOut' }}
+        whileTap={{ scale: 0.97 }}
+        onClick={() => navigate('/growth')}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          width: '100%',
+          marginTop: 16,
+          padding: '12px 14px',
+          background: 'var(--bg-raised)',
+          border: '1px solid var(--line-strong)',
+          borderRadius: 4,
+          cursor: 'pointer',
+          textAlign: 'left',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        <span
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--accent-dim)',
+            color: 'var(--accent-ink)',
+          }}
+        >
+          <Icon name="flame" size={18} />
+        </span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span className="text-1" style={{ display: 'block', fontSize: 15, fontWeight: 600, lineHeight: 1.4 }}>
+            去看看我的成长 →
+          </span>
+          <span className="text-3" style={{ display: 'block', fontSize: 12, lineHeight: 1.4 }}>
+            训练日历 · 力量曲线 · 里程碑
+          </span>
+        </span>
+        <span style={{ color: 'var(--text-3)', display: 'inline-flex', flexShrink: 0 }}>
+          <Icon name="arrow-right" size={18} />
+        </span>
+      </motion.button>
+
       {/* 打勾仪式区 */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 24 }}>
         <div style={{ position: 'relative', width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
