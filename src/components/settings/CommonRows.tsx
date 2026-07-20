@@ -11,6 +11,7 @@ import { vibrate } from '@/components/feedback';
 import Icon from '@/components/Icon';
 import { RowToggle } from '@/components/library/inputs';
 import { updateSettings, useSettings } from '@/lib/store';
+import { syncReminder } from '@/lib/notify';
 import { Caption } from './common';
 
 /** 我的器械入口行：整行可点 → /equipment */
@@ -67,6 +68,60 @@ export function EquipmentRow(): JSX.Element {
   );
 }
 
+/** 动作库入口行：整行可点 → /library（TabBar 精简后收纳于此） */
+export function LibraryRow(): JSX.Element {
+  const navigate = useNavigate();
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        vibrate(15);
+        navigate('/library');
+      }}
+      style={{
+        width: '100%',
+        minHeight: 64,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        background: 'transparent',
+        border: 'none',
+        padding: 0,
+        textAlign: 'left',
+        cursor: 'pointer',
+        WebkitTapHighlightColor: 'transparent',
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          width: 44,
+          height: 44,
+          flexShrink: 0,
+          borderRadius: 4,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--accent-dim)',
+          border: '1px solid var(--accent)',
+          color: 'var(--accent-ink)',
+        }}
+      >
+        <Icon name="book" size={22} />
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="text-1" style={{ fontSize: 17, fontWeight: 500 }}>
+          动作库
+        </div>
+        <Caption>67 个动作的六要素详解，也能自建动作</Caption>
+      </div>
+      <span aria-hidden="true" style={{ flexShrink: 0, display: 'inline-flex', color: 'var(--text-3)' }}>
+        <Icon name="arrow-right" size={18} />
+      </span>
+    </button>
+  );
+}
+
 /* ================= 训练提醒 ================= */
 
 const TIME_PRESETS = ['17:00', '18:00', '19:00', '20:00'] as const;
@@ -98,6 +153,7 @@ export function NotifyRow(): JSX.Element {
 
   const pick = (t: string) => {
     updateSettings({ notifyTime: t });
+    void syncReminder();
     setDraft('');
     setBad(false);
     vibrate(15);
@@ -112,6 +168,7 @@ export function NotifyRow(): JSX.Element {
     }
     if (TIME_RE.test(t)) {
       updateSettings({ notifyTime: t });
+      void syncReminder();
       setBad(false);
       vibrate(15);
     } else {
@@ -126,7 +183,7 @@ export function NotifyRow(): JSX.Element {
           <div style={{ fontSize: 17, fontWeight: 500 }}>训练提醒</div>
           <Caption>每天到点叫你起来练</Caption>
         </div>
-        <RowToggle on={notifyOn} onChange={(on) => updateSettings({ notifyOn: on })} label="训练提醒" />
+        <RowToggle on={notifyOn} onChange={(on) => { updateSettings({ notifyOn: on }); void syncReminder(); }} label="训练提醒" />
       </div>
       {notifyOn ? (
         <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>

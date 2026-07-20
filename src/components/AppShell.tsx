@@ -1,7 +1,8 @@
 /**
  * AppShell：应用骨架（嵌套路由 layout-route 模式，渲染 <Outlet/>）。
  * - 内容插槽：页面自己渲染 ScreenHeader + 内容（水平 20px padding 由壳提供）
- * - 底部 TabBar 6 项：今日/训练/成长/饮食/动作库/我的（/ /preview /growth /diet /library /settings）
+ * - 底部 TabBar 5 项：今日/训练/成长/饮食/我的（/ /preview /growth /diet /settings）
+ *   动作库入口收纳进「我的」常用组，保持 5 个 Tab 不拥挤
  *   高 64px + safe-area；当前项 accent + 顶部 2px accent 短横指示
  *   （练后总结 /summary 不进 TabBar，仅练完跳转；成长页承接其打卡回顾职能）
  * - 训练进行中（/workout 路径）TabBar 隐藏，防误触跳出
@@ -17,7 +18,6 @@ const TABS: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: '/preview', label: '训练', icon: 'dumbbell' },
   { to: '/growth', label: '成长', icon: 'check-circle' },
   { to: '/diet', label: '饮食', icon: 'bowl' },
-  { to: '/library', label: '动作库', icon: 'book' },
   { to: '/settings', label: '我的', icon: 'user' },
 ];
 

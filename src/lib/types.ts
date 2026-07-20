@@ -344,10 +344,6 @@ export interface AppSettings {
   /** 训练提醒时间 HH:mm，如 '18:00'（仅安卓 App 生效）。可选同上，缺省视为 '18:00' */
   notifyTime?: string;
   weightKg: number;
-  /** 每日训练提醒（本地通知）总开关。可选：老用户已存数据缺省，消费端按 ?? false 处理 */
-  notifyOn?: boolean;
-  /** 每日提醒时间 'HH:mm'。可选同上，缺省视为 '18:00' */
-  notifyTime?: string;
   /** 外观主题：'dark' 黑夜（默认）| 'light' 白天。可选：老用户已存数据缺省，消费端按 ?? 'dark' 处理 */
   theme?: 'dark' | 'light';
   /** 预留：账号体系用户 id（暂不使用，为以后账号/云同步留口） */

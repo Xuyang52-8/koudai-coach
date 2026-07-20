@@ -32,7 +32,7 @@ import {
   WeekdayChips,
 } from '@/components/onboarding/selectors';
 import { AiConfigPanels } from '@/components/settings/AiConfigPanels';
-import { EquipmentRow, NotifyRow } from '@/components/settings/CommonRows';
+import { EquipmentRow, LibraryRow, NotifyRow } from '@/components/settings/CommonRows';
 import { BackupPanel, DangerPanel } from '@/components/settings/DataPanels';
 import { Caption, GroupHeader, Panel, PanelRow } from '@/components/settings/common';
 import { RPE_LABELS, overrideDeltaText } from '@/lib/adjust';
@@ -274,6 +274,9 @@ export default function Settings(): JSX.Element {
           <Panel>
             <PanelRow>
               <EquipmentRow />
+            </PanelRow>
+            <PanelRow>
+              <LibraryRow />
             </PanelRow>
             <PanelRow last>
               <NotifyRow />
