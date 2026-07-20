@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "cn.koudai.coach",
+      "sha256_cert_fingerprints": [
+        "67:F7:FC:FF:28:0D:44:75:57:F1:AE:2A:72:A6:53:F2:94:05:CD:0C:82:D9:08:C9:1C:8F:E2:5C:FC:50:94:7E"
+      ]
+    }
+  }
+]
