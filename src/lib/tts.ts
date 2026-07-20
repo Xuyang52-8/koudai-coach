@@ -28,8 +28,14 @@ export function ttsSupported(): boolean {
 let voicesCache: SpeechSynthesisVoice[] = [];
 let cachedZhVoice: SpeechSynthesisVoice | null | undefined;
 
+/** WebView/微信里 speechSynthesis 可能是 undefined（不是空壳而是根本不存在），
+ *  语音列表缓存必须以真实存在为准，不能用 ttsSupported()（原生壳返回 true）当守卫。 */
+function hasWebSpeech(): boolean {
+  return typeof window !== 'undefined' && 'speechSynthesis' in window;
+}
+
 function refreshVoices(): void {
-  if (!ttsSupported()) return;
+  if (!hasWebSpeech()) return;
   try {
     voicesCache = window.speechSynthesis.getVoices();
     cachedZhVoice = undefined;
@@ -38,7 +44,7 @@ function refreshVoices(): void {
   }
 }
 
-if (ttsSupported()) {
+if (hasWebSpeech()) {
   refreshVoices();
   window.speechSynthesis.onvoiceschanged = refreshVoices;
 }
