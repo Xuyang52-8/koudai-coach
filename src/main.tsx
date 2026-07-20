@@ -16,6 +16,11 @@ window.addEventListener('resize', updateVh)
 window.addEventListener('orientationchange', updateVh)
 
 // PWA Service Worker（autoUpdate：有新版本自动刷新）
-registerSW({ immediate: true })
+// Capacitor 原生壳内禁用：资源本来就内置在包里，SW 旧缓存反而可能把新页面卡成黑屏
+const isNativeCapacitor = !!(window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } })
+  .Capacitor?.isNativePlatform?.();
+if (!isNativeCapacitor) {
+  registerSW({ immediate: true })
+}
 
 createRoot(document.getElementById('root')!).render(<App />)

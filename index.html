@@ -26,6 +26,45 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      /* 黑屏自救看门狗：8 秒内页面没渲染出来，显示修复层。
+         一键清掉 Service Worker 和缓存（保留训练数据 localStorage）后重载。 */
+      (function () {
+        function showRescue(err) {
+          if (document.getElementById('kd-rescue')) return;
+          var box = document.createElement('div');
+          box.id = 'kd-rescue';
+          box.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0A0A0B;color:#F4F4F2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px;text-align:center;font-family:sans-serif;';
+          box.innerHTML =
+            '<div style="font-size:22px;font-weight:600">页面卡住了，点下面按钮自救</div>' +
+            '<div style="font-size:13px;color:#9C9CA3;max-width:320px">会清除卡住的旧缓存，<b style="color:#3FE1B1">不会</b>删除你的训练记录。' +
+            (err ? '<br><span style="color:#FF5C45;font-size:11px;word-break:break-all">' + String(err).slice(0, 300) + '</span>' : '') +
+            '</div>' +
+            '<button id="kd-rescue-btn" style="width:120px;height:120px;border-radius:50%;border:none;background:#3FE1B1;color:#060607;font-size:20px;font-weight:700;cursor:pointer">修复</button>';
+          document.body.appendChild(box);
+          document.getElementById('kd-rescue-btn').onclick = function () {
+            var jobs = [];
+            if (navigator.serviceWorker) {
+              jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
+                return Promise.all(rs.map(function (r) { return r.unregister(); }));
+              }).catch(function () {}));
+            }
+            if (window.caches) {
+              jobs.push(caches.keys().then(function (ks) {
+                return Promise.all(ks.map(function (k) { return caches.delete(k); }));
+              }).catch(function () {}));
+            }
+            Promise.all(jobs).then(function () { location.reload(); });
+          };
+        }
+        window.addEventListener('error', function (e) {
+          if (!document.getElementById('root').hasChildNodes()) showRescue(e.message);
+        }, true);
+        setTimeout(function () {
+          if (!document.getElementById('root').hasChildNodes()) showRescue('');
+        }, 8000);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
