@@ -64,7 +64,7 @@ export default function MiniSession(): JSX.Element {
 
   if (!pack) {
     return (
-      <div style={{ paddingTop: 20 }}>
+      <div className="safe-top">
         <EmptyState text="没有找到这个小练包，回首页挑一个吧。" actionLabel="回首页" onAction={() => navigate('/')} />
       </div>
     );
@@ -78,8 +78,9 @@ export default function MiniSession(): JSX.Element {
   const displayName = miniDisplayName(pack, profile);
   const alreadyDoneToday = doneToday.includes(pack.id);
 
+  /* safe-top：intro 顶部的 ScreenHeader 叠加状态栏安全区（run/done 为 fixed 全屏，不受此 padding 影响） */
   return (
-    <div>
+    <div className="safe-top">
       {stage === 'intro' ? (
         <>
           <ScreenHeader label="日常小练 · MINI" title={displayName} />

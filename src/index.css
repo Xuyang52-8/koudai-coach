@@ -163,3 +163,31 @@
 }
 
 /* flicker keyframes 见 src/App.css（运行时全局生效） */
+
+/* ===== 全面屏安全区（index.html viewport-fit=cover；刘海/手势条设备） ===== */
+
+@layer base {
+  :root {
+    /* 状态栏/刘海 与 底部手势条安全区；不支持的设备回退 0px */
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+@layer utilities {
+  /* 页面顶部容器：在原 20px 顶距上叠加状态栏安全区，顶部控件不再贴状态栏 */
+  .safe-top {
+    padding-top: calc(20px + var(--sat));
+  }
+
+  /* 底部容器（TabBar / 全屏浮层底栏）：在原 20px 底距上叠加手势条安全区 */
+  .safe-bottom {
+    padding-bottom: calc(20px + var(--sab));
+  }
+
+  /* 顶部小图标按钮热区保底 48×48（min-* 可覆盖组件内联 width/height，图标视觉尺寸不变） */
+  .touch-48 {
+    min-width: 48px;
+    min-height: 48px;
+  }
+}

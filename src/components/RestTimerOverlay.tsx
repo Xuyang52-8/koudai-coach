@@ -205,15 +205,16 @@ function TimerBody({ seconds, nextLabel, onDone, onSkip, doneCue, tip }: RestTim
         }}
       />
 
+      {/* safe-top/safe-bottom：状态栏+手势条安全区（基础顶/底距 20px，见 index.css） */}
       <div
+        className="safe-top safe-bottom"
         style={{
           position: 'relative',
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          padding: '0 20px',
-          paddingTop: 'calc(28px + env(safe-area-inset-top))',
-          paddingBottom: 'calc(20px + env(safe-area-inset-bottom))',
+          paddingLeft: 20,
+          paddingRight: 20,
           maxWidth: 480,
           width: '100%',
           margin: '0 auto',
