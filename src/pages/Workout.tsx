@@ -789,8 +789,10 @@ export default function Workout(): JSX.Element {
     <div style={{ touchAction: 'manipulation' }}>
       {feedback.host}
 
-      {/* ===== 顶部固定：进度条 + 课内位置 + 喇叭/退出 ===== */}
+      {/* ===== 顶部固定：进度条 + 课内位置 + 喇叭/退出 =====
+          safe-top：顶距 8→20px 并叠加状态栏安全区，喇叭/退出下移出刘海误触区 */}
       <div
+        className="safe-top"
         style={{
           position: 'sticky',
           top: 0,
@@ -800,7 +802,6 @@ export default function Workout(): JSX.Element {
           marginRight: -20,
           paddingLeft: 20,
           paddingRight: 20,
-          paddingTop: 8,
         }}
       >
         <div style={{ height: 3, background: 'var(--bg-inset)', borderRadius: 999, overflow: 'hidden' }}>
@@ -849,7 +850,7 @@ export default function Workout(): JSX.Element {
           >
             {headerCaption}
           </span>
-          <TTSToggle size={26} />
+          <TTSToggle size={26} className="touch-48" />
         </div>
       </div>
 
