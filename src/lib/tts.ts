@@ -12,7 +12,14 @@
 
 import { getSettings } from './store';
 
+/** 是否在 Capacitor 原生壳内（安卓 WebView 的 speechSynthesis 是空壳，必须走原生 TTS 插件） */
+function isNative(): boolean {
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+  return typeof cap?.isNativePlatform === 'function' && cap.isNativePlatform();
+}
+
 export function ttsSupported(): boolean {
+  if (isNative()) return true;
   return typeof window !== 'undefined' && 'speechSynthesis' in window;
 }
 
@@ -51,8 +58,9 @@ function pickZhVoice(): SpeechSynthesisVoice | null {
 
 let unlocked = false;
 
-/** 首次用户手势时调用（main.tsx 注册一次）：解锁移动端语音并触发语音列表加载。 */
+/** 首次用户手势时调用（main.tsx 注册一次）：解锁移动端语音并触发语音列表加载。原生壳无需解锁。 */
 export function unlockTTS(): void {
+  if (isNative()) { unlocked = true; return; }
   if (!ttsSupported() || unlocked) return;
   unlocked = true;
   try {
@@ -68,12 +76,46 @@ export function unlockTTS(): void {
 /* ---------- 朗读 ---------- */
 
 export function cancel(): void {
+  if (isNative()) {
+    nativeSpeakSeq++;
+    void import('@capacitor-community/text-to-speech')
+      .then(({ TextToSpeech }) => TextToSpeech.stop().catch(() => undefined))
+      .catch(() => undefined);
+    return;
+  }
   if (!ttsSupported()) return;
   try {
     window.speechSynthesis.cancel();
   } catch {
     /* ignore */
   }
+}
+
+/* ---------- 原生 TTS（Capacitor） ---------- */
+
+/** 代数守卫：新的 speak/cancel 会让旧的 onEnd 串联失效（对齐 Web 端 speakSeqRef 语义） */
+let nativeSpeakSeq = 0;
+
+function doSpeakNative(text: string, opts: SpeakOptions): void {
+  const seq = ++nativeSpeakSeq;
+  void (async () => {
+    try {
+      const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
+      await TextToSpeech.stop().catch(() => undefined);
+      if (seq !== nativeSpeakSeq) return;
+      await TextToSpeech.speak({
+        text,
+        lang: 'zh-CN',
+        rate: opts.rate ?? 1.05,
+        pitch: 1.0,
+        volume: 1.0,
+        category: 'playback',
+      });
+      if (seq === nativeSpeakSeq) opts.onEnd?.();
+    } catch (e) {
+      console.warn('[tts] native speak failed:', e);
+    }
+  })();
 }
 
 interface SpeakOptions {
@@ -83,6 +125,7 @@ interface SpeakOptions {
 }
 
 function doSpeak(text: string, opts: SpeakOptions): void {
+  if (isNative()) { doSpeakNative(text, opts); return; }
   const synth = window.speechSynthesis;
   // iOS：cancel 后立刻 speak 会静默失败，延迟 60ms
   synth.cancel();
