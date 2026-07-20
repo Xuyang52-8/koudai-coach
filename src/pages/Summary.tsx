@@ -16,6 +16,7 @@ import { CheckDraw, useFeedback, vibrate } from '../components/feedback';
 import Icon from '../components/Icon';
 import ProgressBar from '../components/ProgressBar';
 import SectionLabel from '../components/SectionLabel';
+import { shareWorkoutCard } from '../components/share/ShareCard';
 import { useWorkoutExtra } from '../components/workout/extra';
 import {
   completeWorkout,
@@ -175,6 +176,25 @@ export default function Summary(): JSX.Element {
 
   /* ---------- 下一课预告（completeWorkout 后 cycle 已推进） ---------- */
   const nextInfo = getNextWorkoutInfo(cycle);
+
+  /* ---------- 分享今日战绩（Canvas 打卡图；原生系统分享 / 网页新窗口打开） ---------- */
+  const [sharing, setSharing] = useState(false);
+  const onShare = async () => {
+    if (!data || sharing) return;
+    setSharing(true);
+    vibrate(30);
+    try {
+      await shareWorkoutCard({
+        lessonNumber: data.lessonNumber,
+        minutes: data.minutes,
+        kcal: data.kcal,
+        streak: cycle.streak,
+        date: todayStr(),
+      });
+    } finally {
+      setSharing(false);
+    }
+  };
 
   if (!data) {
     return (
@@ -438,11 +458,42 @@ export default function Summary(): JSX.Element {
         </p>
       </motion.section>
 
-      {/* 底部 CTA */}
+      {/* 底部 CTA：主按钮回首页（「回到今日」→ /）+ 次要文字按钮分享打卡图 */}
       <div style={{ marginTop: 28 }}>
         <PrimaryButton size="lg" icon={<Icon name="check" size={20} />} onClick={() => navigate('/')}>
           回到今日
         </PrimaryButton>
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.97 }}
+          transition={{ duration: 0.12 }}
+          disabled={sharing}
+          onClick={() => void onShare()}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            width: '100%',
+            marginTop: 14,
+            padding: '10px 0',
+            background: 'none',
+            border: 'none',
+            cursor: sharing ? 'wait' : 'pointer',
+            color: 'var(--text-2)',
+            fontSize: 14,
+            fontWeight: 500,
+            fontFamily: 'var(--font-body)',
+            opacity: sharing ? 0.5 : 1,
+            WebkitTapHighlightColor: 'transparent',
+            touchAction: 'manipulation',
+          }}
+        >
+          <span style={{ display: 'inline-flex', color: 'var(--accent-ink)' }}>
+            <Icon name="export" size={16} />
+          </span>
+          {sharing ? '正在生成打卡图…' : '分享今日战绩'}
+        </motion.button>
       </div>
     </div>
   );

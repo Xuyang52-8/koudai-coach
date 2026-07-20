@@ -300,6 +300,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   keepScreenOn: true,
   bgAudioKeepAlive: true,
   weightKg: 81.5,
+  // 每日训练提醒：默认关、18:00（仅原生端真正发通知，网页端静默 no-op）
+  notifyOn: false,
+  notifyTime: '18:00',
   // 外观主题：默认黑夜，老用户无感；设置页「外观」可切白天
   theme: 'dark',
   // 预留字段：账号/密钥体系（当前代码不读不写，仅占位）
