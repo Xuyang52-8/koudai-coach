@@ -136,7 +136,8 @@
       "核心别松",
       "慢放别甩"
     ],
-    "harder": "pull-up"
+    "harder": "pull-up",
+    "videoBv": "BV1oa4y1z73J"
   },
   {
     "id": "seated-row",
@@ -184,7 +185,8 @@
       "拉到肚脐",
       "慢放回"
     ],
-    "harder": "one-arm-db-row"
+    "harder": "one-arm-db-row",
+    "videoBv": "BV1y14y1X7by"
   },
   {
     "id": "one-arm-db-row",
@@ -237,7 +239,8 @@
       "慢放到底"
     ],
     "easier": "seated-row",
-    "harder": "bb-row"
+    "harder": "bb-row",
+    "videoBv": "BV1Vh411775b"
   },
   {
     "id": "db-curl",
@@ -283,7 +286,8 @@
       "别甩手腕",
       "慢放到底",
       "顶峰挤一下"
-    ]
+    ],
+    "videoBv": "BV1bRDgYCEgm"
   },
   {
     "id": "dead-hang",
@@ -379,7 +383,8 @@
       "脚跟踩实"
     ],
     "easier": "leg-press",
-    "harder": "bb-squat"
+    "harder": "bb-squat",
+    "videoBv": "BV1TT4y1p7YR"
   },
   {
     "id": "leg-press",
@@ -426,7 +431,8 @@
       "匀速推",
       "慢放回"
     ],
-    "harder": "hack-squat"
+    "harder": "hack-squat",
+    "videoBv": "BV1XJ411G7u3"
   },
   {
     "id": "db-rdl",
@@ -474,7 +480,8 @@
       "哑铃贴腿滑",
       "大腿后侧酸"
     ],
-    "easier": "leg-curl"
+    "easier": "leg-curl",
+    "videoBv": "BV1mTSkBHErk"
   },
   {
     "id": "bulgarian-split-squat",
@@ -521,7 +528,8 @@
       "核心收紧",
       "膝盖朝脚尖"
     ],
-    "easier": "walking-lunge"
+    "easier": "walking-lunge",
+    "videoBv": "BV12Hpez1EVv"
   },
   {
     "id": "leg-curl",
@@ -567,7 +575,8 @@
       "慢勾慢放",
       "顶峰挤一下"
     ],
-    "harder": "db-rdl"
+    "harder": "db-rdl",
+    "videoBv": "BV1XW4y1F7TB"
   },
   {
     "id": "db-bench-press",
@@ -619,7 +628,8 @@
       "慢放别砸"
     ],
     "easier": "chest-press-machine",
-    "harder": "bb-bench-press"
+    "harder": "bb-bench-press",
+    "videoBv": "BV1vbQyYpEJK"
   },
   {
     "id": "incline-db-press",
@@ -669,7 +679,8 @@
       "肘别开太大",
       "慢放",
       "别弓腰"
-    ]
+    ],
+    "videoBv": "BV1aa4y1o7XA"
   },
   {
     "id": "db-shoulder-press",
@@ -718,7 +729,8 @@
       "别后仰",
       "推到头顶",
       "慢放"
-    ]
+    ],
+    "videoBv": "BV1uw411N7MC"
   },
   {
     "id": "pec-deck",
@@ -764,7 +776,8 @@
       "往中间夹",
       "顶峰挤一下",
       "慢放回"
-    ]
+    ],
+    "videoBv": "BV1fTyVYDE1j"
   },
   {
     "id": "rope-pushdown",
@@ -810,7 +823,8 @@
       "别晃身体",
       "压到底",
       "慢放回"
-    ]
+    ],
+    "videoBv": "BV1fjMyzZEt5"
   },
   {
     "id": "db-lateral-raise",
@@ -856,7 +870,8 @@
       "抬到肩平",
       "别耸肩",
       "慢落"
-    ]
+    ],
+    "videoBv": "BV18o4y147RH"
   },
   {
     "id": "band-assisted-pullup",
@@ -951,7 +966,8 @@
       "核心绷紧",
       "小步快走",
       "握紧握稳"
-    ]
+    ],
+    "videoBv": "BV1VUB1YHEcK"
   },
   {
     "id": "walking-lunge",
@@ -996,7 +1012,8 @@
       "直上直下",
       "前脚踩实",
       "核心收紧"
-    ]
+    ],
+    "videoBv": "BV1Et42187nB"
   },
   {
     "id": "push-up",
@@ -1043,7 +1060,8 @@
       "慢起慢落"
     ],
     "easier": "incline-push-up",
-    "harder": "decline-push-up"
+    "harder": "decline-push-up",
+    "videoBv": "BV1Ta411K72v"
   },
   {
     "id": "glute-bridge",
@@ -1089,7 +1107,8 @@
       "慢落",
       "脚踩实"
     ],
-    "harder": "single-leg-glute-bridge"
+    "harder": "single-leg-glute-bridge",
+    "videoBv": "BV1kF411F7YG"
   },
   {
     "id": "mountain-climber",
@@ -1135,7 +1154,8 @@
       "膝盖往胸收",
       "保持节奏"
     ],
-    "harder": "burpee"
+    "harder": "burpee",
+    "videoBv": "BV1QrQqYcEQw"
   },
   {
     "id": "plank",
@@ -1181,7 +1201,8 @@
       "核心收紧",
       "均匀呼吸"
     ],
-    "harder": "side-plank"
+    "harder": "side-plank",
+    "videoBv": "BV1Q34y1j79r"
   },
   {
     "id": "dead-bug",
@@ -1226,7 +1247,8 @@
       "对侧伸展",
       "动作放慢",
       "别憋气"
-    ]
+    ],
+    "videoBv": "BV1zYL8zTEcV"
   },
   {
     "id": "crunch",
@@ -1271,7 +1293,8 @@
       "用腹卷起",
       "别抱头拽",
       "慢落"
-    ]
+    ],
+    "videoBv": "BV1AY411j732"
   },
   {
     "id": "smith-squat",
@@ -1739,7 +1762,8 @@
       "核心别松"
     ],
     "easier": "lat-pulldown",
-    "harder": "pull-up"
+    "harder": "pull-up",
+    "videoBv": "BV1yhV5zvEZr"
   },
   {
     "id": "bb-bench-press",
