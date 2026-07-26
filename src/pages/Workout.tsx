@@ -31,11 +31,14 @@ import { clampWeight, formatKg, weightSpec } from '../components/workout/weight'
 import { zoneForExercise } from '../components/workout/zoneImage';
 import { adjustedReps, adjustedWeightKg, hasAdjustment, rpeToast } from '../lib/adjust';
 import type { RpeChoice } from '../lib/adjust';
+import { cuesForExercise } from '../lib/cues';
 import { useBgAudioKeepAlive } from '../lib/keepalive';
+import { openExerciseVideo } from '../lib/video';
 import {
   applyRpeOverride,
   clearSession,
   getSession,
+  setLadderChoice,
   startSession,
   todayStr,
   updateSession,
@@ -346,7 +349,6 @@ export default function Workout(): JSX.Element {
   const [weightBump, setWeightBump] = useState(0); // 重量数字滚动方向 +1/-1
   const [rpeTarget, setRpeTarget] = useState<Exercise | null>(null); // 刚完成、待评价的动作
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const skipAutoSpeakRef = useRef(false);
   /** 朗读代数：手动停止/关开关后使旧的 onEnd 串联失效，避免停了又被接话 */
   const speakSeqRef = useRef(0);
   /** 自动滚到底部主按钮的去重：记录上一次滚动落点对应的动作下标（-1=热身） */
@@ -381,12 +383,14 @@ export default function Workout(): JSX.Element {
     );
   });
 
-  /* 离开页面：停朗读（含失效 onEnd 串联）、清过场计时 */
+  /* 离开页面：停朗读（含失效 onEnd 串联）、清过场/陪练/缓冲计时 */
   useEffect(
     () => () => {
       speakSeqRef.current += 1;
       cancel();
       if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
+      if (cueTimerRef.current) clearTimeout(cueTimerRef.current);
+      if (armTimerRef.current) clearTimeout(armTimerRef.current);
     },
     [],
   );
@@ -408,42 +412,104 @@ export default function Workout(): JSX.Element {
   const [exOverride] = useExerciseOverride(ex?.id ?? null);
   const adjustedBaseKg = useMemo(() => (ex ? adjustedWeightKg(ex, exOverride) : null), [ex, exOverride]);
 
-  /* ---------- 动作卡切换自动朗读（需 ttsOn && ttsAuto）：含热身进场、热身→动作1、动作间切换；单侧左右切换不在依赖里，不重复读 ---------- */
-  useEffect(() => {
-    if (!hasWorkout) return;
-    if (!settings.ttsOn || !(settings.ttsAuto ?? true)) {
-      // 总开关/自动朗读关闭：切换动作或刚关掉开关时，停掉当前朗读
-      speakSeqRef.current += 1;
-      cancel();
-      setSpeaking(false);
-      return;
+  /* ---------- 循环陪练 2.0（v1.5）：每组三态 prep(准备) → arming(缓冲) → active(做组+口令循环) ----------
+   * 铁律：切到任何新动作/新组/新侧都先回准备态等用户点"我准备好了"，绝不自动开读。
+   * 长文字（怎么做/注意事项）只在屏幕上看，嘴上只喊短口令。 */
+  const [setPhase, setSetPhase] = useState<'prep' | 'arming' | 'active'>('prep');
+  const cueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const armTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /** 硬停陪练：完成组/跳过/换动作/退出时用——清计时、失效回调、切断当前语音 */
+  const stopCoach = useCallback(() => {
+    speakSeqRef.current += 1;
+    if (cueTimerRef.current) {
+      clearTimeout(cueTimerRef.current);
+      cueTimerRef.current = null;
     }
-    if (phase === 'warmup') {
-      const seq = ++speakSeqRef.current;
-      setSpeaking(true);
-      speak(warmup?.voiceScript ?? '先热身五分钟，让身体热起来。', {
+    if (armTimerRef.current) {
+      clearTimeout(armTimerRef.current);
+      armTimerRef.current = null;
+    }
+    cancel();
+    setSpeaking(false);
+  }, []);
+
+  /** 短口令循环：一句接一句，每句间隔 1.3s，永不自动停（靠 stopCoach / seq 失效） */
+  const startCueLoop = useCallback((target: Exercise) => {
+    const s = settings;
+    if (!s.ttsOn || !(s.coachLoop ?? true)) return;
+    const cues = cuesForExercise(target);
+    const seq = ++speakSeqRef.current;
+    setSpeaking(true);
+    let i = 0;
+    const step = (): void => {
+      if (speakSeqRef.current !== seq) return;
+      speak(cues[i % cues.length], {
         onEnd: () => {
-          if (speakSeqRef.current === seq) setSpeaking(false);
+          if (speakSeqRef.current !== seq) return;
+          cueTimerRef.current = setTimeout(() => {
+            i += 1;
+            step();
+          }, 1300);
         },
       });
-      return;
-    }
-    if (skipAutoSpeakRef.current) {
-      // 热身收尾时已手动串联播报，跳过本次自动朗读
-      skipAutoSpeakRef.current = false;
-      return;
-    }
-    if (ex) {
-      const seq = ++speakSeqRef.current;
-      setSpeaking(true);
-      speak(scriptForExercise(ex), {
-        onEnd: () => {
-          if (speakSeqRef.current === seq) setSpeaking(false);
-        },
-      });
-    }
+    };
+    step();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, exerciseIndex, settings.ttsOn, settings.ttsAuto, hasWorkout]);
+  }, [settings.ttsOn, settings.coachLoop]);
+
+  /* 切换动作/组/侧 → 回准备态。软重置：清计时+失效旧回调，但不 cancel()——
+   * 避免切断休息计时结束那句"开始第 N 组"的尾巴（那条在 RestTimerOverlay 里播）。 */
+  useEffect(() => {
+    setSetPhase('prep');
+    speakSeqRef.current += 1;
+    if (cueTimerRef.current) {
+      clearTimeout(cueTimerRef.current);
+      cueTimerRef.current = null;
+    }
+    if (armTimerRef.current) {
+      clearTimeout(armTimerRef.current);
+      armTimerRef.current = null;
+    }
+    setSpeaking(false);
+  }, [phase, exerciseIndex, setIndex, session?.side]);
+
+  /* 热身进场自动朗读（保留旧行为；正式动作不再自动读，等"我准备好了"） */
+  useEffect(() => {
+    if (!hasWorkout || phase !== 'warmup') return;
+    if (!settings.ttsOn || !(settings.ttsAuto ?? true)) return;
+    const seq = ++speakSeqRef.current;
+    setSpeaking(true);
+    speak(warmup?.voiceScript ?? '先热身五分钟，让身体热起来。', {
+      onEnd: () => {
+        if (speakSeqRef.current === seq) setSpeaking(false);
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, hasWorkout, settings.ttsOn, settings.ttsAuto]);
+
+  /* 用户点"我准备好了"：缓冲口令 → 进入做组态 → 开喊短口令循环 */
+  const handleReady = useCallback(() => {
+    if (!ex || setPhase !== 'prep') return;
+    vibrate(30);
+    setSetPhase('arming');
+    const seq = ++speakSeqRef.current;
+    const go = (): void => {
+      if (speakSeqRef.current !== seq) return;
+      setSetPhase('active');
+      startCueLoop(ex);
+    };
+    if (settings.ttsOn) {
+      setSpeaking(true);
+      speak('好，三，二，一，开始', {
+        onEnd: () => {
+          armTimerRef.current = setTimeout(go, 250);
+        },
+      });
+    } else {
+      armTimerRef.current = setTimeout(go, 2400);
+    }
+  }, [ex, setPhase, settings.ttsOn, startCueLoop]);
 
   /* ---------- 收尾：写快照 → 清 session → 跳总结 ---------- */
   const finishWorkout = useCallback(
@@ -496,6 +562,7 @@ export default function Workout(): JSX.Element {
   /* ---------- 完成一组 / 完成一侧 ---------- */
   const completeSet = useCallback(() => {
     if (!ex || !session || restPlan || transitionNext || rpeTarget) return;
+    stopCoach();
     const sets = Math.max(1, ex.sets);
     const side = ex.unilateral ? (session.side ?? 'L') : null;
     const lastSet = setIndex >= sets - 1;
@@ -530,7 +597,7 @@ export default function Workout(): JSX.Element {
       },
       () => updateSession({ setIndex: setIndex + 1, side: ex.unilateral ? 'L' : null }),
     );
-  }, [ex, session, restPlan, transitionNext, rpeTarget, setIndex, feedback, openRest]);
+  }, [ex, session, restPlan, transitionNext, rpeTarget, setIndex, feedback, openRest, stopCoach]);
 
   /* ---------- 完成一个动作的收尾（RPE 评价后调用）：庆祝 + 过场 + 推进/结课 ---------- */
   const advanceAfterExercise = useCallback(
@@ -575,6 +642,7 @@ export default function Workout(): JSX.Element {
   /* ---------- 跳过这个动作 ---------- */
   const confirmSkip = useCallback(() => {
     if (!ex) return;
+    stopCoach();
     setSkipOpen(false);
     const nextSkips = [...skips, { name: ex.name, doneSets: setIndex }];
     setSkips(nextSkips);
@@ -585,7 +653,7 @@ export default function Workout(): JSX.Element {
     }
     const next = exercises[exerciseIndex + 1];
     updateSession({ exerciseIndex: exerciseIndex + 1, setIndex: 0, side: next.unilateral ? 'L' : null });
-  }, [ex, skips, setIndex, setSkips, feedback, isLastExercise, exercises, exerciseIndex, finishWorkout]);
+  }, [ex, stopCoach, skips, setIndex, setSkips, feedback, isLastExercise, exercises, exerciseIndex, finishWorkout]);
 
   /* ---------- 长按撤销一组 ---------- */
   const undoSet = useCallback(() => {
@@ -602,10 +670,11 @@ export default function Workout(): JSX.Element {
     feedback.toast('撤回一组，这组重来');
   }, [ex, session, restPlan, setIndex, feedback]);
 
-  /* ---------- 换替代动作：映射写入 swaps:{date}，组次进度尽量保留，TTS 自动读新动作 ---------- */
+  /* ---------- 换替代动作：映射写入 swaps:{date}，组次进度尽量保留；新动作回准备态等"我准备好了" ---------- */
   const handleSwap = useCallback(
     (newEx: Exercise) => {
       if (!session) return;
+      stopCoach();
       const newSets = Math.max(1, newEx.sets);
       setSwaps((prev) => ({ ...prev, [exerciseIndex]: newEx.id }));
       updateSession({
@@ -616,22 +685,14 @@ export default function Workout(): JSX.Element {
       setSwapOpen(false);
       vibrate(30);
       feedback.toast(`换成${newEx.name}了`);
-      if (settings.ttsOn && (settings.ttsAuto ?? true)) {
-        const seq = ++speakSeqRef.current;
-        setSpeaking(true);
-        speak(scriptForExercise(newEx), {
-          onEnd: () => {
-            if (speakSeqRef.current === seq) setSpeaking(false);
-          },
-        });
-      }
     },
-    [session, setSwaps, exerciseIndex, setIndex, feedback, settings.ttsOn, settings.ttsAuto],
+    [session, stopCoach, setSwaps, exerciseIndex, setIndex, feedback],
   );
 
   /* ---------- 一键换回原动作 ---------- */
   const handleRevertSwap = useCallback(() => {
     if (!session) return;
+    stopCoach();
     const orig = baseExercises[exerciseIndex];
     setSwaps((prev) => {
       const next = { ...prev };
@@ -644,50 +705,24 @@ export default function Workout(): JSX.Element {
         setIndex: setIndex >= origSets ? origSets - 1 : setIndex,
         side: orig.unilateral ? 'L' : null,
       });
-      if (settings.ttsOn && (settings.ttsAuto ?? true)) {
-        const seq = ++speakSeqRef.current;
-        setSpeaking(true);
-        speak(scriptForExercise(orig), {
-          onEnd: () => {
-            if (speakSeqRef.current === seq) setSpeaking(false);
-          },
-        });
-      }
     }
     setSwapOpen(false);
     feedback.toast('换回原动作');
-  }, [session, setSwaps, baseExercises, exerciseIndex, setIndex, feedback, settings.ttsOn, settings.ttsAuto]);
+  }, [session, stopCoach, setSwaps, baseExercises, exerciseIndex, setIndex, feedback]);
 
-  /* ---------- 热身结束 → 动作一（ttsOn && ttsAuto 时串联播报：提示语 → 动作一要领） ---------- */
+  /* ---------- 热身结束 → 动作一（进准备态，等用户点"我准备好了"，不自动读要领） ---------- */
   const finishWarmup = useCallback(() => {
     if (!session) return;
     vibrate(120);
     const first = exercises[0];
-    if (first && settings.ttsOn && (settings.ttsAuto ?? true)) {
-      const seq = ++speakSeqRef.current;
-      skipAutoSpeakRef.current = true;
-      setSpeaking(true);
-      speak('热身完成，进入第一个动作', {
-        onEnd: () => {
-          if (speakSeqRef.current !== seq) return;
-          speak(scriptForExercise(first), {
-            onEnd: () => {
-              if (speakSeqRef.current === seq) setSpeaking(false);
-            },
-          });
-        },
-      });
-    }
     updateSession({ exerciseIndex: 0, setIndex: 0, side: first?.unilateral ? 'L' : null });
-  }, [session, exercises, settings.ttsOn, settings.ttsAuto]);
+  }, [session, exercises]);
 
-  /* ---------- 听要领（手动入口，不受 ttsAuto 限制） ---------- */
+  /* ---------- 听要领（重播大按钮：手动入口，停口令循环读完整版；读完若还在做组则恢复循环） ---------- */
   const toggleSpeak = useCallback(() => {
     if (!ex) return;
     if (speaking) {
-      speakSeqRef.current += 1;
-      cancel();
-      setSpeaking(false);
+      stopCoach();
       return;
     }
     if (!settings.ttsOn) {
@@ -698,10 +733,38 @@ export default function Workout(): JSX.Element {
     setSpeaking(true);
     speak(scriptForExercise(ex), {
       onEnd: () => {
-        if (speakSeqRef.current === seq) setSpeaking(false);
+        if (speakSeqRef.current !== seq) return;
+        setSpeaking(false);
+        if (setPhase === 'active') startCueLoop(ex);
       },
     });
-  }, [ex, speaking, settings.ttsOn, feedback]);
+  }, [ex, speaking, settings.ttsOn, feedback, stopCoach, setPhase, startCueLoop]);
+
+  /* ---------- 双向调节：做不了 ↓ / 太轻松 ↑（一步换到相邻难度，选择跨课记住） ---------- */
+  const handleLadder = useCallback(
+    (dir: 'easier' | 'harder') => {
+      if (!session || !ex) return;
+      const targetId = dir === 'easier' ? ex.easier : ex.harder;
+      const target = targetId ? getExerciseById(targetId) : null;
+      if (!target) {
+        feedback.toast(dir === 'easier' ? '这个动作已经是最简单的了' : '这个动作已经是最高阶了');
+        return;
+      }
+      stopCoach();
+      setLadderChoice(ex.id, target.id);
+      const newSets = Math.max(1, target.sets);
+      setSwaps((prev) => ({ ...prev, [exerciseIndex]: target.id }));
+      updateSession({
+        setIndex: setIndex >= newSets ? newSets - 1 : setIndex,
+        side: target.unilateral ? 'L' : null,
+      });
+      vibrate(30);
+      feedback.toast(
+        dir === 'easier' ? `降阶成${target.name}了，下次也按这个来` : `进阶成${target.name}了，下次也按这个来`,
+      );
+    },
+    [session, ex, feedback, stopCoach, setSwaps, exerciseIndex, setIndex],
+  );
 
   /* ---------- 自动滚到底部：让大圆主按钮完整落在屏幕中下部舒适拇指区 ----------
    * 落点：主按钮圆心 ≈ 视口高 68%（中下部拇指区），必要时向下夹取到可滚到底，
@@ -890,8 +953,11 @@ export default function Workout(): JSX.Element {
               vibrate(10);
             }}
             speaking={speaking}
+            setPhase={setPhase}
+            onReady={handleReady}
             onToggleSpeak={toggleSpeak}
             onCompleteSet={completeSet}
+            onLadder={handleLadder}
             onUndoSet={undoSet}
             onSkipExercise={() => setSkipOpen(true)}
             canSwap={Boolean(baseExercises[exerciseIndex]?.substitutes?.length)}
@@ -989,8 +1055,12 @@ interface ExerciseStageProps {
   weightBump: number;
   onAdjustWeight: (dir: 1 | -1) => void;
   speaking: boolean;
+  /** 每组三态：prep 准备 → arming 缓冲 → active 做组（口令循环中） */
+  setPhase: 'prep' | 'arming' | 'active';
+  onReady: () => void;
   onToggleSpeak: () => void;
   onCompleteSet: () => void;
+  onLadder: (dir: 'easier' | 'harder') => void;
   onUndoSet: () => void;
   onSkipExercise: () => void;
   /** 该位置原动作有替代链：显示「换替代动作」按钮 */
@@ -1013,8 +1083,11 @@ function ExerciseStage({
   weightBump,
   onAdjustWeight,
   speaking,
+  setPhase,
+  onReady,
   onToggleSpeak,
   onCompleteSet,
+  onLadder,
   onUndoSet,
   onSkipExercise,
   canSwap,
@@ -1028,21 +1101,35 @@ function ExerciseStage({
   const zone = zoneForExercise(ex);
   const wspec = weightSpec(ex);
   const kg = weight ?? wspec.kg;
-  const videoUrl = `https://search.bilibili.com/all?keyword=${encodeURIComponent(ex.videoKeyword)}`;
   const mistakes = ex.commonMistakes.slice(0, 2);
+  const hasEasier = Boolean(ex.easier);
+  const hasHarder = Boolean(ex.harder);
 
-  /* 大圆主按钮文案：当前阶段主操作（纯呈现；完成/换侧/结束状态机仍在父组件 completeSet）。
+  /* 大圆主按钮文案：准备态永远"我准备好了"（绝不抢跑）；缓冲态倒计时；做组态才是完成语义。
    * 单侧动作右侧永远在左侧完成后才成为当前侧，天然保证「先左后右」，无需 disabled 右按钮。 */
-  const primaryLabel = ex.unilateral
-    ? side === 'R'
-      ? lastSet
-        ? '完成动作'
-        : '右侧完成'
-      : '左侧完成'
-    : lastSet
-      ? '完成动作'
-      : '完成本组';
-  const sideHint = ex.unilateral ? (side === 'R' ? '左侧已做' : '接着右侧 · 先左后右') : undefined;
+  const primaryLabel =
+    setPhase === 'prep'
+      ? '我准备好了'
+      : setPhase === 'arming'
+        ? '准备…'
+        : ex.unilateral
+          ? side === 'R'
+            ? lastSet
+              ? '完成动作'
+              : '右侧完成'
+            : '左侧完成'
+          : lastSet
+            ? '完成动作'
+            : '这组做完了';
+  const sideHint =
+    setPhase === 'prep'
+      ? '找到器械坐好，再点开始'
+      : ex.unilateral
+        ? side === 'R'
+          ? '左侧已做'
+          : '接着右侧 · 先左后右'
+        : undefined;
+  const onPrimary = setPhase === 'prep' ? onReady : setPhase === 'arming' ? () => undefined : onCompleteSet;
 
   const item = {
     hidden: { opacity: 0, y: 16 },
@@ -1278,7 +1365,7 @@ function ExerciseStage({
             transition={reduce ? { duration: 0.1 } : { type: 'spring', stiffness: 320, damping: 20 }}
             style={{ display: 'flex', justifyContent: 'center' }}
           >
-            <BigActionButton label={primaryLabel} sideHint={sideHint} onPress={onCompleteSet} />
+            <BigActionButton label={primaryLabel} sideHint={sideHint} onPress={onPrimary} />
           </motion.div>
 
           {/* 次要操作：跳过 / 听要领 / 视频 / 换替代动作 —— 降级为小号文字按钮，排在圆下方 */}
@@ -1309,7 +1396,7 @@ function ExerciseStage({
               type="button"
               whileTap={{ scale: 0.96 }}
               transition={{ duration: 0.12 }}
-              onClick={() => window.open(videoUrl, '_blank', 'noopener,noreferrer')}
+              onClick={() => openExerciseVideo(ex)}
               style={SECONDARY_ACTION_STYLE}
             >
               <span style={{ display: 'inline-flex', flexShrink: 0 }}>
@@ -1317,6 +1404,16 @@ function ExerciseStage({
               </span>
               视频
             </motion.button>
+            {hasEasier ? (
+              <motion.button type="button" whileTap={{ scale: 0.96 }} transition={{ duration: 0.12 }} onClick={() => onLadder('easier')} style={SECONDARY_ACTION_STYLE}>
+                做不了 ↓
+              </motion.button>
+            ) : null}
+            {hasHarder ? (
+              <motion.button type="button" whileTap={{ scale: 0.96 }} transition={{ duration: 0.12 }} onClick={() => onLadder('harder')} style={SECONDARY_ACTION_STYLE}>
+                太轻松 ↑
+              </motion.button>
+            ) : null}
             {canSwap ? (
               <motion.button type="button" whileTap={{ scale: 0.96 }} transition={{ duration: 0.12 }} onClick={onOpenSwap} style={SECONDARY_ACTION_STYLE}>
                 <span style={{ display: 'inline-flex', flexShrink: 0 }}>

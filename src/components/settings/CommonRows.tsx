@@ -235,3 +235,107 @@ export function NotifyRow(): JSX.Element {
     </div>
   );
 }
+
+/* ================= 提醒自检（v1.5：通知不响的破案三件套） ================= */
+
+import { getNotifyStatus, openExactAlarmSettings, sendTestNotification } from '@/lib/notify';
+
+/** 状态小字： granted=绿 denied=红 prompt/unknown=灰 */
+function StatusLine({ label, value }: { label: string; value: 'granted' | 'denied' | 'prompt' | 'unknown' }): JSX.Element {
+  const map = {
+    granted: { text: '已开启', color: 'var(--accent-ink)' },
+    denied: { text: '被禁止', color: 'var(--danger)' },
+    prompt: { text: '未询问', color: 'var(--text-3)' },
+    unknown: { text: '未知', color: 'var(--text-3)' },
+  } as const;
+  const v = map[value];
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, lineHeight: 1.8 }}>
+      <span className="text-2">{label}</span>
+      <span style={{ color: v.color, fontWeight: 500 }}>{v.text}</span>
+    </div>
+  );
+}
+
+const SELF_CHECK_BTN: CSSProperties = {
+  minHeight: 48,
+  padding: '0 14px',
+  borderRadius: 4,
+  border: '1px solid var(--line)',
+  background: 'transparent',
+  color: 'var(--text-1)',
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: 'pointer',
+  WebkitTapHighlightColor: 'transparent',
+  textAlign: 'left',
+};
+
+/**
+ * 提醒自检行：通知不响时自己破案——
+ * ①权限/精确闹钟状态一眼看 ②发测试通知当场验证 ③跳系统设置开精确闹钟
+ * ④国产 ROM 文字引导（自启动/无限制省电，各品牌路径不同没法一键跳）
+ */
+export function NotifySelfCheckRow(): JSX.Element {
+  const [status, setStatus] = useState<{ native: boolean; permission: 'granted' | 'denied' | 'prompt' | 'unknown'; exactAlarm: 'granted' | 'denied' | 'unknown' } | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
+
+  const refresh = async (): Promise<void> => {
+    setStatus(await getNotifyStatus());
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 17, fontWeight: 500 }}>提醒自检</div>
+          <Caption>提醒不响时点这里破案：查权限、发测试通知</Caption>
+        </div>
+        <button type="button" style={SELF_CHECK_BTN} onClick={() => { vibrate(15); void refresh(); }}>
+          检查状态
+        </button>
+      </div>
+      {status ? (
+        <div style={{ marginTop: 14, borderTop: '1px solid var(--line)', paddingTop: 12 }}>
+          {!status.native ? (
+            <Caption>当前是网页版，网页没有定时通知能力——提醒功能只在安卓 App 里生效。</Caption>
+          ) : (
+            <>
+              <StatusLine label="通知权限" value={status.permission} />
+              <StatusLine label="精确闹钟（安卓12+必需）" value={status.exactAlarm} />
+              <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  style={SELF_CHECK_BTN}
+                  disabled={testing}
+                  onClick={() => {
+                    vibrate(15);
+                    setTesting(true);
+                    setTestResult(null);
+                    void sendTestNotification().then((ok) => {
+                      setTesting(false);
+                      setTestResult(ok ? '已发出，1.5 秒后看通知栏' : '发不出去，先去开通知权限');
+                    });
+                  }}
+                >
+                  {testing ? '发送中…' : '发一条测试通知'}
+                </button>
+                {status.exactAlarm === 'denied' ? (
+                  <button type="button" style={SELF_CHECK_BTN} onClick={() => { vibrate(15); void openExactAlarmSettings(); }}>
+                    去开"精确闹钟"
+                  </button>
+                ) : null}
+              </div>
+              {testResult ? <Caption>{testResult}</Caption> : null}
+              <Caption>
+                测试通知能收到但定时提醒还是不响？那是手机省电策略在杀后台：去系统设置 → 应用管理 → 口袋私教，
+                开「自启动」、省电策略选「无限制」（小米/华为/OPPO/vivo 路径略有不同，都在应用管理里）。
+              </Caption>
+            </>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}

@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { JSX } from 'react';
 import { GhostButton, PrimaryButton, WarnButton } from './Buttons';
 import { vibrate } from './feedback';
+import { cancelRestAlarm, scheduleRestAlarm } from '../lib/notify';
 import { cancel, speak, speakCountdown } from '../lib/tts';
 
 export interface RestTimerOverlayProps {
@@ -88,15 +89,25 @@ function TimerBody({ seconds, nextLabel, onDone, onSkip, doneCue, tip }: RestTim
     }
   }, []);
 
-  /** 计时走完：上！→ 震动 → TTS → 通知父组件收起 */
+  /** 计时走完：上！→ 震动 → TTS → 通知父组件收起（前台走完，撤掉系统双保险） */
   const finish = useCallback(() => {
     clearTimers();
+    void cancelRestAlarm();
     setFinished(true);
     setRunning(false);
     vibrate(120);
     speak(doneCue ? `开始${doneCue}` : '休息时间到，开始吧');
     doneTimerRef.current = setTimeout(() => onDoneRef.current(), DONE_BEAT_MS);
   }, [clearTimers, doneCue]);
+
+  /* 双保险（v1.5）：挂载即预约系统通知——切后台聊天/锁屏/被杀，系统闹钟照样喊"该上了" */
+  useEffect(() => {
+    void scheduleRestAlarm(Math.max(1, seconds), doneCue ? `开始${doneCue}` : nextLabel);
+    return () => {
+      void cancelRestAlarm();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* 主计时循环（时间戳法，锁屏/切后台不丢进度）。running 开关驱动启停。 */
   useEffect(() => {
@@ -147,12 +158,14 @@ function TimerBody({ seconds, nextLabel, onDone, onSkip, doneCue, tip }: RestTim
     if (running) {
       endAtRef.current += 15000;
       setRemainingMs(Math.max(0, endAtRef.current - Date.now()));
+      // 双保险同步顺延
+      void scheduleRestAlarm(Math.ceil(Math.max(0, endAtRef.current - Date.now()) / 1000), doneCue ? `开始${doneCue}` : nextLabel);
     } else {
       pausedRemainingRef.current += 15000;
       setRemainingMs(pausedRemainingRef.current);
     }
     vibrate(10);
-  }, [running, finished]);
+  }, [running, finished, doneCue, nextLabel]);
 
   const handleSkip = useCallback(() => {
     clearTimers();

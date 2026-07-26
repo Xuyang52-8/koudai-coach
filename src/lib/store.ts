@@ -147,6 +147,12 @@ export const KEYS = {
   venueTodayKey: (date: string) => `venueToday:${date}`,
   minisKey: (date: string) => `minis:${date}`,
   exerciseOverrideKey: (exerciseId: string) => `exoverride:${exerciseId}`,
+  /** 双向调节（降阶/进阶）用户选择：原动作 id → 现动作 id */
+  ladder: 'ladder',
+  /** 日期排期覆盖：YYYY-MM-DD → 'train' | 'rest'（自由排） */
+  dayPlan: 'dayPlan',
+  /** 有氧/跑步打卡：cardio:{date} → CardioEntry[] */
+  cardioKey: (date: string) => `cardio:${date}`,
 } as const;
 
 /* ================= cycle：练一休一循环 ================= */
@@ -540,6 +546,96 @@ export function getAllExerciseOverrides(): { exerciseId: string; override: Exerc
   }
   out.sort((a, b) => b.override.updatedAt - a.override.updatedAt);
   return out;
+}
+
+/* ================= ladder：双向调节（做不了降阶 / 太轻松进阶，跨课记住） ================= */
+
+export type LadderOverrides = Record<string, string>;
+
+export function getLadderOverrides(): LadderOverrides {
+  return readKey<LadderOverrides>(KEYS.ladder, {});
+}
+
+export function useLadderOverrides(): [
+  LadderOverrides,
+  (next: LadderOverrides | ((p: LadderOverrides) => LadderOverrides)) => void,
+] {
+  return useStoreKey<LadderOverrides>(KEYS.ladder, {});
+}
+
+/**
+ * 记录一次调节：fromId 动作被换成 toId。
+ * 同时清掉所有"曾经指向 fromId"的旧记录（避免 A→B 和 B→A 互相打架）。
+ * toId 传 null 表示清除 fromId 的调节记录。
+ */
+export function setLadderChoice(fromId: string, toId: string | null): void {
+  const cur = { ...getLadderOverrides() };
+  for (const [k, v] of Object.entries(cur)) {
+    if (v === fromId) delete cur[k];
+  }
+  if (toId === null || toId === fromId) delete cur[fromId];
+  else cur[fromId] = toId;
+  writeKey(KEYS.ladder, cur);
+}
+
+/* ================= dayPlan：日期排期覆盖（自由排：临时加练/休息） ================= */
+
+export type DayPlanOverride = 'train' | 'rest';
+export type DayPlanMap = Record<string, DayPlanOverride>;
+
+export function getDayPlan(): DayPlanMap {
+  return readKey<DayPlanMap>(KEYS.dayPlan, {});
+}
+
+export function useDayPlan(): [DayPlanMap, (next: DayPlanMap | ((p: DayPlanMap) => DayPlanMap)) => void] {
+  return useStoreKey<DayPlanMap>(KEYS.dayPlan, {});
+}
+
+/** 覆盖某天的排期；null 清除覆盖（恢复默认节奏） */
+export function setDayPlan(date: string, override: DayPlanOverride | null): void {
+  const cur = { ...getDayPlan() };
+  if (override === null) delete cur[date];
+  else cur[date] = override;
+  writeKey(KEYS.dayPlan, cur);
+}
+
+/* ================= cardio：有氧/跑步打卡（按天存储） ================= */
+
+export interface CardioEntry {
+  id: string;
+  /** 如 "跑步 3.2km" "小米健康同步" */
+  label: string;
+  minutes: number;
+  kcal: number;
+  /** 距离 km（跑步类有，缺省 0） */
+  distanceKm?: number;
+  source: 'health-connect' | 'ai' | 'manual';
+}
+
+const EMPTY_CARDIO: CardioEntry[] = [];
+
+export function getCardioEntries(date: string = todayStr()): CardioEntry[] {
+  return readKey(KEYS.cardioKey(date), EMPTY_CARDIO);
+}
+
+export function useCardioEntries(
+  date: string = todayStr(),
+): [CardioEntry[], (next: CardioEntry[] | ((p: CardioEntry[]) => CardioEntry[])) => void] {
+  return useStoreKey(KEYS.cardioKey(date), EMPTY_CARDIO);
+}
+
+export function addCardioEntry(entry: Omit<CardioEntry, 'id'> & { id?: string }, date: string = todayStr()): CardioEntry {
+  const list = getCardioEntries(date);
+  const full: CardioEntry = { ...entry, id: entry.id ?? newId() };
+  writeKey(KEYS.cardioKey(date), [...list, full]);
+  return full;
+}
+
+export function removeCardioEntry(id: string, date: string = todayStr()): void {
+  writeKey(
+    KEYS.cardioKey(date),
+    getCardioEntries(date).filter((e) => e.id !== id),
+  );
 }
 
 /* ================= targets：动态营养目标 ================= */

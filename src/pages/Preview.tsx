@@ -26,6 +26,7 @@ import { zoneForExercise } from '../components/workout/zoneImage';
 import { adjustedReps, adjustedWeightSpec, hasAdjustment } from '../lib/adjust';
 import { getExerciseOverride, startSession, updateSession, useCycle, useExerciseOverride, useProfile, useSettings, useTodayVenue } from '../lib/store';
 import { cancel, speak } from '../lib/tts';
+import { exerciseVideoWebUrl, openExerciseVideo } from '../lib/video';
 import type { Exercise, Workout } from '../lib/types';
 import { estimateWorkoutMinutes, getExerciseById, getTodayState, resolveExercisesForProfile } from '../lib/utils-workout';
 
@@ -112,7 +113,8 @@ function ExerciseDetail({
   const w = adjustedWeightSpec(ex, override);
   const reps = adjustedReps(ex, override);
   const adjusted = hasAdjustment(override);
-  const videoUrl = `https://search.bilibili.com/all?keyword=${encodeURIComponent(ex.videoKeyword)}`;
+  const videoUrl = exerciseVideoWebUrl(ex);
+  void videoUrl;
   const sections: JSX.Element[] = [];
 
   /* 1. 在哪找 · 长什么样 */
@@ -226,9 +228,9 @@ function ExerciseDetail({
         <GhostButton
           size="sm"
           icon={<ExternalIcon size={16} />}
-          onClick={() => window.open(videoUrl, '_blank', 'noopener,noreferrer')}
+          onClick={() => openExerciseVideo(ex)}
         >
-          视频搜索
+          看视频
         </GhostButton>
         {onSwap ? (
           <GhostButton size="sm" icon={<SwapIcon size={16} />} onClick={onSwap}>
@@ -237,7 +239,8 @@ function ExerciseDetail({
         ) : null}
       </div>
       <p className="text-3" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>
-        视频跳到 B 站搜索「{ex.videoKeyword}」（外链，新窗口打开）
+        {ex.videoBv ? '视频直达 B 站 App 指定教学片' : `视频跳 B 站 App 搜「${ex.videoKeyword}」`}
+        （没装 B 站会退回网页版）
       </p>
     </div>,
   );

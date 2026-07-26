@@ -8,7 +8,7 @@ import programJson from '../data/program.json';
 import { applyCapability, getCapability } from './capability';
 import { exerciseAvailableWith } from './equipment';
 import { bestVenue } from './profile';
-import { getCycle, getCustomExercises, getTodayVenue, shiftDate, todayStr } from './store';
+import { getCycle, getCustomExercises, getDayPlan, getLadderOverrides, getTodayVenue, shiftDate, todayStr } from './store';
 import type {
   CycleState,
   Exercise,
@@ -130,8 +130,43 @@ export function resolveExercisesForProfile(
     warmup = filterWarmupByEquipment(workout, warmup, owned);
   }
   const level = getCapability(getCycle()).level;
-  return { warmup, exercises: applyCapability(exercises, level) };
+  exercises = applyCapability(exercises, level);
+
+  /* 新手保护期（v1.5）：Lv.1 零基础用户的高门槛拉类动作自动降成辅助引体机（有器械才换；
+   * 用户手动调过难度（ladder 有记录）的动作尊重用户选择，不动）。 */
+  if (profile?.experience === 'newbie' && level <= 1) {
+    const ladder = getLadderOverrides();
+    exercises = exercises.map((e) => {
+      const targetId = NEWBIE_LADDER[e.id];
+      if (!targetId || ladder[e.id]) return e;
+      const target = getExerciseById(targetId);
+      if (!target) return e;
+      if (owned && !exerciseAvailableWith(target, owned)) return e;
+      if (exercises.some((x) => x.id === target.id)) return e; // 避免课内重复
+      return target;
+    });
+  }
+
+  /* 双向调节覆盖（v1.5）：用户点过"做不了/太轻松"的选择，跨课记住 */
+  const ladder = getLadderOverrides();
+  if (Object.keys(ladder).length > 0) {
+    exercises = exercises.map((e) => {
+      const t = ladder[e.id];
+      if (!t) return e;
+      const chosen = getExerciseById(t);
+      return chosen ?? e;
+    });
+  }
+  return { warmup, exercises };
 }
+
+/** 新手保护期替换表：高门槛动作 → 辅助引体机 */
+const NEWBIE_LADDER: Record<string, string> = {
+  'pull-up': 'assisted-pullup-machine',
+  'chin-up': 'assisted-pullup-machine',
+  'dead-hang': 'assisted-pullup-machine',
+  'band-assisted-pullup': 'assisted-pullup-machine',
+};
 
 /**
  * 今日课程解析便捷版：等价 resolveExercisesForProfile，
@@ -198,25 +233,35 @@ export interface TodayStateOpts {
 }
 
 /**
- * 今天是否排期休息（不看 doneToday，只看排期规则）：
- * - 1on1off：上次完成的是训练 → 今天休
- * - 2on1off：最近两条非 REST 记录是连续两天 → 今天休（练二休一）
+ * 今天是否排期休息（不看 doneToday，只看排期规则）——v1.5 日期感知版：
+ * 旧版只认"最后一条打卡"，哪天没打卡计划就永远卡住（用户吐槽"一直在第一天拖着"）。
+ * 新版按真实日期推算（队列语义）：
+ * - 1on1off：上次训练是"昨天" → 今天休；更早 → 不管中间歇了几天，今天都该练（计划自动顺延了）
+ * - 2on1off：最近两次训练是"昨天+前天"连续两天 → 今天休
  * - weekdays：今天星期不在 schedule.weekdays 里 → 强制休
  */
 function isScheduledRest(cycle: CycleState, schedule: ScheduleConfig | undefined): boolean {
+  const today = todayStr();
+  const yesterday = shiftDate(today, -1);
   const mode = schedule?.mode ?? '1on1off';
   const lastEntry = cycle.history[cycle.history.length - 1] ?? null;
   if (mode === 'weekdays') {
     return !(schedule?.weekdays ?? []).includes(new Date().getDay());
   }
+  const nonRest = cycle.history.filter((h) => h.workoutId !== 'REST');
+  const lastTrain = nonRest[nonRest.length - 1] ?? null;
   if (mode === '2on1off') {
-    if (lastEntry === null || lastEntry.workoutId === 'REST') return false;
-    const nonRest = cycle.history.filter((h) => h.workoutId !== 'REST');
-    const last = nonRest[nonRest.length - 1];
+    if (!lastTrain) return false;
     const second = nonRest[nonRest.length - 2];
-    return Boolean(last && second && last.date === shiftDate(second.date, 1));
+    // 连练两天且第二次是昨天 → 今天休；否则该练
+    return Boolean(second && lastTrain.date === yesterday && second.date === shiftDate(yesterday, -1));
   }
-  return lastEntry !== null && lastEntry.workoutId !== 'REST';
+  // 1on1off：昨天练过 → 今天休；更早练的 → 该练了（自动顺延）
+  if (lastEntry !== null && lastEntry.workoutId === 'REST' && lastEntry.date === yesterday) {
+    // 昨天主动休息打卡：前天练过 → 今天还休不休？不休——休一就够了，今天该练
+    return false;
+  }
+  return lastTrain !== null && (lastTrain.date === yesterday || lastTrain.date === today);
 }
 
 /**
@@ -231,7 +276,13 @@ function isScheduledRest(cycle: CycleState, schedule: ScheduleConfig | undefined
 export function getTodayState(opts: TodayStateOpts = {}, cycle: CycleState = getCycle()): TodayState {
   const today = todayStr();
   const doneToday = cycle.history.some((h) => h.date === today);
-  const shouldRest = !opts.forceWorkout && (doneToday || isScheduledRest(cycle, opts.schedule));
+  /* 自由排（v1.5）：dayPlan 覆盖优先于排期规则——'train' 临时加练，'rest' 今天练不了顺延 */
+  const dayOverride = getDayPlan()[today];
+  const forceByOverride = dayOverride === 'train';
+  const shouldRest =
+    !opts.forceWorkout &&
+    !forceByOverride &&
+    (doneToday || dayOverride === 'rest' || isScheduledRest(cycle, opts.schedule));
 
   const { workout, lessonNumber } = getNextWorkoutInfo(cycle);
 

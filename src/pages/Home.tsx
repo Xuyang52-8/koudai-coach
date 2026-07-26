@@ -22,17 +22,22 @@ import Tag, { WarnTag } from '../components/Tag';
 import TTSToggle from '../components/TTSToggle';
 import {
   getRecentCheckins,
+  setDayPlan,
+  shiftDate,
+  todayStr,
   toggleChecklistItem,
   toggleSupplement,
+  useCardioEntries,
   useChecklist,
   useCycle,
+  useDayPlan,
   useMinisCompleted,
   useProfile,
   useSchedule,
   useSupplements,
   useTodayVenue,
 } from '../lib/store';
-import { filterMinisForProfile, miniDisplayName, sortMinisForProfile } from '../components/mini/minis';
+import { filterMinisForProfile, getMiniPack, miniDisplayName, sortMinisForProfile } from '../components/mini/minis';
 import { getCapability } from '../lib/capability';
 import type { Capability } from '../lib/capability';
 import { bestVenue } from '../lib/profile';
@@ -511,6 +516,7 @@ function QuickEntries({ onSupplement }: { onSupplement: () => void }): JSX.Eleme
   const navigate = useNavigate();
   const reduce = useReducedMotion();
   const entries: { icon: JSX.Element; label: string; onClick: () => void }[] = [
+    { icon: <Icon name="walk" size={20} />, label: '跑步打卡', onClick: () => navigate('/cardio') },
     { icon: <Icon name="book" size={20} />, label: '预习动作', onClick: () => navigate('/preview') },
     { icon: <Icon name="plus" size={20} />, label: '记一笔饮食', onClick: () => navigate('/diet') },
     { icon: <Icon name="droplet" size={20} />, label: '肌酸打卡', onClick: onSupplement },
@@ -722,7 +728,156 @@ function WorkoutCard({
           先去路上预习动作
         </GhostButton>
       </div>
+      {/* 自由排：加班/没空 → 一键顺延，课程队列原地等，不欠不罚 */}
+      <div style={{ marginTop: 8, textAlign: 'center' }}>
+        <button
+          type="button"
+          onClick={() => {
+            vibrate(15);
+            setDayPlan(todayStr(), 'rest');
+          }}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '10px 12px',
+            fontSize: 13,
+            color: 'var(--text-3)',
+            cursor: 'pointer',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+        >
+          今天练不了？点这里顺延 →
+        </button>
+      </div>
     </TodayCardShell>
+  );
+}
+
+/* ================= §0.5 自由排（v1.5）：今天+后 6 天，点哪天改哪天 ================= */
+
+const WEEK_CHARS = ['日', '一', '二', '三', '四', '五', '六'];
+
+function PlanStrip({ todayType, schedule }: { todayType: 'workout' | 'rest'; schedule: { mode: ScheduleMode; weekdays: number[] } }): JSX.Element {
+  const [dayPlan] = useDayPlan();
+  const reduce = useReducedMotion();
+  const days = Array.from({ length: 7 }, (_, i) => shiftDate(todayStr(), i));
+  return (
+    <section style={{ marginTop: 24 }}>
+      <SectionLabel index="排期">这周怎么练 · 点哪天改哪天</SectionLabel>
+      <div style={{ display: 'flex', gap: 6, marginTop: 14 }}>
+        {days.map((date, i) => {
+          const d = new Date(date + 'T12:00:00');
+          /* 投影：weekdays 按星期表；其余从今天状态交替往后推（队列语义） */
+          const projected: 'workout' | 'rest' =
+            schedule.mode === 'weekdays'
+              ? schedule.weekdays.includes(d.getDay())
+                ? 'workout'
+                : 'rest'
+              : i % 2 === 0
+                ? todayType
+                : todayType === 'workout'
+                  ? 'rest'
+                  : 'workout';
+          const override = dayPlan[date];
+          const effective = override === 'train' ? 'workout' : override === 'rest' ? 'rest' : projected;
+          const isToday = i === 0;
+          const isTrain = effective === 'workout';
+          return (
+            <motion.button
+              key={date}
+              type="button"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reduce ? { duration: 0.1 } : { delay: i * 0.03, duration: 0.22, ease: 'easeOut' }}
+              onClick={() => {
+                vibrate(15);
+                // 有覆盖 → 点一下撤销回默认；无覆盖 → 翻成与投影相反
+                setDayPlan(date, override ? null : isTrain ? 'rest' : 'train');
+              }}
+              aria-label={`${isToday ? '今天' : `周${WEEK_CHARS[d.getDay()]}`}：${isTrain ? '训练日' : '休息日'}，点按切换`}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                minHeight: 64,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 3,
+                borderRadius: 4,
+                border: `1px solid ${isToday ? 'var(--accent)' : 'var(--line)'}`,
+                background: isTrain ? 'var(--accent-dim)' : 'transparent',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+                padding: '6px 0',
+              }}
+            >
+              <span className="text-3" style={{ fontSize: 11, lineHeight: 1 }}>
+                {isToday ? '今天' : `周${WEEK_CHARS[d.getDay()]}`}
+              </span>
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                  color: isTrain ? 'var(--accent-ink)' : 'var(--text-3)',
+                }}
+              >
+                {isTrain ? '练' : '休'}
+              </span>
+              {override ? <span style={{ width: 4, height: 4, borderRadius: 999, background: 'var(--accent)' }} /> : <span style={{ width: 4, height: 4 }} />}
+            </motion.button>
+          );
+        })}
+      </div>
+      <p className="text-3" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>
+        临时加班点"练"变"休"，计划自动顺延；再点一下恢复默认。课程进度不会乱。
+      </p>
+    </section>
+  );
+}
+
+/* ================= §0.6 今日总消耗（v1.5：力量+有氧+小练合并） ================= */
+
+function BurnCard(): JSX.Element | null {
+  const [cycle] = useCycle();
+  const [cardio] = useCardioEntries();
+  const [minisDone] = useMinisCompleted();
+  const today = todayStr();
+  const workoutKcal = cycle.history.filter((h) => h.date === today).reduce((s, h) => s + h.kcal, 0);
+  const cardioKcal = cardio.reduce((s, c) => s + c.kcal, 0);
+  /* 小练按包分钟 ×5 大卡估算（轻量间歇强度） */
+  const minisKcal = Math.round(
+    minisDone.reduce((s, id) => s + (getMiniPack(id)?.minutes ?? 8) * 5, 0),
+  );
+  const total = workoutKcal + cardioKcal + minisKcal;
+  if (total <= 0) return null;
+  const rows: { label: string; kcal: number }[] = [
+    { label: '力量训练', kcal: workoutKcal },
+    { label: '有氧 / 跑步', kcal: cardioKcal },
+    { label: '日常小练', kcal: minisKcal },
+  ].filter((r) => r.kcal > 0);
+  return (
+    <section style={{ marginTop: 24 }}>
+      <SectionLabel index="消耗">今日总消耗</SectionLabel>
+      <div style={{ marginTop: 14, border: '1px solid var(--line)', borderRadius: 4, padding: '16px 18px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span className="num" style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: 'var(--accent-ink)' }}>
+            {total}
+          </span>
+          <span className="text-2" style={{ fontSize: 13 }}>
+            大卡（估算）
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: 14, marginTop: 10, flexWrap: 'wrap' }}>
+          {rows.map((r) => (
+            <span key={r.label} className="text-2" style={{ fontSize: 13 }}>
+              {r.label} <span className="num" style={{ color: 'var(--text-1)' }}>{r.kcal}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -742,6 +897,8 @@ function RestCard({
   onSwitchToWorkout: () => void;
 }): JSX.Element {
   const navigate = useNavigate();
+  const [dayPlan] = useDayPlan();
+  const postponedToday = dayPlan[todayStr()] === 'rest';
   return (
     <TodayCardShell tone="warn">
       <div
@@ -791,6 +948,28 @@ function RestCard({
       >
         今天状态好，想练 →
       </button>
+      {postponedToday ? (
+        <button
+          type="button"
+          onClick={() => {
+            vibrate(15);
+            setDayPlan(todayStr(), null);
+          }}
+          style={{
+            display: 'block',
+            margin: '6px auto 0',
+            background: 'transparent',
+            border: 'none',
+            padding: '6px 12px',
+            fontSize: 13,
+            color: 'var(--text-3)',
+            cursor: 'pointer',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+        >
+          （已顺延，点我撤销）
+        </button>
+      ) : null}
       <p className="text-3" style={{ margin: '2px 0 0', fontSize: 13, lineHeight: 1.5, textAlign: 'center' }}>
         下一节：第 {state.nextLessonNumber} 课 · {state.nextWorkout.title}
       </p>
@@ -829,6 +1008,15 @@ export default function Home(): JSX.Element {
   const isWorkout = state.type === 'workout';
   const firstLaunch = cycle.history.length === 0;
   const capability = getCapability(cycle);
+
+  /* 距上次训练的天数（队列顺延提示用）：无记录按 0 */
+  const gapDays = (() => {
+    const nonRest = cycle.history.filter((h) => h.workoutId !== 'REST');
+    const last = nonRest[nonRest.length - 1];
+    if (!last) return 0;
+    const diff = Math.round((new Date(todayStr() + 'T12:00:00').getTime() - new Date(last.date + 'T12:00:00').getTime()) / 86400000);
+    return Math.max(0, diff);
+  })();
 
   // 休息日文案：排期强制休息（非"昨天练过"循环结果也非"已打卡"）时说明是按排期休息
   const scheduleNote = (() => {
@@ -876,9 +1064,23 @@ export default function Home(): JSX.Element {
           state={state}
           modeLabel={MODE_LABEL[schedule.mode]}
           scheduleNote={scheduleNote}
-          onSwitchToWorkout={() => setForceWorkout(true)}
+          onSwitchToWorkout={() => {
+            setForceWorkout(true);
+            setDayPlan(todayStr(), 'train');
+          }}
         />
       ) : null}
+
+      {/* 歇了好几天才回来：计划已自动顺延，给用户一个交代 */}
+      {isWorkout && gapDays >= 2 ? (
+        <p className="text-2" style={{ margin: '12px 0 0', fontSize: 13, lineHeight: 1.5 }}>
+          隔了 {gapDays} 天没练？没事，计划已经自动顺延到今天了，直接跟着练，重量还按上次的来。
+        </p>
+      ) : null}
+
+      <PlanStrip todayType={isWorkout ? 'workout' : 'rest'} schedule={schedule} />
+
+      <BurnCard />
 
       <MiniSection />
 

@@ -37,6 +37,12 @@
     "substitutes": [
       "outdoor-run",
       "jumping-jack"
+    ],
+    "cues": [
+      "别抓扶手",
+      "自然摆臂",
+      "目视前方",
+      "步子迈开"
     ]
   },
   {
@@ -76,6 +82,12 @@
     "substitutes": [
       "outdoor-run",
       "jumping-jack"
+    ],
+    "cues": [
+      "全脚掌踩实",
+      "核心收紧",
+      "匀速别冲",
+      "目视前方"
     ]
   },
   {
@@ -117,7 +129,14 @@
       "band-row",
       "australian-row",
       "towel-row"
-    ]
+    ],
+    "cues": [
+      "肩胛先收紧",
+      "拉到锁骨",
+      "核心别松",
+      "慢放别甩"
+    ],
+    "harder": "pull-up"
   },
   {
     "id": "seated-row",
@@ -158,7 +177,14 @@
       "band-row",
       "australian-row",
       "towel-row"
-    ]
+    ],
+    "cues": [
+      "挺胸沉肩",
+      "肘向后夹",
+      "拉到肚脐",
+      "慢放回"
+    ],
+    "harder": "one-arm-db-row"
   },
   {
     "id": "one-arm-db-row",
@@ -170,7 +196,10 @@
       "look": "哑铃就是哑铃区按重量从小到大排在铁架子上的短铁疙瘩；平板凳是一条齐膝高的平凳",
       "where": "哑铃区旁边的空凳区，拿一只哑铃配一条凳就能练"
     },
-    "equipmentId": ["dumbbell", "flat-bench"],
+    "equipmentId": [
+      "dumbbell",
+      "flat-bench"
+    ],
     "steps": [
       "左侧先练：右手和右膝撑在凳子上，左脚踩地，左手握哑铃自然垂下",
       "把背放平，像一张桌面，头别耷拉",
@@ -200,7 +229,15 @@
       "band-row",
       "doorframe-row",
       "towel-row"
-    ]
+    ],
+    "cues": [
+      "背放平",
+      "肘贴身体",
+      "拉到胯",
+      "慢放到底"
+    ],
+    "easier": "seated-row",
+    "harder": "bb-row"
   },
   {
     "id": "db-curl",
@@ -240,6 +277,12 @@
     ],
     "substitutes": [
       "chin-up"
+    ],
+    "cues": [
+      "大臂夹紧",
+      "别甩手腕",
+      "慢放到底",
+      "顶峰挤一下"
     ]
   },
   {
@@ -277,7 +320,18 @@
       "gym",
       "outdoor"
     ],
-    "substitutes": []
+    "substitutes": [
+      "assisted-pullup-machine",
+      "band-assisted-pullup"
+    ],
+    "cues": [
+      "肩膀别耸",
+      "核心微收",
+      "自然呼吸",
+      "握稳别晃"
+    ],
+    "easier": "assisted-pullup-machine",
+    "harder": "pull-up"
   },
   {
     "id": "goblet-squat",
@@ -317,7 +371,15 @@
     ],
     "substitutes": [
       "air-squat"
-    ]
+    ],
+    "cues": [
+      "膝盖朝脚尖",
+      "屁股往后坐",
+      "核心绷紧",
+      "脚跟踩实"
+    ],
+    "easier": "leg-press",
+    "harder": "bb-squat"
   },
   {
     "id": "leg-press",
@@ -357,7 +419,14 @@
     "substitutes": [
       "goblet-squat",
       "air-squat"
-    ]
+    ],
+    "cues": [
+      "别锁膝盖",
+      "腰贴紧靠垫",
+      "匀速推",
+      "慢放回"
+    ],
+    "harder": "hack-squat"
   },
   {
     "id": "db-rdl",
@@ -398,7 +467,14 @@
     "substitutes": [
       "glute-bridge",
       "single-leg-glute-bridge"
-    ]
+    ],
+    "cues": [
+      "背挺直",
+      "屁股往后推",
+      "哑铃贴腿滑",
+      "大腿后侧酸"
+    ],
+    "easier": "leg-curl"
   },
   {
     "id": "bulgarian-split-squat",
@@ -438,7 +514,14 @@
       "outdoor",
       "bodyweight"
     ],
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "前脚踩实",
+      "直上直下",
+      "核心收紧",
+      "膝盖朝脚尖"
+    ],
+    "easier": "walking-lunge"
   },
   {
     "id": "leg-curl",
@@ -478,7 +561,13 @@
     "substitutes": [
       "glute-bridge",
       "single-leg-glute-bridge"
-    ]
+    ],
+    "cues": [
+      "胯贴紧垫",
+      "慢勾慢放",
+      "顶峰挤一下"
+    ],
+    "harder": "db-rdl"
   },
   {
     "id": "db-bench-press",
@@ -490,7 +579,10 @@
       "look": "哑铃区拿一对哑铃，配一条平凳躺着推；新手用哑铃比杠铃安全——推不动了两边一松就扔，不会被压",
       "where": "自由力量区，一排平板卧推凳那里，拿哑铃过去占位"
     },
-    "equipmentId": ["dumbbell", "flat-bench"],
+    "equipmentId": [
+      "dumbbell",
+      "flat-bench"
+    ],
     "steps": [
       "哑铃先竖着放在大腿上，躺下的瞬间顺势用腿把它们带到肩膀两侧",
       "躺下后脚踩实地面，小臂垂直地面，哑铃在胸两侧",
@@ -519,7 +611,15 @@
     "substitutes": [
       "push-up",
       "incline-push-up"
-    ]
+    ],
+    "cues": [
+      "肩胛夹紧",
+      "脚踩实",
+      "推到胸上方",
+      "慢放别砸"
+    ],
+    "easier": "chest-press-machine",
+    "harder": "bb-bench-press"
   },
   {
     "id": "incline-db-press",
@@ -531,7 +631,10 @@
       "look": "靠背能调角度的卧推凳，凳腿边有个调节销，拔出来把靠背调到30-45度（比坐直矮、比平躺高）",
       "where": "自由力量区，跟平板卧推凳同一片，认准靠背能立起来的那种"
     },
-    "equipmentId": ["dumbbell", "incline-bench"],
+    "equipmentId": [
+      "dumbbell",
+      "incline-bench"
+    ],
     "steps": [
       "把靠背调到30-45度，坐好躺稳，脚踩实",
       "哑铃带到肩膀上方两侧，小臂垂直地面",
@@ -560,6 +663,12 @@
     "substitutes": [
       "decline-push-up",
       "push-up"
+    ],
+    "cues": [
+      "肩胛夹紧",
+      "肘别开太大",
+      "慢放",
+      "别弓腰"
     ]
   },
   {
@@ -572,7 +681,10 @@
       "look": "靠背调到接近90度直角的凳子，坐着像坐椅子一样有靠背支撑",
       "where": "自由力量区，找带靠背的推肩凳，没有就把可调凳靠背立起来"
     },
-    "equipmentId": ["dumbbell", "incline-bench"],
+    "equipmentId": [
+      "dumbbell",
+      "incline-bench"
+    ],
     "steps": [
       "坐进凳子，后背和头贴住靠背，脚踩实",
       "哑铃举到耳朵两侧，小臂垂直地面，掌心朝前",
@@ -600,6 +712,12 @@
     ],
     "substitutes": [
       "pike-push-up"
+    ],
+    "cues": [
+      "核心收紧",
+      "别后仰",
+      "推到头顶",
+      "慢放"
     ]
   },
   {
@@ -640,6 +758,12 @@
     "substitutes": [
       "band-chest-press",
       "push-up"
+    ],
+    "cues": [
+      "肘微屈",
+      "往中间夹",
+      "顶峰挤一下",
+      "慢放回"
     ]
   },
   {
@@ -680,6 +804,12 @@
     "substitutes": [
       "diamond-push-up",
       "dips"
+    ],
+    "cues": [
+      "大臂夹住",
+      "别晃身体",
+      "压到底",
+      "慢放回"
     ]
   },
   {
@@ -720,6 +850,12 @@
     ],
     "substitutes": [
       "band-pull-apart"
+    ],
+    "cues": [
+      "肘微屈",
+      "抬到肩平",
+      "别耸肩",
+      "慢落"
     ]
   },
   {
@@ -758,9 +894,18 @@
       "outdoor"
     ],
     "substitutes": [
+      "assisted-pullup-machine",
       "australian-row",
       "band-row"
-    ]
+    ],
+    "cues": [
+      "肩胛先收",
+      "胸往上迎",
+      "慢放到底",
+      "别蹬地借力"
+    ],
+    "easier": "assisted-pullup-machine",
+    "harder": "pull-up"
   },
   {
     "id": "farmers-walk",
@@ -800,6 +945,12 @@
     ],
     "substitutes": [
       "dead-hang"
+    ],
+    "cues": [
+      "挺胸沉肩",
+      "核心绷紧",
+      "小步快走",
+      "握紧握稳"
     ]
   },
   {
@@ -839,7 +990,13 @@
       "outdoor",
       "bodyweight"
     ],
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "步子迈大",
+      "直上直下",
+      "前脚踩实",
+      "核心收紧"
+    ]
   },
   {
     "id": "push-up",
@@ -878,7 +1035,15 @@
       "outdoor",
       "bodyweight"
     ],
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "身体一条线",
+      "核心收紧",
+      "肘向后45度",
+      "慢起慢落"
+    ],
+    "easier": "incline-push-up",
+    "harder": "decline-push-up"
   },
   {
     "id": "glute-bridge",
@@ -917,7 +1082,14 @@
       "outdoor",
       "bodyweight"
     ],
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "顶峰夹臀",
+      "胯推到最高",
+      "慢落",
+      "脚踩实"
+    ],
+    "harder": "single-leg-glute-bridge"
   },
   {
     "id": "mountain-climber",
@@ -956,7 +1128,14 @@
       "outdoor",
       "bodyweight"
     ],
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "胯别抬",
+      "核心绷紧",
+      "膝盖往胸收",
+      "保持节奏"
+    ],
+    "harder": "burpee"
   },
   {
     "id": "plank",
@@ -995,7 +1174,14 @@
       "outdoor",
       "bodyweight"
     ],
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "身体一条线",
+      "屁股别翘",
+      "核心收紧",
+      "均匀呼吸"
+    ],
+    "harder": "side-plank"
   },
   {
     "id": "dead-bug",
@@ -1034,7 +1220,13 @@
       "outdoor",
       "bodyweight"
     ],
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "腰贴紧地",
+      "对侧伸展",
+      "动作放慢",
+      "别憋气"
+    ]
   },
   {
     "id": "crunch",
@@ -1073,7 +1265,13 @@
       "outdoor",
       "bodyweight"
     ],
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "下巴收",
+      "用腹卷起",
+      "别抱头拽",
+      "慢落"
+    ]
   },
   {
     "id": "smith-squat",
@@ -1113,7 +1311,15 @@
     "substitutes": [
       "goblet-squat",
       "air-squat"
-    ]
+    ],
+    "cues": [
+      "脚往前站半步",
+      "膝盖朝脚尖",
+      "屁股往后坐",
+      "核心绷紧"
+    ],
+    "easier": "leg-press",
+    "harder": "bb-squat"
   },
   {
     "id": "smith-bench-press",
@@ -1128,7 +1334,10 @@
       "look": "还是那台带竖直钢轨的大铁架，这次把一条平板凳推进去躺着推，杠被轨道卡住不会左右歪",
       "where": "自由力量区，看到有人把凳子推进史密斯架里就是在练这个"
     },
-    "equipmentId": ["smith-machine", "flat-bench"],
+    "equipmentId": [
+      "smith-machine",
+      "flat-bench"
+    ],
     "steps": [
       "把平凳推到杠正下方，躺好后杠对着胸口中间",
       "双手比肩略宽正握，双脚踩实地面",
@@ -1153,7 +1362,15 @@
     "substitutes": [
       "db-bench-press",
       "push-up"
-    ]
+    ],
+    "cues": [
+      "肩胛夹紧",
+      "脚踩实",
+      "慢放别砸",
+      "别弓腰"
+    ],
+    "easier": "chest-press-machine",
+    "harder": "bb-bench-press"
   },
   {
     "id": "chest-press-machine",
@@ -1192,7 +1409,14 @@
     "substitutes": [
       "push-up",
       "band-chest-press"
-    ]
+    ],
+    "cues": [
+      "肩胛收紧",
+      "脚踩实",
+      "匀速推",
+      "慢放回"
+    ],
+    "harder": "db-bench-press"
   },
   {
     "id": "leg-extension",
@@ -1232,6 +1456,11 @@
     "substitutes": [
       "wall-sit",
       "air-squat"
+    ],
+    "cues": [
+      "慢抬慢放",
+      "顶峰挤一下",
+      "别甩"
     ]
   },
   {
@@ -1272,7 +1501,15 @@
     "substitutes": [
       "goblet-squat",
       "air-squat"
-    ]
+    ],
+    "cues": [
+      "背贴紧",
+      "膝盖朝脚尖",
+      "蹲到大腿平",
+      "慢起"
+    ],
+    "easier": "leg-press",
+    "harder": "bb-squat"
   },
   {
     "id": "straight-arm-pulldown",
@@ -1312,6 +1549,12 @@
     "substitutes": [
       "band-pull-apart",
       "superman"
+    ],
+    "cues": [
+      "手臂微屈",
+      "用背下压",
+      "别耸肩",
+      "慢放回"
     ]
   },
   {
@@ -1352,6 +1595,12 @@
     "kcalPerSet": 5,
     "substitutes": [
       "chin-up"
+    ],
+    "cues": [
+      "大臂夹紧",
+      "掌心相对",
+      "慢放到底",
+      "别借力甩"
     ]
   },
   {
@@ -1391,6 +1640,12 @@
     "kcalPerSet": 5,
     "substitutes": [
       "band-pull-apart"
+    ],
+    "cues": [
+      "肩胛收紧",
+      "肘微屈",
+      "向后夹",
+      "慢放回"
     ]
   },
   {
@@ -1431,6 +1686,11 @@
     "substitutes": [
       "crunch",
       "bicycle-crunch"
+    ],
+    "cues": [
+      "用腹卷起",
+      "别用臂拉",
+      "慢放回"
     ]
   },
   {
@@ -1471,7 +1731,15 @@
     "substitutes": [
       "band-assisted-pullup",
       "australian-row"
-    ]
+    ],
+    "cues": [
+      "肩胛先收",
+      "胸往上迎",
+      "慢放到底",
+      "核心别松"
+    ],
+    "easier": "lat-pulldown",
+    "harder": "pull-up"
   },
   {
     "id": "bb-bench-press",
@@ -1486,7 +1754,10 @@
       "look": "平板凳上方架着一根长杠铃，两边挂钩，两头能套大铁片，健身房最经典的那张铁床",
       "where": "自由力量区，一排卧推架那里，人最多要排队的区域"
     },
-    "equipmentId": ["bench-press-rack", "barbell"],
+    "equipmentId": [
+      "bench-press-rack",
+      "barbell"
+    ],
     "steps": [
       "躺上凳，眼睛在杠正下方，双脚踩实地面",
       "双手比肩略宽正握，两边握的位置对称",
@@ -1511,7 +1782,14 @@
     "substitutes": [
       "db-bench-press",
       "push-up"
-    ]
+    ],
+    "cues": [
+      "肩胛夹紧",
+      "脚踩实",
+      "杠落胸口",
+      "别弓腰"
+    ],
+    "easier": "db-bench-press"
   },
   {
     "id": "bb-row",
@@ -1552,7 +1830,14 @@
       "one-arm-db-row",
       "band-row",
       "australian-row"
-    ]
+    ],
+    "cues": [
+      "背放平",
+      "核心绷紧",
+      "拉到下腹",
+      "慢放别坠"
+    ],
+    "easier": "one-arm-db-row"
   },
   {
     "id": "bb-squat",
@@ -1567,7 +1852,10 @@
       "look": "健身房C位的大架子，一根长杠铃架在挂钩上，两边还有一对能调高度的安全杆",
       "where": "自由力量区正中间，最大的那排架子"
     },
-    "equipmentId": ["squat-rack", "barbell"],
+    "equipmentId": [
+      "squat-rack",
+      "barbell"
+    ],
     "steps": [
       "先把安全杆调到蹲到底时杠的高度，这是保命装置必须装",
       "钻到杠下，杠扛斜方肌上，双手扶稳，起杠后退两步",
@@ -1592,6 +1880,13 @@
     "substitutes": [
       "goblet-squat",
       "air-squat"
+    ],
+    "easier": "smith-squat",
+    "cues": [
+      "膝盖朝脚尖",
+      "背挺直",
+      "屁股往后坐",
+      "脚跟踩实"
     ]
   },
   {
@@ -1633,6 +1928,12 @@
       "outdoor-run",
       "jump-rope",
       "jumping-jack"
+    ],
+    "cues": [
+      "先蹬腿",
+      "再拉背",
+      "核心收紧",
+      "匀速呼吸"
     ]
   },
   {
@@ -1672,6 +1973,12 @@
     "substitutes": [
       "outdoor-run",
       "high-knees"
+    ],
+    "cues": [
+      "别趴扶手",
+      "全脚掌踩",
+      "核心收紧",
+      "匀速别冲"
     ]
   },
   {
@@ -1711,7 +2018,13 @@
     "videoKeyword": "上斜俯卧撑 新手 退阶 教学",
     "voiceScript": "上斜俯卧撑，标准俯卧撑的退阶款，手撑桌沿就能练。身体绷成一块斜木板，胸口往桌沿靠，肘别打太开。撑得越高越轻松，从齐腰高度开始，轻松做15个就换更低的位置。撑之前先晃晃桌子，结实再练。",
     "kcalPerSet": 5,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "身体绷直",
+      "胸往前沿靠",
+      "慢起慢落"
+    ],
+    "harder": "push-up"
   },
   {
     "id": "decline-push-up",
@@ -1750,7 +2063,13 @@
     "videoKeyword": "下斜俯卧撑 上胸 教学",
     "voiceScript": "下斜俯卧撑，把脚垫高的俯卧撑，专攻上胸。脚搭在30到40厘米的凳上，身体一条线，胸口往地面靠。垫高之后腰更容易塌，收腹夹臀是底线。做不动就降低脚的高度，别塌着腰硬撑。",
     "kcalPerSet": 6,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "身体绷直",
+      "核心收紧",
+      "慢起慢落"
+    ],
+    "easier": "push-up"
   },
   {
     "id": "diamond-push-up",
@@ -1789,7 +2108,12 @@
     "videoKeyword": "钻石俯卧撑 三头肌 教学",
     "voiceScript": "钻石俯卧撑，徒手练三头的王牌。双手在胸下拼个钻石，下放时肘贴着身体往后走，像去够后裤兜，用胳膊后侧把自己顶起来。比标准俯卧撑难，6个起步不丢人，做不了就先撑桌沿做上斜版。",
     "kcalPerSet": 6,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "肘贴身体",
+      "核心收紧",
+      "慢起慢落"
+    ]
   },
   {
     "id": "pull-up",
@@ -1827,10 +2151,18 @@
     "voiceScript": "引体向上，背部训练的毕业考。正握比肩略宽，先沉肩胛，用胳膊肘戳肋骨把下巴拉过杠。你现在能拉两三个，就做两个乘四组，每组留一个不拼命。下放要慢，引体的伤一半是摔出来的。一个月目标五个。",
     "kcalPerSet": 8,
     "substitutes": [
+      "assisted-pullup-machine",
       "australian-row",
       "band-assisted-pullup",
       "towel-row"
-    ]
+    ],
+    "cues": [
+      "肩胛先收",
+      "胸往杠迎",
+      "别甩腿",
+      "慢放到底"
+    ],
+    "easier": "assisted-pullup-machine"
   },
   {
     "id": "chin-up",
@@ -1868,9 +2200,18 @@
     "voiceScript": "反手引体，手心朝自己，二头能帮忙，比正手友好。与肩同宽反握，沉肩，把下巴拉过杠，顶端挤一下二头。拉不动完整的就只做慢放那半截，离心也能攒力量。正手拉不动的日子，就用反手保持进度。",
     "kcalPerSet": 8,
     "substitutes": [
+      "assisted-pullup-machine",
       "australian-row",
       "towel-row"
-    ]
+    ],
+    "cues": [
+      "肩胛先收",
+      "胸往杠迎",
+      "顶峰挤一下",
+      "慢放到底"
+    ],
+    "easier": "assisted-pullup-machine",
+    "harder": "pull-up"
   },
   {
     "id": "australian-row",
@@ -1910,7 +2251,14 @@
     "substitutes": [
       "towel-row",
       "doorframe-row"
-    ]
+    ],
+    "cues": [
+      "身体绷直",
+      "胸往杠迎",
+      "肘向后夹",
+      "慢放"
+    ],
+    "harder": "pull-up"
   },
   {
     "id": "dips",
@@ -1950,6 +2298,12 @@
     "substitutes": [
       "diamond-push-up",
       "push-up"
+    ],
+    "cues": [
+      "身体微前倾",
+      "慢下慢起",
+      "别耸肩",
+      "肘别开太大"
     ]
   },
   {
@@ -1988,7 +2342,15 @@
     "videoKeyword": "自重深蹲 标准动作 新手 教学",
     "voiceScript": "自重深蹲，所有深蹲的地基。脚与肩同宽脚尖微外八，双手前平举，屁股往后找椅子坐，蹲到大腿平行，脚跟发力站起来。膝盖对准脚尖别内扣，这条红线在哪都不能破。连续20个标准，再谈加重量。",
     "kcalPerSet": 8,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "膝盖朝脚尖",
+      "屁股往后坐",
+      "脚跟踩实",
+      "背挺直"
+    ],
+    "easier": "wall-sit",
+    "harder": "goblet-squat"
   },
   {
     "id": "single-leg-glute-bridge",
@@ -2027,7 +2389,13 @@
     "videoKeyword": "单腿臀桥 标准动作 教学",
     "voiceScript": "单腿臀桥，臀桥的单腿加强版，左侧先做。仰卧，右腿抬起，只用左脚跟把髋顶到身体一条直线，顶端停一秒夹紧左臀。左侧做几个右侧做几个，让左臀慢慢追上右边。用腰顶着做会腰酸，那就做错了。",
     "kcalPerSet": 6,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "顶峰夹臀",
+      "胯别歪",
+      "慢落"
+    ],
+    "easier": "glute-bridge"
   },
   {
     "id": "burpee",
@@ -2066,7 +2434,14 @@
     "videoKeyword": "波比跳 低冲击 无跳跃 教学",
     "voiceScript": "波比跳低冲击版，燃脂王牌但不伤小腿。下蹲撑地，双脚依次往后撤步，绷直，再踏步收回站起，全程不跳。别小看这个版本，30秒一组照样暴汗。跳跃那一下全怼在小腿上，你不需要，踏步进出就够了。",
     "kcalPerSet": 9,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "动作分开做",
+      "落地轻",
+      "核心收紧",
+      "别塌腰"
+    ],
+    "easier": "mountain-climber"
   },
   {
     "id": "jumping-jack",
@@ -2105,7 +2480,13 @@
     "videoKeyword": "开合跳 热身 正确姿势",
     "voiceScript": "开合跳，没有跑步机时的热身首选。手脚像剪刀一样同步开合，前脚掌先落地，轻得像猫，咣咣砸地说明太僵。跳30到60秒，微微出汗就行。小腿要是酸，就换侧点步加拍手的无跳跃版，一样热身。",
     "kcalPerSet": 10,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "落地轻",
+      "膝盖微屈",
+      "核心收紧",
+      "保持节奏"
+    ]
   },
   {
     "id": "high-knees",
@@ -2144,7 +2525,13 @@
     "videoKeyword": "高抬腿 正确姿势 有氧 教学",
     "voiceScript": "原地高抬腿，最简单的暴汗动作。膝盖轮流抬到髋部高度，手臂大幅摆动，前脚掌轻落地，身体微前倾别后仰。30到40秒一组。小腿酸了就换成原地提膝走，不跑不跳，照样把心率拉起来。",
     "kcalPerSet": 8,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "前脚掌落地",
+      "膝盖抬高",
+      "核心收紧",
+      "摆臂配合"
+    ]
   },
   {
     "id": "jump-rope",
@@ -2185,6 +2572,12 @@
     "substitutes": [
       "jumping-jack",
       "high-knees"
+    ],
+    "cues": [
+      "手腕摇绳",
+      "前脚掌跳",
+      "膝盖微屈",
+      "别跳太高"
     ]
   },
   {
@@ -2223,6 +2616,12 @@
     "substitutes": [
       "high-knees",
       "jumping-jack"
+    ],
+    "cues": [
+      "小步高频",
+      "前脚掌先落",
+      "收紧核心",
+      "鼻吸口呼"
     ]
   },
   {
@@ -2262,7 +2661,13 @@
     "videoKeyword": "超人式 背部 徒手 教学",
     "voiceScript": "超人式，趴着练背的徒手动作，没有单杠的日子靠它。手臂双腿同时离地，像超人起飞，顶端停一两秒，视线看地面别仰头。离地10厘米就够，抬太高是用腰在顶，腰酸就是信号。12到15个一组。",
     "kcalPerSet": 4,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "别抬太高",
+      "臀腿夹紧",
+      "目视地面",
+      "慢慢落"
+    ]
   },
   {
     "id": "towel-row",
@@ -2300,7 +2705,13 @@
     "videoKeyword": "毛巾划船 居家背部训练 桌下划船",
     "voiceScript": "毛巾划船，家里没单杠时的练背救星。躺到结实餐桌下面，抓着桌沿把胸口拉上去，垫条毛巾不硌手。先用力晃晃桌子，轻桌子压上重物再练。身体绷成一块斜板，屁股别掉。屈膝做简单，腿伸直更难。",
     "kcalPerSet": 6,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "身体绷直",
+      "肘向后夹",
+      "胸往前迎",
+      "慢放"
+    ]
   },
   {
     "id": "doorframe-row",
@@ -2338,6 +2749,12 @@
     "kcalPerSet": 6,
     "substitutes": [
       "towel-row"
+    ],
+    "cues": [
+      "身体绷直",
+      "肘向后夹",
+      "慢放",
+      "核心别松"
     ]
   },
   {
@@ -2379,6 +2796,12 @@
     "substitutes": [
       "towel-row",
       "doorframe-row"
+    ],
+    "cues": [
+      "挺胸沉肩",
+      "肘向后夹",
+      "拉到肚脐",
+      "慢放回"
     ]
   },
   {
@@ -2417,7 +2840,13 @@
     "videoKeyword": "弹力带拉开 band pull apart 肩后束",
     "voiceScript": "弹力带胸前拉开，练肩后束和上背，久坐圆肩的解药。手臂前平举伸直，把带子往两边拉开到贴上胸口，停半秒。用最细的带子起步，贪粗一定会耸肩借力。放回要慢，橡皮可不会心疼你的肩。",
     "kcalPerSet": 4,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "手臂微屈",
+      "肩胛夹紧",
+      "匀速拉开",
+      "慢放回"
+    ]
   },
   {
     "id": "band-chest-press",
@@ -2458,7 +2887,14 @@
     "substitutes": [
       "push-up",
       "incline-push-up"
-    ]
+    ],
+    "cues": [
+      "肩胛收紧",
+      "匀速推",
+      "顶峰挤一下",
+      "慢放回"
+    ],
+    "harder": "push-up"
   },
   {
     "id": "pike-push-up",
@@ -2497,7 +2933,13 @@
     "videoKeyword": "派克俯卧撑 pike push up 练肩 教学",
     "voiceScript": "派克俯卧撑，不用哑铃的练肩动作。俯卧撑姿势把屁股撅上天，身体折成倒V，头顶往地面方向沉再推起。屁股一掉就变回练胸了，全程保持倒V是灵魂。头胀就把幅度减半，这是正常充血不是进步。",
     "kcalPerSet": 6,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "屁股抬高",
+      "头往地面",
+      "肘向后",
+      "慢起"
+    ]
   },
   {
     "id": "wall-sit",
@@ -2536,7 +2978,13 @@
     "videoKeyword": "靠墙静蹲 标准动作 膝盖 教学",
     "voiceScript": "靠墙静蹲，练腿不用蹲的静态动作。背贴墙往下滑到大腿平行地面，小腿垂直，膝盖对准脚尖。大腿发抖是正常信号，说明肌肉在工作。30到45秒一组，憋气硬扛不算本事，保持呼吸。",
     "kcalPerSet": 6,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "大腿蹲到平",
+      "背贴紧墙",
+      "均匀呼吸"
+    ],
+    "harder": "air-squat"
   },
   {
     "id": "side-plank",
@@ -2575,7 +3023,13 @@
     "videoKeyword": "侧平板支撑 标准动作 教学",
     "voiceScript": "侧平板支撑，练侧腰和深层核心，左侧先做。左肘在肩正下方撑地，把髋顶起来，身体像一块侧立的门板。撑20到30秒换边，左侧多久右侧多久。撑不住就屈膝做简单版，塌着髋硬撑是在磨腰。",
     "kcalPerSet": 4,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "身体一条线",
+      "胯别掉",
+      "均匀呼吸"
+    ],
+    "easier": "plank"
   },
   {
     "id": "bicycle-crunch",
@@ -2614,7 +3068,12 @@
     "videoKeyword": "单车卷腹 标准动作 教学",
     "voiceScript": "单车卷腹，腹直肌加腹斜肌一起练。手轻放耳侧别抱头，右肘够左膝、左腿蹬直，换边，像空中慢动作骑车。越慢越到位，蹬得飞快全白做。腰全程贴地，拱起来了就停，那是核心松了。",
     "kcalPerSet": 5,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "肘碰对膝",
+      "动作放慢",
+      "别抱头拽"
+    ]
   },
   {
     "id": "lying-leg-raise",
@@ -2653,6 +3112,12 @@
     "videoKeyword": "仰卧举腿 下腹 不伤腰 教学",
     "voiceScript": "仰卧举腿，练下腹，但也是伤腰高发动作，规矩记好：双腿并拢慢抬慢放，下放到离地一拳就停，腰全程贴死地面。腰一拱起来，幅度立刻减半，宁可做得小，不能让腰代偿。10到12个一组。",
     "kcalPerSet": 5,
-    "substitutes": []
+    "substitutes": [],
+    "cues": [
+      "腰贴紧地",
+      "慢放腿",
+      "别甩",
+      "核心收紧"
+    ]
   }
 ]

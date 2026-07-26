@@ -14,6 +14,7 @@ import { formatKg } from '@/components/workout/weight';
 import { adjustedReps, adjustedWeightKg, repsTarget } from '@/lib/adjust';
 import { getCustomExercises, useExerciseOverride } from '@/lib/store';
 import { speak } from '@/lib/tts';
+import { openExerciseVideo } from '@/lib/video';
 import type { Exercise } from '@/lib/types';
 import { getExerciseById } from '@/lib/utils-workout';
 import { VENUE_LABELS, primaryVenue } from './venues';
@@ -254,11 +255,9 @@ export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdi
             <GhostButton
               icon={<Icon name="play" size={18} />}
               right={<Icon name="arrow-right" size={16} />}
-              onClick={() =>
-                window.open(`https://search.bilibili.com/all?keyword=${encodeURIComponent(ex.videoKeyword)}`, '_blank', 'noopener')
-              }
+              onClick={() => openExerciseVideo(ex)}
             >
-              找视频（B站搜索，外链）
+              看视频（直达 B 站 App）
             </GhostButton>
           </div>
 

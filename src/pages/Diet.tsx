@@ -33,10 +33,12 @@ import {
   toggleSupplement,
   useCycle,
   useDietEntries,
+  useProfile,
   useSettings,
   useSupplements,
   useTargets,
 } from '../lib/store';
+import { getTodayState } from '../lib/utils-workout';
 import type { DietEntry, FoodEstimateItem, MealType, Supplement } from '../lib/types';
 
 const supplements = nutritionJson.supplements as Supplement[];
@@ -976,6 +978,101 @@ function SupplementRows(): JSX.Element {
 
 /* ================= §6 饮食建议（折叠区） ================= */
 
+/* ================= v1.5：训练日/休息日目标横幅 ================= */
+
+function DayTypeBanner(): JSX.Element {
+  const [cycle] = useCycle();
+  const [profile] = useProfile();
+  const targets = useTargets();
+  const state = getTodayState({ profile }, cycle);
+  const isTrainingDay = state.type === 'workout';
+  /* 训练日碳水 +15%、休息日 -10%，蛋白脂肪不动，总热量跟着碳水走 */
+  const carbs = Math.round(targets.carbsG * (isTrainingDay ? 1.15 : 0.9));
+  const kcal = Math.round(targets.proteinG * 4 + targets.fatG * 9 + carbs * 4);
+  return (
+    <section style={{ marginTop: 24 }}>
+      <div
+        style={{
+          border: '1px solid var(--line)',
+          borderRadius: 4,
+          padding: '14px 16px',
+          background: isTrainingDay ? 'var(--accent-dim)' : 'transparent',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <Tag>{isTrainingDay ? '今天是训练日' : '今天是休息日'}</Tag>
+          <span className="text-1" style={{ fontSize: 14, fontWeight: 500 }}>
+            目标约 {kcal} 大卡 · 碳水 {carbs}g
+          </span>
+        </div>
+        <p className="text-2" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.6 }}>
+          {isTrainingDay
+            ? '碳水加 15%：练前 1-2 小时吃正餐，练后 30 分钟内蛋白粉 + 快碳（香蕉/白米饭），恢复最快。'
+            : '碳水减 10%：蛋白照常吃够，主食减一口，别因为没练就断蛋白。'}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ================= v1.5：食物替换表 ================= */
+
+const SWAP_GROUPS: { title: string; rows: [string, string][] }[] = [
+  {
+    title: '蛋白质没了换什么',
+    rows: [
+      ['鸡腿/鸡胸肉 1 块', '鸡蛋 2 个 / 蛋白粉 1 勺 / 牛肉 1 掌心'],
+      ['牛肉 1 掌心', '鱼虾 1 掌心 / 鸡腿 1 块 / 豆腐 1 大块'],
+      ['鱼虾', '鸡腿 / 牛肉 / 鸡蛋 3 个'],
+    ],
+  },
+  {
+    title: '主食没了换什么',
+    rows: [
+      ['米饭 1 碗', '面条 1 碗 / 馒头 1 个 / 红薯 2 个'],
+      ['红薯/玉米', '米饭半碗 / 燕麦 1 碗'],
+    ],
+  },
+  {
+    title: '食堂/外卖怎么点',
+    rows: [
+      ['只有盖饭', '要鸡腿/牛肉盖饭，米饭吃 2/3，加份卤蛋'],
+      ['只有面条', '牛肉面 + 蛋 + 青菜，汤别喝完（油）'],
+      ['只有麻辣烫', '多拿肉/蛋/豆腐/菜，少拿丸子粉条，清汤'],
+    ],
+  },
+];
+
+function SwapTableSection(): JSX.Element {
+  return (
+    <section style={{ marginTop: 28 }}>
+      <SectionLabel index="替换">没得吃就换</SectionLabel>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
+        {SWAP_GROUPS.map((g) => (
+          <div key={g.title} style={{ border: '1px solid var(--line)', borderRadius: 4, padding: '12px 14px' }}>
+            <div className="font-display font-semibold uppercase text-3" style={{ fontSize: 13, letterSpacing: '0.14em' }}>
+              {g.title}
+            </div>
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {g.rows.map(([from, to]) => (
+                <div key={from} style={{ display: 'flex', gap: 8, fontSize: 14, lineHeight: 1.6 }}>
+                  <span className="text-1" style={{ flexShrink: 0, fontWeight: 500 }}>
+                    {from}
+                  </span>
+                  <span className="text-3" style={{ flexShrink: 0 }}>
+                    →
+                  </span>
+                  <span className="text-2">{to}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function TipsSection(): JSX.Element {
   const [open, setOpen] = useState(false);
   const reduce = useReducedMotion();
@@ -1219,6 +1316,9 @@ export default function Diet(): JSX.Element {
 
       <ProgressSection entries={entries} />
 
+      {/* v1.5：训练日/休息日两套目标（碳水浮动），跟着排队状态自动切 */}
+      <DayTypeBanner />
+
       <QuickLogger
         input={input}
         onInput={setInput}
@@ -1235,6 +1335,8 @@ export default function Diet(): JSX.Element {
       <SupplementRows />
 
       <DiaryList entries={entries} isToday={offset === 0} onDelete={onDelete} onFirst={() => inputRef.current?.focus()} />
+
+      <SwapTableSection />
 
       <TipsSection />
 

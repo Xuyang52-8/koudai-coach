@@ -12,6 +12,12 @@
 
 import { getSettings } from './store';
 
+/** 全局语速：设置 ttsRate 优先，缺省 0.9（偏慢，新手边做边听跟得上） */
+export function getTtsRate(): number {
+  const r = getSettings().ttsRate;
+  return typeof r === 'number' && r >= 0.5 && r <= 1.5 ? r : 0.9;
+}
+
 /** 是否在 Capacitor 原生壳内（安卓 WebView 的 speechSynthesis 是空壳，必须走原生 TTS 插件） */
 function isNative(): boolean {
   const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
@@ -112,7 +118,7 @@ function doSpeakNative(text: string, opts: SpeakOptions): void {
       await TextToSpeech.speak({
         text,
         lang: 'zh-CN',
-        rate: opts.rate ?? 1.05,
+        rate: opts.rate ?? getTtsRate(),
         pitch: 1.0,
         volume: 1.0,
         category: 'playback',
@@ -147,7 +153,7 @@ function doSpeak(text: string, opts: SpeakOptions): void {
       for (const chunk of queue) {
         const utter = new SpeechSynthesisUtterance(chunk);
         utter.lang = 'zh-CN';
-        utter.rate = opts.rate ?? 1.05;
+        utter.rate = opts.rate ?? getTtsRate();
         utter.pitch = 1;
         if (voice) utter.voice = voice;
         utter.onerror = (e) => console.warn('[tts] speak error:', e.error);
@@ -173,5 +179,5 @@ export function speakCountdown(text: string, opts: SpeakOptions = {}): void {
   if (!ttsSupported()) return;
   const s = getSettings();
   if (!s.ttsOn || !s.ttsCountdownOn) return;
-  doSpeak(text, { ...opts, rate: 1.15 });
+  doSpeak(text, { ...opts, rate: Math.min(1.4, getTtsRate() + 0.2) });
 }

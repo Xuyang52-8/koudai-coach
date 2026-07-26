@@ -38,13 +38,13 @@ function ok(name: string, fn: () => void): void {
 const builtinExercises = exercisesJson as Exercise[];
 const ids = (list: Exercise[]): string[] => list.map((e) => e.id);
 
-function makeProfile(ownedEquipment?: string[]): UserProfile {
+function makeProfile(ownedEquipment?: string[], experience: UserProfile['experience'] = 'newbie'): UserProfile {
   return {
     gender: 'male',
     age: 20,
     heightCm: 181,
     weightKg: 81.5,
-    experience: 'newbie',
+    experience,
     injuries: [],
     leftRightDiff: 'none',
     fatAreas: [],
@@ -193,7 +193,8 @@ ok('全不行再降级：owned=[] 时课表仍有得练（居家/自重变体兜
 /* ================= 老用户无感 ================= */
 
 ok('ownedEquipment=undefined：行为与现状一致（gym 变体原样，零过滤）', () => {
-  const profile = makeProfile(undefined);
+  /* v1.5：新手保护期只影响 experience=newbie 且 Lv.1 的用户；老用户（非 newbie）无感 */
+  const profile = makeProfile(undefined, 'intermediate');
   for (const w of program.workouts) {
     const r = resolveExercisesForProfile(w, profile, 'gym');
     assert.deepEqual(ids(r.exercises), w.variants?.gym ?? w.exerciseIds, `${w.id} 课被意外过滤`);
@@ -204,11 +205,33 @@ ok('ownedEquipment=undefined：行为与现状一致（gym 变体原样，零过
 ok('全选（preset-full-gym）：与 gym 变体原样一致，零替换', () => {
   const full = getEquipmentPreset('preset-full-gym');
   assert.ok(full);
-  const profile = makeProfile(full.equipmentIds);
+  /* v1.5：newbie 会触发新手保护期替换，这里验证"非新手零替换" */
+  const profile = makeProfile(full.equipmentIds, 'intermediate');
   for (const w of program.workouts) {
     const r = resolveExercisesForProfile(w, profile, 'gym');
     assert.deepEqual(ids(r.exercises), w.variants?.gym ?? w.exerciseIds, `${w.id} 课被意外替换`);
   }
+});
+
+/* ================= v1.5 新手保护期 ================= */
+
+ok('新手保护期：newbie Lv.1 高门槛拉类自动降辅助引体机（有器械时）', () => {
+  const xu = getEquipmentPreset('preset-xu-gym');
+  assert.ok(xu);
+  const profile = makeProfile(xu.equipmentIds, 'newbie');
+  const a = resolveExercisesForProfile(program.workouts[0], profile, 'gym');
+  assert.ok(!ids(a.exercises).includes('dead-hang'), 'A 课不该出现自重吊杠');
+  assert.ok(ids(a.exercises).includes('assisted-pullup-machine'), 'A 课应换成辅助引体机');
+  const d = resolveExercisesForProfile(program.workouts[3], profile, 'gym');
+  assert.ok(!ids(d.exercises).includes('band-assisted-pullup'), 'D 课不该出现弹力带引体');
+  assert.ok(ids(d.exercises).includes('assisted-pullup-machine'), 'D 课应换成辅助引体机');
+});
+
+ok('新手保护期：无辅助引体机时不硬换（走原替代链）', () => {
+  const profile = makeProfile(['dumbbell'], 'newbie');
+  const a = resolveExercisesForProfile(program.workouts[0], profile, 'gym');
+  assert.ok(!ids(a.exercises).includes('assisted-pullup-machine'), '没器械不该换出辅助引体机');
+  assert.ok(a.exercises.length >= 4, 'A 课动作数异常');
 });
 
 console.log(`\n${passed} 项全部通过`);

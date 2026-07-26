@@ -32,7 +32,7 @@ import {
   WeekdayChips,
 } from '@/components/onboarding/selectors';
 import { AiConfigPanels } from '@/components/settings/AiConfigPanels';
-import { EquipmentRow, LibraryRow, NotifyRow } from '@/components/settings/CommonRows';
+import { EquipmentRow, LibraryRow, NotifyRow, NotifySelfCheckRow } from '@/components/settings/CommonRows';
 import { BackupPanel, DangerPanel } from '@/components/settings/DataPanels';
 import { Caption, GroupHeader, Panel, PanelRow } from '@/components/settings/common';
 import { RPE_LABELS, overrideDeltaText } from '@/lib/adjust';
@@ -190,6 +190,46 @@ export default function Settings(): JSX.Element {
                 />
               </div>
             </PanelRow>
+            <PanelRow>
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 500 }}>语速</div>
+                <Caption>默认偏慢，给你留出找器械、坐下来的时间</Caption>
+                <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                  {(
+                    [
+                      { label: '慢', rate: 0.75 },
+                      { label: '偏慢（推荐）', rate: 0.9 },
+                      { label: '标准', rate: 1.05 },
+                      { label: '快', rate: 1.2 },
+                    ] as const
+                  ).map((opt) => {
+                    const cur = settings.ttsRate ?? 0.9;
+                    const on = Math.abs(cur - opt.rate) < 0.01;
+                    return (
+                      <button
+                        key={opt.rate}
+                        type="button"
+                        onClick={() => updateSettings({ ttsRate: opt.rate })}
+                        style={{
+                          minHeight: 44,
+                          padding: '0 16px',
+                          borderRadius: 4,
+                          border: `1px solid ${on ? 'var(--accent)' : 'var(--line)'}`,
+                          background: on ? 'var(--accent-dim)' : 'transparent',
+                          color: on ? 'var(--accent-ink)' : 'var(--text-2)',
+                          fontSize: 14,
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          WebkitTapHighlightColor: 'transparent',
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </PanelRow>
             <PanelRow last>
               <GhostButton
                 size="sm"
@@ -245,6 +285,19 @@ export default function Settings(): JSX.Element {
                 />
               </div>
             </PanelRow>
+            <PanelRow>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 17, fontWeight: 500 }}>陪练短口令循环</div>
+                  <Caption>做组时循环喊"肩胛收紧"这类短口令，直到你点"这组做完了"。建议开</Caption>
+                </div>
+                <RowToggle
+                  on={settings.coachLoop ?? true}
+                  onChange={(on) => updateSettings({ coachLoop: on })}
+                  label="陪练短口令循环"
+                />
+              </div>
+            </PanelRow>
             <PanelRow last>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div>
@@ -278,8 +331,11 @@ export default function Settings(): JSX.Element {
             <PanelRow>
               <LibraryRow />
             </PanelRow>
-            <PanelRow last>
+            <PanelRow>
               <NotifyRow />
+            </PanelRow>
+            <PanelRow last>
+              <NotifySelfCheckRow />
             </PanelRow>
           </Panel>
         </div>

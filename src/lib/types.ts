@@ -53,6 +53,16 @@ export interface Exercise {
   voiceScript: string;
   /** 每组估算消耗大卡 */
   kcalPerSet: number;
+  /**
+   * 陪练短口令（循环朗读用）：3-6 句，每句 ≤8 字，教练喊麦风格。
+   * 缺省时回落 [mantra] + commonMistakes 前两条截短（lib/cues.ts 兜底）。
+   */
+  cues?: string[];
+  /** 降阶动作 id（"做不了"一步降到更易变体）；进阶动作 id（"太轻松"一步升到更难变体） */
+  easier?: string;
+  harder?: string;
+  /** B 站教学视频 BV 号（精编直达，缺省走关键词搜索深链） */
+  videoBv?: string;
 }
 
 /* ---------- program.json ---------- */
@@ -335,6 +345,10 @@ export interface AppSettings {
   ttsCountdownOn: boolean;
   /** 翻到动作卡自动朗读要领（需 ttsOn 同开）。可选：老用户已存数据缺省，消费端按 ?? true 处理 */
   ttsAuto?: boolean;
+  /** TTS 语速（0.6-1.3）。可选：缺省按 0.9（偏慢，给新手留反应时间） */
+  ttsRate?: number;
+  /** 陪练短口令循环：开=做组时循环喊口令直到点"这组做完了"。可选：缺省视为 true */
+  coachLoop?: boolean;
   /** 训练时屏幕常亮（Screen Wake Lock）。可选同上，缺省视为 true */
   keepScreenOn?: boolean;
   /** 锁屏后保持语音（静音循环 + Media Session 保活，安卓更有效）。可选同上，缺省视为 true */

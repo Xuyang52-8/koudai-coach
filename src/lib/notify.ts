@@ -97,3 +97,115 @@ export function syncReminder(): void {
     void cancelReminder();
   }
 }
+
+/* ================= v1.5：休息计时双保险 + 提醒自检 ================= */
+
+/** 休息结束系统通知 id（与每日提醒 1001 分开） */
+const REST_ALARM_ID = 2002;
+
+/**
+ * 休息计时双保险：overlay 打开时预约一条 seconds 秒后的系统通知。
+ * App 切后台/被杀，系统闹钟照样响（国产 ROM 需过省电白名单，自检页有引导）。
+ * 前台正常走完/跳过/离开时会 cancelRestAlarm() 撤掉，不会重复吵。
+ */
+export async function scheduleRestAlarm(seconds: number, label: string): Promise<void> {
+  if (!isNative()) return;
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display !== 'granted') return; // 没权限不打扰，前台计时照常
+    await LocalNotifications.cancel({ notifications: [{ id: REST_ALARM_ID }] }).catch(() => undefined);
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: REST_ALARM_ID,
+          title: '休息结束',
+          body: `该上了：${label}`,
+          schedule: { at: new Date(Date.now() + seconds * 1000), allowWhileIdle: true },
+        },
+      ],
+    });
+  } catch (e) {
+    console.warn('[notify] rest alarm failed:', e);
+  }
+}
+
+/** 撤掉休息结束通知（前台走完/跳过/卸载时调，幂等） */
+export async function cancelRestAlarm(): Promise<void> {
+  if (!isNative()) return;
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    await LocalNotifications.cancel({ notifications: [{ id: REST_ALARM_ID }] });
+  } catch {
+    /* ignore */
+  }
+}
+
+/** 自检用：立刻发一条测试通知，返回是否成功（验证手机到底放不放行） */
+export async function sendTestNotification(): Promise<boolean> {
+  if (!isNative()) return false;
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display !== 'granted') {
+      const req = await LocalNotifications.requestPermissions();
+      if (req.display !== 'granted') return false;
+    }
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: 2999,
+          title: '口袋私教 · 测试通知',
+          body: '能看到我，说明通知是通的 💪',
+          schedule: { at: new Date(Date.now() + 1500) },
+        },
+      ],
+    });
+    return true;
+  } catch (e) {
+    console.warn('[notify] test failed:', e);
+    return false;
+  }
+}
+
+/** 自检用：通知权限 + 精确闹钟（安卓 12+）状态 */
+export async function getNotifyStatus(): Promise<{
+  native: boolean;
+  permission: 'granted' | 'denied' | 'prompt' | 'unknown';
+  exactAlarm: 'granted' | 'denied' | 'unknown';
+}> {
+  if (!isNative()) return { native: false, permission: 'unknown', exactAlarm: 'unknown' };
+  let permission: 'granted' | 'denied' | 'prompt' | 'unknown' = 'unknown';
+  let exactAlarm: 'granted' | 'denied' | 'unknown' = 'unknown';
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const perm = await LocalNotifications.checkPermissions();
+    permission = perm.display === 'granted' ? 'granted' : perm.display === 'denied' ? 'denied' : 'prompt';
+    try {
+      const exact = await (
+        LocalNotifications as unknown as {
+          checkExactNotificationSetting?: () => Promise<{ exact_alarm?: string }>;
+        }
+      ).checkExactNotificationSetting?.();
+      if (exact?.exact_alarm) exactAlarm = exact.exact_alarm === 'granted' ? 'granted' : 'denied';
+    } catch {
+      /* 老系统无此概念 */
+    }
+  } catch (e) {
+    console.warn('[notify] status failed:', e);
+  }
+  return { native: true, permission, exactAlarm };
+}
+
+/** 自检用：跳系统"精确闹钟"设置页（安卓 12+；不支持时静默） */
+export async function openExactAlarmSettings(): Promise<void> {
+  if (!isNative()) return;
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    await (
+      LocalNotifications as unknown as { changeExactNotificationSetting?: () => Promise<void> }
+    ).changeExactNotificationSetting?.();
+  } catch {
+    /* ignore */
+  }
+}

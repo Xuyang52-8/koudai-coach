@@ -9,6 +9,7 @@ import Workout from './pages/Workout'
 import Summary from './pages/Summary'
 import Rest from './pages/Rest'
 import MiniSession from './pages/MiniSession'
+import Cardio from './pages/Cardio'
 import Diet from './pages/Diet'
 import Library from './pages/Library'
 import Settings from './pages/Settings'
@@ -75,6 +76,7 @@ export default function App() {
             <Route path="/growth" element={<Growth />} />
             <Route path="/equipment" element={<Equipment />} />
             <Route path="/diet" element={<Diet />} />
+            <Route path="/cardio" element={<Cardio />} />
             <Route path="/library" element={<Library />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Home />} />
