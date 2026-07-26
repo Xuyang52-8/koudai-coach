@@ -23,7 +23,7 @@ export interface HealthSession {
 
 interface HealthConnectPlugin {
   isAvailable(): Promise<{ available: boolean }>;
-  requestPermissions(): Promise<{ granted: boolean; reason?: string }>;
+  requestHealthPerms(): Promise<{ granted: boolean; reason?: string }>;
   hasPermissions(): Promise<{ granted: boolean }>;
   readExercise(opts: { days: number }): Promise<{ sessions: HealthSession[] }>;
   readLastSleep(): Promise<{ found: boolean; minutes?: number; hours?: number; endMillis?: number; startMillis?: number }>;
@@ -51,7 +51,7 @@ export async function healthConnectAvailable(): Promise<boolean> {
 export async function requestHealthPermissions(): Promise<boolean> {
   if (!isNativeShell()) return false;
   try {
-    const r = await HealthConnect.requestPermissions();
+    const r = await HealthConnect.requestHealthPerms();
     return r.granted;
   } catch {
     return false;
