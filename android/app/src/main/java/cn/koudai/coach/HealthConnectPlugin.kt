@@ -1,6 +1,7 @@
 package cn.koudai.coach
 
 import android.content.Intent
+import androidx.activity.result.ActivityResult
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
@@ -72,7 +73,7 @@ class HealthConnectPlugin : Plugin() {
     }
 
     @ActivityCallback
-    private fun onPermsResult(call: PluginCall, result: com.getcapacitor.JSObject?) {
+    private fun onPermsResult(call: PluginCall, result: ActivityResult?) {
         // 结果以实际授予状态为准（回调载荷不可靠）
         val client = HealthConnectClient.getOrCreate(context)
         runBlocking {
