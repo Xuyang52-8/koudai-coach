@@ -11,7 +11,7 @@ import { vibrate } from '@/components/feedback';
 import Icon from '@/components/Icon';
 import { RowToggle } from '@/components/library/inputs';
 import { updateSettings, useSettings } from '@/lib/store';
-import { syncReminder } from '@/lib/notify';
+import { syncReminder, syncSedentary } from '@/lib/notify';
 import { Caption } from './common';
 
 /** 我的器械入口行：整行可点 → /equipment */
@@ -336,6 +336,25 @@ export function NotifySelfCheckRow(): JSX.Element {
           )}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/** 久坐提醒开关（v1.6）：每 2 小时一条，9-21 点，仅安卓 App */
+export function SedentaryRow(): JSX.Element {
+  const [settings] = useSettings();
+  const on = settings.sedentaryOn ?? false;
+  return (
+    <div>
+      <RowToggle
+        on={on}
+        onChange={(next) => {
+          updateSettings({ sedentaryOn: next });
+          void syncSedentary();
+        }}
+        label="久坐提醒"
+      />
+      <Caption>加班久坐党的腰和眼都靠它：9 点到 21 点每 2 小时喊你起来活动 2 分钟。仅安卓 App 生效。</Caption>
     </div>
   );
 }

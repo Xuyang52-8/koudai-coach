@@ -20,6 +20,12 @@ import { getExerciseById } from '@/lib/utils-workout';
 import { VENUE_LABELS, primaryVenue } from './venues';
 import { ZONE_MAP, zoneOfExercise } from './zones';
 
+/** 已配 AI 分解图的动作（public/guides/{id}.jpg，v1.6 首批 10 个） */
+const GUIDE_IDS = new Set([
+  'lat-pulldown', 'seated-row', 'one-arm-db-row', 'smith-bench-press', 'smith-squat',
+  'hack-squat', 'leg-press', 'leg-curl', 'db-shoulder-press', 'assisted-pullup-machine',
+]);
+
 function Block({ label, children }: { label: string; children: ReactNode }): JSX.Element {
   return (
     <section style={{ marginTop: 20 }}>
@@ -119,6 +125,21 @@ export function ExerciseDetailSheet({ exercise, isCustom = false, onClose, onEdi
             {ex.unilateral ? <WarnTag>先做左侧</WarnTag> : null}
             {exIsCustom ? <WarnTag>自建</WarnTag> : null}
           </div>
+
+          {/* 分解图（v1.6）：AI 生成 4 格标准动作插画，首批 10 个动作 */}
+          {GUIDE_IDS.has(ex.id) ? (
+            <div style={{ marginTop: 16 }}>
+              <img
+                src={`${import.meta.env.BASE_URL}guides/${ex.id}.jpg`}
+                alt={`${ex.name}标准动作分解图`}
+                loading="lazy"
+                style={{ width: '100%', borderRadius: 4, border: '1px solid var(--line)', display: 'block' }}
+              />
+              <p className="text-3" style={{ margin: '8px 0 0', fontSize: 12, lineHeight: 1.5 }}>
+                AI 绘制 · 顺序：左上 → 右上 → 左下 → 右下
+              </p>
+            </div>
+          ) : null}
 
           {/* ① 长什么样 */}
           <Block label="长什么样">

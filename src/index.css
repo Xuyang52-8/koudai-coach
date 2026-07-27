@@ -76,6 +76,40 @@
     --press-ink: rgba(23, 23, 26, 0.06);
   }
 
+
+  /* ===== 羊皮纸主题（v1.6）：暖纸底 + 墨黑字 + 薄荷点缀不变 ===== */
+  [data-theme='parchment'] {
+    --bg: #f2ead8;
+    --bg-raised: #f9f3e6;
+    --bg-inset: #e9dfc8;
+    --line: #d8cbb0;
+    --line-strong: #2a241a;
+    --text-1: #2a241a;
+    --text-2: #6b5f49;
+    --text-3: #94876c;
+    --accent: #3fe1b1;
+    --accent-hi: #0a9c73;
+    --accent-dim: rgba(20, 160, 120, 0.16);
+    --accent-ink: #0a9c73;
+    --on-accent: #0a0805;
+    --on-accent-dim: rgba(10, 8, 5, 0.3);
+    --warn: #8f5e00;
+    --warn-dim: rgba(143, 94, 0, 0.14);
+    --warn-press: rgba(143, 94, 0, 0.22);
+    --danger: #b03420;
+    --danger-dim: rgba(176, 52, 32, 0.14);
+    --danger-press: rgba(176, 52, 32, 0.22);
+    --press-ink: rgba(42, 36, 26, 0.07);
+  }
+
+  html[data-theme='parchment'] {
+    color-scheme: light;
+  }
+
+  [data-theme='parchment'] .crt {
+    opacity: 0.05;
+  }
+
   html {
     background: var(--bg);
     color-scheme: dark;

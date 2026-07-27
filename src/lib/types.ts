@@ -357,9 +357,11 @@ export interface AppSettings {
   notifyOn?: boolean;
   /** 训练提醒时间 HH:mm，如 '18:00'（仅安卓 App 生效）。可选同上，缺省视为 '18:00' */
   notifyTime?: string;
+  /** 久坐提醒（每 2 小时一条，9-21 点，仅安卓 App）。可选：缺省 false */
+  sedentaryOn?: boolean;
   weightKg: number;
   /** 外观主题：'dark' 黑夜（默认）| 'light' 白天。可选：老用户已存数据缺省，消费端按 ?? 'dark' 处理 */
-  theme?: 'dark' | 'light';
+  theme?: 'dark' | 'light' | 'parchment';
   /** 预留：账号体系用户 id（暂不使用，为以后账号/云同步留口） */
   userId?: string;
   /** 预留：授权密钥（暂不使用，为以后密钥体系留口） */
@@ -419,3 +421,6 @@ export interface FoodEstimateItem {
 export interface FoodEstimateResult {
   items: FoodEstimateItem[];
 }
+
+/** koudai-coach:weightLog —— 体重打卡：YYYY-MM-DD → kg */
+export type WeightLog = Record<string, number>;

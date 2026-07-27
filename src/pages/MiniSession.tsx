@@ -47,6 +47,7 @@ export default function MiniSession(): JSX.Element {
 
   const pack = useMemo(() => getMiniPack(packId), [packId]);
   const [stage, setStage] = useState<Stage>('intro');
+  const [lvIdx, setLvIdx] = useState(0);
   const countedRef = useRef(false);
 
   /* 防锁屏 + 锁屏音频保活（仅计时运行态；artist 传小练包名） */
@@ -144,12 +145,36 @@ export default function MiniSession(): JSX.Element {
                 </p>
               ))}
             </div>
-            {/* 凯格尔等级阶梯（数据预留，当前默认 Lv.1） */}
+            {/* 凯格尔等级选择（v1.6）：Lv.1 基础 / Lv.2 进阶 / Lv.3 高阶 */}
             {pack.levels && pack.levels.length > 0 ? (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                {pack.levels.map((lv, i) => (
-                  <Tag key={lv.id}>{i === 0 ? `当前 ${lv.name}` : lv.name}</Tag>
-                ))}
+                {pack.levels.map((lv, i) => {
+                  const active = i === lvIdx;
+                  return (
+                    <button
+                      key={lv.id}
+                      type="button"
+                      onClick={() => {
+                        setLvIdx(i);
+                        vibrate(15);
+                      }}
+                      style={{
+                        minHeight: 44,
+                        padding: '8px 14px',
+                        borderRadius: 4,
+                        border: active ? '1px solid var(--accent)' : '1px solid var(--line)',
+                        background: active ? 'var(--accent-dim)' : 'transparent',
+                        color: active ? 'var(--accent-ink)' : 'var(--text-2)',
+                        fontSize: 13,
+                        fontWeight: active ? 600 : 400,
+                        cursor: 'pointer',
+                        WebkitTapHighlightColor: 'transparent',
+                      }}
+                    >
+                      {lv.name}
+                    </button>
+                  );
+                })}
               </div>
             ) : null}
           </section>
@@ -190,8 +215,9 @@ export default function MiniSession(): JSX.Element {
       <AnimatePresence>
         {stage === 'run' ? (
           <MiniTimer
-            key="mini-timer"
+            key={`mini-timer-${lvIdx}`}
             pack={pack}
+            phases={pack.levels && pack.levels.length > 0 ? pack.levels[Math.min(lvIdx, pack.levels.length - 1)].phases : undefined}
             onFinish={() => setStage('done')}
             onExit={() => navigate('/')}
           />

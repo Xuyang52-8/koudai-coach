@@ -32,7 +32,7 @@ import {
   WeekdayChips,
 } from '@/components/onboarding/selectors';
 import { AiConfigPanels } from '@/components/settings/AiConfigPanels';
-import { EquipmentRow, LibraryRow, NotifyRow, NotifySelfCheckRow } from '@/components/settings/CommonRows';
+import { EquipmentRow, LibraryRow, NotifyRow, NotifySelfCheckRow, SedentaryRow } from '@/components/settings/CommonRows';
 import { BackupPanel, DangerPanel } from '@/components/settings/DataPanels';
 import { Caption, GroupHeader, Panel, PanelRow } from '@/components/settings/common';
 import { RPE_LABELS, overrideDeltaText } from '@/lib/adjust';
@@ -83,6 +83,7 @@ export default function Settings(): JSX.Element {
 
   /* ---- 高级组：默认折叠 ---- */
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [trainingOpen, setTrainingOpen] = useState(false);
 
   const resetOverride = (exerciseId: string, name: string) => {
     resetExerciseOverride(exerciseId);
@@ -114,10 +115,11 @@ export default function Settings(): JSX.Element {
         <div style={{ marginTop: 14 }}>
           <Panel>
             <PanelRow last>
-              <div role="radiogroup" aria-label="外观主题" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div role="radiogroup" aria-label="外观主题" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
                 {([
-                  { value: 'light', label: '白天模式', hint: '白灰极简' },
-                  { value: 'dark', label: '黑夜模式', hint: '默认深色' },
+                  { value: 'dark', label: '黑夜', hint: '默认深色' },
+                  { value: 'light', label: '白天', hint: '白灰极简' },
+                  { value: 'parchment', label: '羊皮纸', hint: '暖纸护眼' },
                 ] as const).map((opt) => {
                   const active = (settings.theme ?? 'dark') === opt.value;
                   return (
@@ -334,8 +336,11 @@ export default function Settings(): JSX.Element {
             <PanelRow>
               <NotifyRow />
             </PanelRow>
-            <PanelRow last>
+            <PanelRow>
               <NotifySelfCheckRow />
+            </PanelRow>
+            <PanelRow last>
+              <SedentaryRow />
             </PanelRow>
           </Panel>
         </div>
@@ -344,8 +349,20 @@ export default function Settings(): JSX.Element {
       {/* ============================================================
           组二 · 训练
          ============================================================ */}
-      <GroupHeader index="02" title="训练" />
+      <GroupHeader
+        index="02"
+        title="训练"
+        collapsible
+        open={trainingOpen}
+        hint="器械 · 提醒 · 排期 · 等级"
+        onToggle={() => {
+          setTrainingOpen((o) => !o);
+          vibrate(15);
+        }}
+      />
 
+      {trainingOpen ? (
+        <>
       {/* ---- 身体数据 / 完整档案 ---- */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
@@ -615,6 +632,9 @@ export default function Settings(): JSX.Element {
           </Panel>
         </div>
       </motion.section>
+
+        </>
+      ) : null}
 
       {/* ============================================================
           组三 · 高级（默认折叠，点开展开）

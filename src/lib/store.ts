@@ -11,6 +11,7 @@
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import type {
   AppSettings,
+  WeightLog,
   ChecklistState,
   ComputedTargets,
   CycleState,
@@ -153,6 +154,8 @@ export const KEYS = {
   dayPlan: 'dayPlan',
   /** 有氧/跑步打卡：cardio:{date} → CardioEntry[] */
   cardioKey: (date: string) => `cardio:${date}`,
+  /** 体重打卡：YYYY-MM-DD → kg */
+  weightLog: 'weightLog',
 } as const;
 
 /* ================= cycle：练一休一循环 ================= */
@@ -651,6 +654,15 @@ const STATIC_TARGETS: ComputedTargets = {
 };
 
 /** 今日营养目标：有 profile 按 Mifflin 动态算，没有回落 nutrition.json 静态值（兼容老用户） */
+export function useWeightLog(): [WeightLog, (next: WeightLog | ((p: WeightLog) => WeightLog)) => void] {
+  return useStoreKey<WeightLog>(KEYS.weightLog, {});
+}
+
+/** 非组件环境读体重记录（weekly.ts 等） */
+export function readWeightLog(): WeightLog {
+  return readKey<WeightLog>(KEYS.weightLog, {});
+}
+
 export function useTargets(): ComputedTargets {
   const [profile] = useProfile();
   return useMemo(() => (profile ? computeTargets(profile) : STATIC_TARGETS), [profile]);

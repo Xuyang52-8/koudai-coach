@@ -31,6 +31,9 @@ import {
   useChecklist,
   useCycle,
   useDayPlan,
+  useDietEntries,
+  useTargets,
+  useWeightLog,
   useMinisCompleted,
   useProfile,
   useSchedule,
@@ -512,7 +515,7 @@ function MiniSection(): JSX.Element | null {
 
 /* ================= §4 快捷入口 ================= */
 
-function QuickEntries({ onSupplement }: { onSupplement: () => void }): JSX.Element {
+function QuickEntries({ onSupplement, onWeight }: { onSupplement: () => void; onWeight: () => void }): JSX.Element {
   const navigate = useNavigate();
   const reduce = useReducedMotion();
   const entries: { icon: JSX.Element; label: string; onClick: () => void }[] = [
@@ -520,6 +523,7 @@ function QuickEntries({ onSupplement }: { onSupplement: () => void }): JSX.Eleme
     { icon: <Icon name="book" size={20} />, label: '预习动作', onClick: () => navigate('/preview') },
     { icon: <Icon name="plus" size={20} />, label: '记一笔饮食', onClick: () => navigate('/diet') },
     { icon: <Icon name="droplet" size={20} />, label: '肌酸打卡', onClick: onSupplement },
+    { icon: <Icon name="user" size={20} />, label: '称体重', onClick: onWeight },
     { icon: <Icon name="dumbbell" size={20} />, label: '动作库', onClick: () => navigate('/library') },
   ];
   return (
@@ -540,6 +544,59 @@ function QuickEntries({ onSupplement }: { onSupplement: () => void }): JSX.Eleme
         ))}
       </div>
     </section>
+  );
+}
+
+/* ================= 体重打卡 Sheet（v1.6） ================= */
+
+function WeightSheet({ open, onClose }: { open: boolean; onClose: () => void }): JSX.Element {
+  const [log, setLog] = useWeightLog();
+  const today = todayStr();
+  const existing = log[today];
+  const [text, setText] = useState(existing?.toString() ?? '');
+  useEffect(() => {
+    if (open) setText(existing?.toString() ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+  /* 最近一次记录（非今天），用于显示变化 */
+  const prev = Object.entries(log)
+    .filter(([d]) => d !== today)
+    .sort(([a], [b]) => (a < b ? 1 : -1))[0];
+  const save = (): void => {
+    const kg = parseFloat(text);
+    if (!Number.isFinite(kg) || kg < 30 || kg > 250) return;
+    vibrate(20);
+    setLog((p) => ({ ...p, [today]: Math.round(kg * 10) / 10 }));
+    onClose();
+  };
+  return (
+    <BottomSheet open={open} onClose={onClose} title="今天称了多少？">
+      <p className="text-2" style={{ margin: '4px 0 0', fontSize: 13, lineHeight: 1.6 }}>
+        早起空腹上完厕所称，最准。{prev ? `上次（${prev[0].slice(5)}）：${prev[1]} kg` : '第一次记，坚持两周看趋势。'}
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16 }}>
+        <input
+          type="number"
+          inputMode="decimal"
+          step="0.1"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="81.5"
+          className="num"
+          style={{
+            flex: 1, fontSize: 34, fontWeight: 600, padding: '10px 14px',
+            background: 'var(--bg-inset)', border: '1px solid var(--line)',
+            borderRadius: 4, color: 'var(--text-1)', outline: 'none',
+          }}
+        />
+        <span className="text-2" style={{ fontSize: 16 }}>kg</span>
+      </div>
+      <div style={{ marginTop: 16 }}>
+        <PrimaryButton size="lg" onClick={save} icon={<Icon name="check" size={20} />}>
+          记下
+        </PrimaryButton>
+      </div>
+    </BottomSheet>
   );
 }
 
@@ -839,37 +896,69 @@ function PlanStrip({ todayType, schedule }: { todayType: 'workout' | 'rest'; sch
 
 /* ================= §0.6 今日总消耗（v1.5：力量+有氧+小练合并） ================= */
 
-function BurnCard(): JSX.Element | null {
+function BurnCard(): JSX.Element {
   const [cycle] = useCycle();
   const [cardio] = useCardioEntries();
   const [minisDone] = useMinisCompleted();
+  const [dietEntries] = useDietEntries(todayStr());
+  const targets = useTargets();
   const today = todayStr();
   const workoutKcal = cycle.history.filter((h) => h.date === today).reduce((s, h) => s + h.kcal, 0);
   const cardioKcal = cardio.reduce((s, c) => s + c.kcal, 0);
-  /* 小练按包分钟 ×5 大卡估算（轻量间歇强度） */
-  const minisKcal = Math.round(
-    minisDone.reduce((s, id) => s + (getMiniPack(id)?.minutes ?? 8) * 5, 0),
-  );
-  const total = workoutKcal + cardioKcal + minisKcal;
-  if (total <= 0) return null;
+  const minisKcal = Math.round(minisDone.reduce((s, id) => s + (getMiniPack(id)?.minutes ?? 8) * 5, 0));
+  const activeKcal = workoutKcal + cardioKcal + minisKcal;
+  /* 日常底盘消耗：BMR × 1.25（不算运动），运动消耗另加，避免和 TDEE 的活动系数重复计 */
+  const baseKcal = Math.round(targets.bmr * 1.25);
+  const totalBurn = baseKcal + activeKcal;
+  const intake = dietEntries.reduce((s, e) => s + e.kcal, 0);
+  const deficit = totalBurn - intake;
+  /* 环：摄入 / 预算；预算=targetKcal（减脂目标热量） */
+  const R = 52;
+  const C = 2 * Math.PI * R;
+  const ratio = Math.min(1, targets.targetKcal > 0 ? intake / targets.targetKcal : 0);
+  const over = intake > targets.targetKcal;
   const rows: { label: string; kcal: number }[] = [
+    { label: '日常代谢', kcal: baseKcal },
     { label: '力量训练', kcal: workoutKcal },
-    { label: '有氧 / 跑步', kcal: cardioKcal },
+    { label: '有氧/跑步', kcal: cardioKcal },
     { label: '日常小练', kcal: minisKcal },
   ].filter((r) => r.kcal > 0);
   return (
     <section style={{ marginTop: 24 }}>
-      <SectionLabel index="消耗">今日总消耗</SectionLabel>
+      <SectionLabel index="能量">今日热量差</SectionLabel>
       <div style={{ marginTop: 14, border: '1px solid var(--line)', borderRadius: 4, padding: '16px 18px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span className="num" style={{ fontSize: 40, fontWeight: 600, lineHeight: 1, color: 'var(--accent-ink)' }}>
-            {total}
-          </span>
-          <span className="text-2" style={{ fontSize: 13 }}>
-            大卡（估算）
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <svg width="120" height="120" viewBox="0 0 120 120" style={{ flexShrink: 0 }}>
+            <circle cx="60" cy="60" r={R} fill="none" stroke="var(--bg-inset)" strokeWidth="10" />
+            <circle
+              cx="60" cy="60" r={R} fill="none"
+              stroke={over ? 'var(--danger)' : 'var(--accent)'}
+              strokeWidth="10" strokeLinecap="round"
+              strokeDasharray={`${C * ratio} ${C}`}
+              transform="rotate(-90 60 60)"
+            />
+            <text x="60" y="56" textAnchor="middle" className="num" style={{ fontSize: 26, fontWeight: 600, fill: 'var(--text-1)' }}>
+              {intake}
+            </text>
+            <text x="60" y="76" textAnchor="middle" style={{ fontSize: 11, fill: 'var(--text-3)' }}>
+              / {targets.targetKcal} 大卡
+            </text>
+          </svg>
+          <div style={{ flex: 1 }}>
+            <div className="text-2" style={{ fontSize: 13 }}>吃进来 {intake} · 烧掉约 {totalBurn}</div>
+            <div
+              className="num"
+              style={{ fontSize: 34, fontWeight: 600, lineHeight: 1.15, color: deficit >= 0 ? 'var(--accent-ink)' : 'var(--danger)' }}
+            >
+              {deficit >= 0 ? `−${deficit}` : `+${-deficit}`}
+            </div>
+            <div className="text-3" style={{ fontSize: 12, lineHeight: 1.5 }}>
+              {deficit >= 0 ? '大卡缺口，保持住就在瘦' : '大卡盈余，今天超了'}
+              {intake === 0 ? '（还没记饮食）' : ''}
+            </div>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: 14, marginTop: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 14, marginTop: 12, flexWrap: 'wrap' }}>
           {rows.map((r) => (
             <span key={r.label} className="text-2" style={{ fontSize: 13 }}>
               {r.label} <span className="num" style={{ color: 'var(--text-1)' }}>{r.kcal}</span>
@@ -1001,6 +1090,7 @@ export default function Home(): JSX.Element {
   const [forceWorkout, setForceWorkout] = useState(false);
   const [streakOpen, setStreakOpen] = useState(false);
   const [supplementOpen, setSupplementOpen] = useState(false);
+  const [weightOpen, setWeightOpen] = useState(false);
   const spokenRef = useRef(false);
 
   // 课程解析优先级：今日选择 > 档案 bestVenue
@@ -1094,10 +1184,11 @@ export default function Home(): JSX.Element {
 
       {isWorkout ? <DepartureChecklist /> : null}
 
-      <QuickEntries onSupplement={() => setSupplementOpen(true)} />
+      <QuickEntries onSupplement={() => setSupplementOpen(true)} onWeight={() => setWeightOpen(true)} />
 
       <StreakSheet open={streakOpen} onClose={() => setStreakOpen(false)} />
       <SupplementSheet open={supplementOpen} onClose={() => setSupplementOpen(false)} />
+      <WeightSheet open={weightOpen} onClose={() => setWeightOpen(false)} />
     </div>
   );
 }

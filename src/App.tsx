@@ -17,7 +17,8 @@ import Onboarding from './pages/Onboarding'
 import Welcome from './pages/Welcome'
 import Growth from './pages/Growth'
 import Equipment from './pages/Equipment'
-import { syncReminder } from './lib/notify'
+import { syncReminder, syncSedentary, syncWeeklySummary } from './lib/notify'
+import { weeklySummaryText } from './lib/weekly'
 import { useProfile, useSettings } from './lib/store'
 
 /**
@@ -54,11 +55,13 @@ export default function App() {
     const theme = settings.theme ?? 'dark'
     document.documentElement.dataset.theme = theme
     const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-    if (meta) meta.content = theme === 'light' ? '#FAFAF8' : '#0A0A0B'
+    if (meta) meta.content = theme === 'light' ? '#FAFAF8' : theme === 'parchment' ? '#F2EAD8' : '#0A0A0B'
   }, [settings.theme])
   /* 每日训练提醒对齐：启动时按 settings.notifyOn/notifyTime 排/撤本地通知（网页端 no-op） */
   useEffect(() => {
     syncReminder()
+    syncSedentary()
+    syncWeeklySummary(weeklySummaryText())
   }, [])
   return (
     <HashRouter>

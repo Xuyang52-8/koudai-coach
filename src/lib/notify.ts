@@ -209,3 +209,77 @@ export async function openExactAlarmSettings(): Promise<void> {
     /* ignore */
   }
 }
+
+/* ================= v1.6：久坐提醒 + 每周总结 ================= */
+
+/** 久坐提醒 id 段：9/11/13/15/17/19/21 点各一条 */
+const SEDENTARY_IDS = [3001, 3002, 3003, 3004, 3005, 3006, 3007];
+const SEDENTARY_HOURS = [9, 11, 13, 15, 17, 19, 21];
+
+const SEDENTARY_TEXTS = [
+  '起来活动 2 分钟，倒杯水走一圈',
+  '久坐一小时了，伸个懒腰，转转眼',
+  '站起来！走 20 步再坐下',
+  '喝口水，肩膀往后绕 5 圈',
+  '眼睛离屏 20 秒，看看远处',
+  '起来站 2 分钟，晚上练得更有劲',
+  '最后一提：收收腹，坐直了',
+];
+
+/** 排/撤久坐提醒（每 2 小时一条，仅原生） */
+export async function syncSedentary(): Promise<void> {
+  if (!isNative()) return;
+  const s = getSettings();
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const cancelAll = async (): Promise<void> => {
+      await LocalNotifications.cancel({ notifications: SEDENTARY_IDS.map((id) => ({ id })) }).catch(() => undefined);
+    };
+    if (!s.sedentaryOn) {
+      await cancelAll();
+      return;
+    }
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display !== 'granted') {
+      const req = await LocalNotifications.requestPermissions();
+      if (req.display !== 'granted') return;
+    }
+    await cancelAll();
+    await LocalNotifications.schedule({
+      notifications: SEDENTARY_IDS.map((id, i) => ({
+        id,
+        title: '起来动一动',
+        body: SEDENTARY_TEXTS[i % SEDENTARY_TEXTS.length],
+        schedule: { every: 'day' as const, on: { hour: SEDENTARY_HOURS[i], minute: 0 }, allowWhileIdle: true },
+      })),
+    });
+  } catch (e) {
+    console.warn('[notify] sedentary failed:', e);
+  }
+}
+
+/** 每周总结通知 id */
+const WEEKLY_ID = 4001;
+
+/** 每周一 09:00 推送上周总结（文案在 App 启动时按真实数据重算重排） */
+export async function syncWeeklySummary(summaryText: string): Promise<void> {
+  if (!isNative()) return;
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display !== 'granted') return;
+    await LocalNotifications.cancel({ notifications: [{ id: WEEKLY_ID }] }).catch(() => undefined);
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: WEEKLY_ID,
+          title: '上周战报',
+          body: summaryText,
+          schedule: { every: 'week' as const, on: { weekday: 1, hour: 9, minute: 0 }, allowWhileIdle: true },
+        },
+      ],
+    });
+  } catch (e) {
+    console.warn('[notify] weekly failed:', e);
+  }
+}

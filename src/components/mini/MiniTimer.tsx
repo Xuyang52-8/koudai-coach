@@ -17,11 +17,13 @@ import Icon from '../Icon';
 import { vibrate } from '../feedback';
 import BigActionButton from '../workout/BigActionButton';
 import { cancel, speak } from '../../lib/tts';
-import type { MiniPack } from '../../lib/types';
+import type { MiniPack, MiniPhaseGroup } from '../../lib/types';
 import { expandTimeline } from './minis';
 
 export interface MiniTimerProps {
   pack: MiniPack;
+  /** 等级阶段序列（凯格尔 Lv.1/2/3 选择后传入）；缺省用 pack.phases */
+  phases?: MiniPhaseGroup[];
   /** 全部阶段走完（父组件切到完成态，负责打卡 + 仪式） */
   onFinish: () => void;
   /** 用户主动结束（父组件退出页面） */
@@ -38,9 +40,9 @@ const PAUSE_ICON = (
   </svg>
 );
 
-export function MiniTimer({ pack, onFinish, onExit }: MiniTimerProps): JSX.Element | null {
+export function MiniTimer({ pack, phases, onFinish, onExit }: MiniTimerProps): JSX.Element | null {
   const reduce = useReducedMotion();
-  const steps = useMemo(() => expandTimeline(pack.phases), [pack]);
+  const steps = useMemo(() => expandTimeline(phases ?? pack.phases), [pack, phases]);
   const [stepIdx, setStepIdx] = useState(0);
   const [remainingMs, setRemainingMs] = useState(() => (steps[0]?.phase.secs ?? 1) * 1000);
   const [running, setRunning] = useState(true);
@@ -225,19 +227,32 @@ export function MiniTimer({ pack, onFinish, onExit }: MiniTimerProps): JSX.Eleme
             {step.phase.name}
           </motion.div>
 
+          {/* 大圆环倒计时（v1.6 G动风）：环随剩余时间反向消耗，数字居中 */}
           <motion.div
             key={`num-${stepIdx}`}
             initial={reduce ? { opacity: 0 } : { scale: 0.85, opacity: 0 }}
             animate={reduce ? { opacity: 1 } : { scale: 1, opacity: 1 }}
             transition={reduce ? { duration: 0.1 } : { type: 'spring', stiffness: 300, damping: 20 }}
+            style={{ position: 'relative', width: 'min(72vw, 300px)', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
+            <svg viewBox="0 0 200 200" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+              <circle cx="100" cy="100" r="88" fill="none" stroke="var(--line)" strokeWidth="7" />
+              <circle
+                cx="100" cy="100" r="88" fill="none"
+                stroke={lastThree ? 'var(--warn)' : 'var(--accent)'}
+                strokeWidth="7" strokeLinecap="round"
+                strokeDasharray={`${(pct / 100) * 2 * Math.PI * 88} ${2 * Math.PI * 88}`}
+                transform="rotate(-90 100 100)"
+                style={{ transition: 'stroke 200ms' }}
+              />
+            </svg>
             <motion.div
               key={sec}
               animate={reduce ? undefined : { scale: [1, 1.02, 1] }}
               transition={{ duration: 0.12 }}
               className={`num font-display${lastThree && running ? ' flicker' : ''}`}
               style={{
-                fontSize: 'clamp(104px, 30vw, 168px)',
+                fontSize: 'clamp(88px, 26vw, 140px)',
                 fontWeight: 700,
                 lineHeight: 1,
                 color: numberColor,
@@ -248,20 +263,8 @@ export function MiniTimer({ pack, onFinish, onExit }: MiniTimerProps): JSX.Eleme
               {sec}
             </motion.div>
           </motion.div>
-          <div style={{ marginTop: 4, fontSize: 13, color: 'var(--text-2)' }}>
+          <div style={{ marginTop: 10, fontSize: 13, color: 'var(--text-2)' }}>
             {running ? '秒' : '已暂停'}
-          </div>
-
-          {/* 2px 进度细线（宽 60%，当前阶段剩余比例反向消耗） */}
-          <div style={{ width: '60%', height: 2, background: 'var(--line)', marginTop: 22, borderRadius: 999, overflow: 'hidden' }}>
-            <div
-              style={{
-                width: `${pct}%`,
-                height: '100%',
-                background: lastThree ? 'var(--warn)' : 'var(--accent)',
-                transition: 'width 120ms linear, background-color 200ms',
-              }}
-            />
           </div>
 
           {/* 当前阶段小字提示 */}

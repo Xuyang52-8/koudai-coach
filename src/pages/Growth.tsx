@@ -16,6 +16,8 @@ import StrengthBoard from '../components/growth/StrengthBoard';
 import ScreenHeader from '../components/ScreenHeader';
 import SectionLabel from '../components/SectionLabel';
 import { weightSpec } from '../components/workout/weight';
+import { useWeightLog } from '../lib/store';
+import { computeWeeklyStats, weeklySummaryText } from '../lib/weekly';
 import type { ExerciseOverride } from '../lib/adjust';
 import { buildGrowthData, buildMilestones, buildMonthCalendar, buildStrengthCards, shiftMonth } from '../lib/growth';
 import type { StrengthSourceEntry } from '../lib/growth';
@@ -116,6 +118,9 @@ export default function Growth(props: GrowthProps): JSX.Element {
         {celebrating ? <CelebrationCard key={celebrating.id} milestone={celebrating} onDismiss={dismissCelebration} /> : null}
       </AnimatePresence>
 
+      {/* (00) 上周战报（v1.6） */}
+      <WeeklyReportCard />
+
       {/* (01) 训练日历 */}
       <section>
         <SectionLabel index="01">训练日历</SectionLabel>
@@ -139,6 +144,92 @@ export default function Growth(props: GrowthProps): JSX.Element {
         <SectionLabel index="03">里程碑</SectionLabel>
         <MilestoneBoard milestones={milestones} />
       </section>
+
+      {/* (04) 体重趋势（v1.6） */}
+      <WeightBoard />
     </div>
+  );
+}
+
+
+/* ================= (04) 体重趋势（v1.6） ================= */
+
+function WeightBoard(): JSX.Element | null {
+  const [log] = useWeightLog();
+  const entries = Object.entries(log).sort(([a], [b]) => (a < b ? -1 : 1));
+  if (entries.length === 0) return null;
+  const recent = entries.slice(-30);
+  const first = recent[0][1];
+  const last = recent[recent.length - 1][1];
+  const delta = Math.round((last - first) * 10) / 10;
+  const allKg = recent.map(([, kg]) => kg);
+  const min = Math.min(...allKg);
+  const max = Math.max(...allKg);
+  const span = Math.max(0.4, max - min);
+  /* 折线（SVG polyline），宽 100 高 36 视窗，等比缩放 */
+  const W = 100;
+  const H = 36;
+  const pts = recent
+    .map(([, kg], i) => {
+      const x = recent.length === 1 ? W / 2 : (i / (recent.length - 1)) * W;
+      const y = H - 4 - ((kg - min) / span) * (H - 8);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+  return (
+    <section style={{ marginTop: 32 }}>
+      <SectionLabel index="04">体重趋势</SectionLabel>
+      <div style={{ marginTop: 14, border: '1px solid var(--line)', borderRadius: 4, padding: '16px 18px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+          <span className="num" style={{ fontSize: 36, fontWeight: 600, lineHeight: 1, color: 'var(--text-1)' }}>{last}</span>
+          <span className="text-2" style={{ fontSize: 13 }}>kg</span>
+          <span
+            className="num"
+            style={{ fontSize: 14, color: delta <= 0 ? 'var(--accent-ink)' : 'var(--warn)' }}
+          >
+            {delta <= 0 ? '' : '+'}{delta} kg / 近{recent.length}次
+          </span>
+        </div>
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: '100%', height: 72, marginTop: 12, display: 'block' }}>
+          <polyline points={pts} fill="none" stroke="var(--accent)" strokeWidth="1.2" strokeLinejoin="round" />
+        </svg>
+        <p className="text-3" style={{ margin: '8px 0 0', fontSize: 12 }}>
+          每天今日页「称体重」打卡，这里出曲线。看趋势别看单日，水分会让单日上下 1kg。
+        </p>
+      </div>
+    </section>
+  );
+}
+
+
+/* ================= (00) 上周战报（v1.6） ================= */
+
+function WeeklyReportCard(): JSX.Element {
+  const stats = useMemo(() => computeWeeklyStats(), []);
+  return (
+    <section style={{ marginBottom: 28 }}>
+      <SectionLabel index="00">上周战报</SectionLabel>
+      <div style={{ marginTop: 14, border: '1px solid var(--line)', borderRadius: 4, padding: '16px 18px' }}>
+        <p className="text-1" style={{ margin: 0, fontSize: 16, lineHeight: 1.65 }}>
+          {weeklySummaryText(stats)}
+        </p>
+        <div style={{ display: 'flex', gap: 16, marginTop: 10, flexWrap: 'wrap' }}>
+          <span className="text-2" style={{ fontSize: 13 }}>
+            训练 <span className="num" style={{ color: 'var(--text-1)' }}>{stats.sessions}</span> 次
+          </span>
+          <span className="text-2" style={{ fontSize: 13 }}>
+            消耗 <span className="num" style={{ color: 'var(--text-1)' }}>{stats.kcal}</span> 大卡
+          </span>
+          {stats.latestWeight !== null ? (
+            <span className="text-2" style={{ fontSize: 13 }}>
+              体重 <span className="num" style={{ color: 'var(--text-1)' }}>{stats.latestWeight}</span> kg
+            </span>
+          ) : null}
+        </div>
+        <p className="text-3" style={{ margin: '10px 0 0', fontSize: 12 }}>
+          每周一早上 9 点也会发一条通知总结上周（需通知权限）。
+        </p>
+      </div>
+    </section>
   );
 }
