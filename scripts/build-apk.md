@@ -80,6 +80,12 @@ python3 scripts/deploy-cos.py    # 自动把 dist/ 上传到腾讯云 COS，网�
 | `package.json` | @capacitor/* 全家桶对齐 8.4.2，勿混装 7.x |
 | `capacitor.config.ts` | packageId `cn.koudai.coach`，webDir `dist` |
 
+## v1.6 新增经验
+
+- **依赖下载慢/构建超时**：阿里云 maven 镜像已加进 build.gradle（buildscript + allprojects），冷构建从 20 分钟降到 ~10 分钟
+- **沙箱 OOM 杀 Gradle daemon**（lintVitalAnalyzeRelease/mergeDexRelease 阶段）：加 `-x lintVitalRelease --no-daemon -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=512m"`，二次构建 1 分 14 秒完成
+- **持久化 gradle 缓存到 portal FS 不可行**（大文件写入 I/O error），放弃，靠镜像提速解决
+
 ## 历史坑（每个都踩过，别再踩）
 
 1. **不要回退 Capacitor 到 7.x**：duplicate classes kotlin-stdlib 冲突；8.4.2 + kotlin 2.2.20 是验证过的组合
