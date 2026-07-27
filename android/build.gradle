@@ -5,6 +5,8 @@ apply from: "variables.gradle"
 buildscript {
     
     repositories {
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/central' }
         google()
         mavenCentral()
     }
@@ -20,6 +22,10 @@ buildscript {
 
 allprojects {
     repositories {
+        // 阿里云镜像优先（沙箱/国内网络快 5 倍+），官方源兜底
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/central' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
         google()
         mavenCentral()
     }
