@@ -5,13 +5,13 @@
 import { readKey, writeKey } from './store';
 
 /** 当前版本号（与 android versionName 同步手动维护） */
-export const APP_VERSION = '1.7.0';
+export const APP_VERSION = '1.7.1';
 
 const SEEN_KEY = 'whatsnewSeen';
 
 /** 每个版本的新功能导览：新加版本时在头部插一条 */
 const WHATS_NEW: Record<string, { title: string; items: { what: string; where: string }[] }> = {
-  '1.7.0': {
+  '1.7.1': {
     title: 'v1.7 首页大改版',
     items: [
       { what: '首页按使用频率重排：热量差、快捷入口、小练在最前', where: '就在本页，往下翻' },

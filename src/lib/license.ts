@@ -27,7 +27,8 @@ function fnv1a(str: string): number {
 
 /** 校验码（不关心格式细节，容忍大小写/空格/连字符） */
 export function validateCode(raw: string): boolean {
-  const code = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  let code = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (code.startsWith('KD') && code.length === 12) code = code.slice(2); // 剥离展示前缀 KD-
   if (code.length !== 10) return false;
   const payload = code.slice(0, 8);
   const check = code.slice(8);
