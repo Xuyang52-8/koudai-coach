@@ -20,6 +20,9 @@ import Equipment from './pages/Equipment'
 import { syncReminder, syncSedentary, syncWeeklySummary } from './lib/notify'
 import { weeklySummaryText } from './lib/weekly'
 import { useProfile, useSettings } from './lib/store'
+import ActivationGate from './components/ActivationGate'
+import { isActivated } from './lib/license'
+import { useState } from 'react'
 
 /**
  * 首启动闸门：无 profile 的用户（首次启动）一律先去 /welcome 品牌开场页，再进问卷。
@@ -49,6 +52,8 @@ function OnboardingGate(): JSX.Element {
  */
 export default function App() {
   const [settings] = useSettings()
+  /* 激活门（v1.7 邀请制）：未激活先过门，过了才见 App */
+  const [activated, setActivated] = useState(() => isActivated())
   /* 主题同步：settings.theme → <html data-theme>（index.css 变量切换）
      + PWA theme-color meta（黑 #0A0A0B / 白 #FAFAF8，状态栏跟随） */
   useEffect(() => {
@@ -63,6 +68,8 @@ export default function App() {
     syncSedentary()
     syncWeeklySummary(weeklySummaryText())
   }, [])
+  if (!activated) return <ActivationGate onActivated={() => setActivated(true)} />
+
   return (
     <HashRouter>
       <Routes>

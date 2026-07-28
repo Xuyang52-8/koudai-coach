@@ -41,6 +41,8 @@ import {
   useTodayVenue,
 } from '../lib/store';
 import { filterMinisForProfile, getMiniPack, miniDisplayName, sortMinisForProfile } from '../components/mini/minis';
+import { markWhatsNewSeen, pendingWhatsNew } from '../lib/whatsnew';
+import { syncWidgetData } from '../lib/widget';
 import { getCapability } from '../lib/capability';
 import type { Capability } from '../lib/capability';
 import { bestVenue } from '../lib/profile';
@@ -547,6 +549,42 @@ function QuickEntries({ onSupplement, onWeight }: { onSupplement: () => void; on
   );
 }
 
+/* ================= 「更新了什么」首启卡（v1.7） ================= */
+
+function WhatsNewCard(): JSX.Element | null {
+  const [entry, setEntry] = useState(pendingWhatsNew);
+  if (!entry) return null;
+  return (
+    <section style={{ marginTop: 20 }}>
+      <div style={{ border: '1px solid var(--accent)', borderRadius: 4, padding: '16px 18px', background: 'var(--accent-dim)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+          <span className="font-display" style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)' }}>
+            {entry.title}
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              markWhatsNewSeen();
+              setEntry(null);
+            }}
+            style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 13, cursor: 'pointer', minHeight: 32, padding: '4px 8px' }}
+          >
+            知道了
+          </button>
+        </div>
+        <ul style={{ margin: '10px 0 0', paddingLeft: 18 }}>
+          {entry.items.map((it) => (
+            <li key={it.what} className="text-2" style={{ fontSize: 13, lineHeight: 1.7 }}>
+              <span style={{ color: 'var(--text-1)' }}>{it.what}</span>
+              <span className="text-3">（{it.where}）</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 /* ================= 体重打卡 Sheet（v1.6） ================= */
 
 function WeightSheet({ open, onClose }: { open: boolean; onClose: () => void }): JSX.Element {
@@ -738,14 +776,14 @@ function WorkoutCard({
       </div>
       <h2
         className="font-display text-1"
-        style={{ margin: '8px 0 0', fontSize: 40, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.1 }}
+        style={{ margin: '6px 0 0', fontSize: 26, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.15 }}
       >
         {workout.subtitle}
       </h2>
       <p className="text-2" style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5 }}>
         {exercises.length} 个动作 · 约 {estimatedMinutes} 分钟 · 含 5 分钟热身
       </p>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
         <Tag>
           Lv.{capability.level} {capability.label} · 已练 {capability.lessonsDone} 节课
         </Tag>
@@ -770,14 +808,14 @@ function WorkoutCard({
         style={{ marginTop: 16 }}
       >
         <PrimaryButton
-          size="lg"
-          icon={<Icon name="play" size={20} />}
+          size="md"
+          icon={<Icon name="play" size={18} />}
           onClick={() => {
             vibrate(30);
             navigate('/workout');
           }}
         >
-          开始训练
+          开练
         </PrimaryButton>
       </motion.div>
       <div style={{ marginTop: 12 }}>
@@ -998,7 +1036,7 @@ function RestCard({
       </div>
       <h2
         className="font-display text-1"
-        style={{ margin: '8px 0 0', fontSize: 40, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.1 }}
+        style={{ margin: '6px 0 0', fontSize: 26, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.15 }}
       >
         主动恢复日
       </h2>
@@ -1091,11 +1129,17 @@ export default function Home(): JSX.Element {
   const [streakOpen, setStreakOpen] = useState(false);
   const [supplementOpen, setSupplementOpen] = useState(false);
   const [weightOpen, setWeightOpen] = useState(false);
+
   const spokenRef = useRef(false);
 
   // 课程解析优先级：今日选择 > 档案 bestVenue
   const state = getTodayState({ forceWorkout, profile, schedule, overrideVenue: venueToday }, cycle);
-  const isWorkout = state.type === 'workout';
+
+  /* 桌面小组件：今日关键数据变化时同步（v1.7） */
+  useEffect(() => {
+    void syncWidgetData(state);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.type, state?.doneToday]);  const isWorkout = state.type === 'workout';
   const firstLaunch = cycle.history.length === 0;
   const capability = getCapability(cycle);
 
@@ -1147,6 +1191,21 @@ export default function Home(): JSX.Element {
         }
       />
 
+      {/* v1.7 频率原则重排：每天用的在最前，隔三差五的往后 */}
+
+      {/* 版本更新导览（每版本首启一次） */}
+      <WhatsNewCard />
+
+      {/* ① 热量差大环（每天看） */}
+      <BurnCard />
+
+      {/* ② 顺手就办了（每天点） */}
+      <QuickEntries onSupplement={() => setSupplementOpen(true)} onWeight={() => setWeightOpen(true)} />
+
+      {/* ③ 日常小练（每天练） */}
+      <MiniSection />
+
+      {/* ④ 正式训练（隔三差五）：紧凑卡 */}
       {isWorkout && state.type === 'workout' ? (
         <WorkoutCard state={state} firstLaunch={firstLaunch} capability={capability} venueToday={venueToday} onVenueChange={setVenueToday} />
       ) : state.type === 'rest' ? (
@@ -1170,10 +1229,6 @@ export default function Home(): JSX.Element {
 
       <PlanStrip todayType={isWorkout ? 'workout' : 'rest'} schedule={schedule} />
 
-      <BurnCard />
-
-      <MiniSection />
-
       <CycleProgress
         currentLesson={cycle.nextWorkoutIndex}
         isRest={!isWorkout}
@@ -1183,8 +1238,6 @@ export default function Home(): JSX.Element {
       />
 
       {isWorkout ? <DepartureChecklist /> : null}
-
-      <QuickEntries onSupplement={() => setSupplementOpen(true)} onWeight={() => setWeightOpen(true)} />
 
       <StreakSheet open={streakOpen} onClose={() => setStreakOpen(false)} />
       <SupplementSheet open={supplementOpen} onClose={() => setSupplementOpen(false)} />

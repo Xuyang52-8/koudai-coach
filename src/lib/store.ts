@@ -42,7 +42,7 @@ function fullKey(name: string): string {
   return PREFIX + name;
 }
 
-function readKey<T>(name: string, fallback: T): T {
+export function readKey<T>(name: string, fallback: T): T {
   if (valueCache.has(name)) return valueCache.get(name) as T;
   let value = fallback;
   try {
@@ -55,7 +55,7 @@ function readKey<T>(name: string, fallback: T): T {
   return value;
 }
 
-function writeKey<T>(name: string, value: T): void {
+export function writeKey<T>(name: string, value: T): void {
   valueCache.set(name, value);
   try {
     localStorage.setItem(fullKey(name), JSON.stringify(value));
