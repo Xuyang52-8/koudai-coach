@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>口袋私教 · 复活包 v3</title>
+<style>
+  body { margin:0; background:#0A0A0B; color:#F5F5F4; font-family:-apple-system,"PingFang SC",sans-serif; }
+  .wrap { max-width:680px; margin:0 auto; padding:24px 20px 80px; }
+  .bar { position:sticky; top:0; background:#0A0A0B; padding:14px 0; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #262626; z-index:9; }
+  .bar b { color:#3FE1B1; font-size:15px; }
+  a.dl { background:#3FE1B1; color:#0A0A0B; text-decoration:none; padding:10px 18px; border-radius:6px; font-weight:700; font-size:14px; }
+  h1 { font-size:22px; } h2 { font-size:18px; color:#3FE1B1; margin-top:32px; } h3 { font-size:16px; }
+  p, li { font-size:14px; line-height:1.8; color:#D6D3D1; }
+  code { background:#1C1C1E; padding:2px 6px; border-radius:4px; color:#3FE1B1; font-size:13px; word-break:break-all; }
+  pre { background:#141414; border:1px solid #262626; border-radius:8px; padding:14px; overflow-x:auto; font-size:13px; line-height:1.7; }
+  blockquote { border-left:3px solid #3FE1B1; margin:12px 0; padding:4px 14px; color:#A8A29E; }
+  hr { border:none; border-top:1px solid #262626; margin:24px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar"><b>口袋私教 · 复活包 v3</b><a class="dl" href="#" id="dl">下载 .md</a></div>
+  <h1>《口袋私教》复活包 v3（2026-07-28 · 当前版本 v1.7.1）</h1>
+
+<p>&gt; 用途：在任何 AI 窗口复活这个项目的完整开发能力。配合《智能体班子》使用更佳。</p>
+<p>&gt; 含全部密钥，不要发到公开地方。</p>
+
+<h2>0. 复活咒语（新窗口第一句话，直接复制）</h2>
+
+<pre>
+这是我的健身 App《口袋私教》项目，我是所有者。项目现状和全部信息在下面，
+本地仓库在 /mnt/agents/output/app（没有就从 GitHub 克隆：git clone 
+https://Xuyang52-8:【已打码，完整版见私聊文件】@github.com/Xuyang52-8/koudai-coach.git app，
+注意是 main 分支）。
+我的工作方式：我说需求 → 你给方案 → 我说&quot;确认更新&quot;你才动手 → 改完构建 
+APK 传到 GitHub Release + 部署网页版到 gh-pages → 给我两个链接。
+打包流程严格按仓库 scripts/build-apk.md（含工具链重装命令和踩坑记录）。
+现在回复我：你已理解项目现状，待命。
+</pre>
+
+<h2>1. 当前状态（截至 v1.7.1）</h2>
+
+<li>线上：APK v1.7.1（GitHub Release）+ 网页版 v1.7.1（gh-pages）</li>
+<li>全部功能：训练排课（自由排/顺延/排队制）、循环陪练 2.0（准备态+短口令循环）、语速调节、</li>
+<p>  提醒自检+休息双保险、双向调节（降阶/进阶）+新手保护、器械档案、成长页（日历/力量/里程碑/体重线/上周战报）、</p>
+<p>  饮食（预算条+拍照识别+两套食谱+补剂卡）、跑步打卡（Health Connect+截图AI+手动）、热量差驾驶舱、</p>
+<p>  体重打卡、凯格尔三模式+大圆环、久坐提醒、每周总结通知、10动作AI分解图、激活码邀请制、桌面小组件2×4、</p>
+<p>  三主题（黑/白/羊皮纸）、数据导出导入</p>
+<li>83 项冒烟测试全绿：npx tsx scripts/*smoke.ts</li>
+
+<h2>2. 全部凭证（未脱敏）</h2>
+
+<li>GitHub：Xuyang52-8/koudai-coach，PAT <code>【已打码，完整版见私聊文件】</code></li>
+<p>  （main=源码，gh-pages=网页版，Releases=APK）</p>
+<li>网页版：https://xuyang52-8.github.io/koudai-coach/</li>
+<li>APK 下载页：https://github.com/Xuyang52-8/koudai-coach/releases/latest</li>
+<li>keystore：/mnt/agents/output/apk-signing/koudai.keystore，alias koudai，密码【已打码】（store/key 同），</li>
+<p>  SHA-256 指纹 67:F7:FC:FF:28:0D:44:75:57:F1:AE:2A:72:A6:53:F2:94:05:CD:0C:82:D9:08:C9:1C:8F:E2:5C:FC:50:94:7E</p>
+<p>  （发版必须 apksigner verify 核对，不一致绝不发给用户）</p>
+<li>GLM key（用户自己的，App 内拍照识别用）：【已打码】</li>
+<li>腾讯云 COS 已弃用（收费），不要再碰；桶删没删随缘</li>
+<li>另一个项目：人生系统面板 Xuyang52-8/life-panel（独立仓库，别串）</li>
+
+<h2>3. 技术红线（违反=生产事故）</h2>
+
+<p>1. tts.ts 操作 window.speechSynthesis 必须 hasWebSpeech() 守卫（v1.4 黑屏教训）</p>
+<p>2. 原生壳内禁注册 Service Worker（main.tsx 已处理）</p>
+<p>3. Capacitor 全家桶 8.4.2 对齐，Kotlin 2.2.20，app 模块已 apply kotlin-android</p>
+<p>4. Health Connect：connect-client 用 1.1.0-alpha12（新版要 compileSdk36），minSdk 26；</p>
+<p>   授权回调签名必须是 (PluginCall, ActivityResult)（v1.5 闪退教训）</p>
+<p>5. index.html 黑屏自救看门狗 #kd-rescue 不许删</p>
+<p>6. 签名指纹必须核对</p>
+<p>7. Gradle 构建：阿里云镜像已配好；沙箱 OOM 就加 <code>-x lintVitalRelease --no-daemon -Dorg.gradle.jvmargs=&quot;-Xmx1536m&quot;</code></p>
+<p>8. 激活码算法：FNV-1a(载荷+盐) 双端同构，改 license.ts 必须同步 scripts/gen-codes.py</p>
+
+<h2>4. 环境重建（沙箱 $HOME//tmp 每次清空，必跑）</h2>
+
+<p>见 scripts/build-apk.md 第 1 节：Node22(npmmirror) + JDK21(Corretto) + Android SDK35(腾讯镜像)。</p>
+<p>构建要拷到 /tmp 再跑（portal 文件系统会让 Gradle 报 MD5 错）：</p>
+<p>cp -a /mnt/agents/output/app /tmp/apkbuild/app → cd /tmp/apkbuild/app/android → sh gradlew assembleRelease</p>
+
+<h2>5. 工作方式约定</h2>
+
+<p>先讨论后动手；交付=APK+网页版两链接；用户不懂技术说大白话；按钮要大靠下圆；</p>
+<p>密钥只给&quot;发布员&quot;角色的窗口；分解图等 AI 生成内容先给 10 个试点确认效果再全量。</p>
+
+</div>
+<script>
+document.getElementById('dl').onclick = function(e) {
+  e.preventDefault();
+  const blob = new Blob([`# 《口袋私教》复活包 v3（2026-07-28 · 当前版本 v1.7.1）
+
+> 用途：在任何 AI 窗口复活这个项目的完整开发能力。配合《智能体班子》使用更佳。
+> 含全部密钥，不要发到公开地方。
+
+## 0. 复活咒语（新窗口第一句话，直接复制）
+
+\`\`\`
+这是我的健身 App《口袋私教》项目，我是所有者。项目现状和全部信息在下面，
+本地仓库在 /mnt/agents/output/app（没有就从 GitHub 克隆：git clone 
+https://Xuyang52-8:【已打码，完整版见私聊文件】@github.com/Xuyang52-8/koudai-coach.git app，
+注意是 main 分支）。
+我的工作方式：我说需求 → 你给方案 → 我说"确认更新"你才动手 → 改完构建 
+APK 传到 GitHub Release + 部署网页版到 gh-pages → 给我两个链接。
+打包流程严格按仓库 scripts/build-apk.md（含工具链重装命令和踩坑记录）。
+现在回复我：你已理解项目现状，待命。
+\`\`\`
+
+## 1. 当前状态（截至 v1.7.1）
+
+- 线上：APK v1.7.1（GitHub Release）+ 网页版 v1.7.1（gh-pages）
+- 全部功能：训练排课（自由排/顺延/排队制）、循环陪练 2.0（准备态+短口令循环）、语速调节、
+  提醒自检+休息双保险、双向调节（降阶/进阶）+新手保护、器械档案、成长页（日历/力量/里程碑/体重线/上周战报）、
+  饮食（预算条+拍照识别+两套食谱+补剂卡）、跑步打卡（Health Connect+截图AI+手动）、热量差驾驶舱、
+  体重打卡、凯格尔三模式+大圆环、久坐提醒、每周总结通知、10动作AI分解图、激活码邀请制、桌面小组件2×4、
+  三主题（黑/白/羊皮纸）、数据导出导入
+- 83 项冒烟测试全绿：npx tsx scripts/*smoke.ts
+
+## 2. 全部凭证（未脱敏）
+
+- GitHub：Xuyang52-8/koudai-coach，PAT \`【已打码，完整版见私聊文件】\`
+  （main=源码，gh-pages=网页版，Releases=APK）
+- 网页版：https://xuyang52-8.github.io/koudai-coach/
+- APK 下载页：https://github.com/Xuyang52-8/koudai-coach/releases/latest
+- keystore：/mnt/agents/output/apk-signing/koudai.keystore，alias koudai，密码【已打码】（store/key 同），
+  SHA-256 指纹 67:F7:FC:FF:28:0D:44:75:57:F1:AE:2A:72:A6:53:F2:94:05:CD:0C:82:D9:08:C9:1C:8F:E2:5C:FC:50:94:7E
+  （发版必须 apksigner verify 核对，不一致绝不发给用户）
+- GLM key（用户自己的，App 内拍照识别用）：【已打码】
+- 腾讯云 COS 已弃用（收费），不要再碰；桶删没删随缘
+- 另一个项目：人生系统面板 Xuyang52-8/life-panel（独立仓库，别串）
+
+## 3. 技术红线（违反=生产事故）
+
+1. tts.ts 操作 window.speechSynthesis 必须 hasWebSpeech() 守卫（v1.4 黑屏教训）
+2. 原生壳内禁注册 Service Worker（main.tsx 已处理）
+3. Capacitor 全家桶 8.4.2 对齐，Kotlin 2.2.20，app 模块已 apply kotlin-android
+4. Health Connect：connect-client 用 1.1.0-alpha12（新版要 compileSdk36），minSdk 26；
+   授权回调签名必须是 (PluginCall, ActivityResult)（v1.5 闪退教训）
+5. index.html 黑屏自救看门狗 #kd-rescue 不许删
+6. 签名指纹必须核对
+7. Gradle 构建：阿里云镜像已配好；沙箱 OOM 就加 \`-x lintVitalRelease --no-daemon -Dorg.gradle.jvmargs="-Xmx1536m"\`
+8. 激活码算法：FNV-1a(载荷+盐) 双端同构，改 license.ts 必须同步 scripts/gen-codes.py
+
+## 4. 环境重建（沙箱 \$HOME//tmp 每次清空，必跑）
+
+见 scripts/build-apk.md 第 1 节：Node22(npmmirror) + JDK21(Corretto) + Android SDK35(腾讯镜像)。
+构建要拷到 /tmp 再跑（portal 文件系统会让 Gradle 报 MD5 错）：
+cp -a /mnt/agents/output/app /tmp/apkbuild/app → cd /tmp/apkbuild/app/android → sh gradlew assembleRelease
+
+## 5. 工作方式约定
+
+先讨论后动手；交付=APK+网页版两链接；用户不懂技术说大白话；按钮要大靠下圆；
+密钥只给"发布员"角色的窗口；分解图等 AI 生成内容先给 10 个试点确认效果再全量。
+`], {type:'text/markdown;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '口袋私教-复活包-v3.md';
+  a.click();
+};
+</script>
+</body>
+</html>
